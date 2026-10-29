@@ -1,0 +1,1144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+<html b:css='false' b:defaultwidgetversion='2' b:layoutsVersion='3' b:responsive='true' expr:dir='data:blog.languageDirection' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<head>
+  <meta content='width=device-width, initial-scale=1, maximum-scale=1' name='viewport'/>
+  <title><data:view.title.escaped/></title>
+  <b:include data='blog' name='all-head-content'/>
+
+  <script type='text/javascript'>
+    //<![CDATA[
+    const path = window.location.pathname;
+    if (path === '/' || path.includes('/sessions')) {
+      document.documentElement.classList.add('app-mode');
+    } else {
+      document.documentElement.classList.add('blog-mode');
+    }
+    //]]>
+  </script>
+
+  <style>
+    /* INSTANT LAYOUT TOGGLES */
+    html.app-mode .main { display: none !important; }
+    html.app-mode body { background: #1a1a1a !important; overflow-y: auto; overflow-x: hidden; }
+    html.app-mode .site-header { background: rgba(252, 252, 252, 0.95) !important; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.1); }
+    html.app-mode .sessions-app-container { display: flex !important; }
+    
+    html.blog-mode .sessions-app-container { display: none !important; }
+    .sessions-app-container { display: none; } /* Default hide to prevent flashing */
+  </style>
+
+  <b:skin version='1.0.0'><![CDATA[
+    /* --- CSS RESET & VARIABLES --- */
+    :root {
+      --bg-color: #fcfcfc;
+      --text-color: #1a1a1a;
+      --accent-color: #333333;
+      --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; padding: 0; font-family: var(--font-main); background: var(--bg-color); color: var(--text-color); -webkit-font-smoothing: antialiased; }
+    a { text-decoration: none; color: var(--text-color); }
+    
+    /* --- TWO-TIER HEADER & SEARCH --- */
+    .site-header { display: flex; flex-direction: column; background: var(--bg-color); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid #eaeaea; transition: background 0.3s; }
+    .header-top { display: flex; justify-content: space-between; align-items: center; padding: 25px 50px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+    .site-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+    .header-search { display: flex; align-items: center; width: 100%; max-width: 320px; }
+    .header-search input { width: 100%; padding: 10px 15px; border: 1px solid #e0e0e0; border-right: none; border-radius: 4px 0 0 4px; font-size: 14px; outline: none; font-family: var(--font-main); background: #f9f9f9; }
+    .header-search button { padding: 10px 20px; background: var(--text-color); color: var(--bg-color); border: none; border-radius: 0 4px 4px 0; cursor: pointer; font-weight: 600; font-size: 14px; font-family: var(--font-main); }
+
+    .header-bottom { display: flex; justify-content: center; padding: 15px 50px; }
+    .site-nav { display: flex; gap: 30px; align-items: center; flex-wrap: wrap; justify-content: center; }
+    .site-nav a { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #555; transition: color 0.2s; }
+    .site-nav a:hover { color: #000; }
+    .timer-link { background: var(--text-color); color: var(--bg-color) !important; padding: 8px 16px; border-radius: 4px; }
+
+    /* --- HOMEPAGE GRID (DEPOSITORY) --- */
+    .status-header { text-align: center; padding: 40px 20px 0; font-size: 22px; font-weight: 600; color: #333; }
+    .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 30px; padding: 50px; max-width: 1600px; margin: 0 auto; min-height: 50vh; }
+    .video-card { position: relative; aspect-ratio: 16/9; overflow: hidden; border-radius: 8px; background: #eee; cursor: pointer; }
+    .video-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+    .video-card:hover img { transform: scale(1.05); }
+    .card-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); opacity: 0; transition: opacity 0.3s ease; display: flex; flex-direction: column; justify-content: flex-end; padding: 25px; }
+    .video-card:hover .card-overlay { opacity: 1; }
+    .card-tags { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+    .tag { background: rgba(255,255,255,0.2); color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; backdrop-filter: blur(4px); }
+    .card-title { color: #fff; font-size: 18px; font-weight: 600; margin: 0; }
+
+    /* --- STATIC PAGE LAYOUT --- */
+    .page-container { padding: 60px 20px; max-width: 800px; margin: 0 auto; min-height: 50vh; }
+    .page-container h1 { font-size: 36px; margin-bottom: 30px; letter-spacing: -0.5px; border-bottom: 2px solid #eaeaea; padding-bottom: 15px; }
+    .page-body { font-size: 16px; line-height: 1.8; color: #444; }
+
+    /* --- FIXED PAGINATION --- */
+    .blog-pager { text-align: center; padding: 20px 50px 60px; display: flex; justify-content: center; gap: 15px; }
+    .blog-pager a { padding: 12px 24px; background: var(--text-color); color: var(--bg-color); border-radius: 4px; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+    .blog-pager a:hover { background: #444; }
+
+    /* --- FOOTER --- */
+    .site-footer { position: relative; z-index: 10; background: #1a1a1a; color: #eeeeee; padding: 60px 50px 30px; margin-top: 0; border-top: 1px solid rgba(255,255,255,0.1); }
+    .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; max-width: 1200px; margin: 0 auto; }
+    .footer-col h4 { color: #ffffff; font-size: 16px; margin-bottom: 20px; text-transform: uppercase; }
+    .footer-links { list-style: none; padding: 0; margin: 0; }
+    .footer-links li { margin-bottom: 12px; }
+    .footer-links a { color: #bbbbbb; font-size: 14px; }
+    .footer-links a:hover { color: #ffffff; }
+    .footer-bottom { text-align: center; padding-top: 30px; margin-top: 40px; border-top: 1px solid #333; font-size: 12px; color: #777; }
+
+    /* --- NUCLEAR HIDE --- */
+    .widget, .sidebar, .post-footer, .comments, .fauxcolumn-outer { display: none !important; }
+    .widget.Blog, .site-header, .site-footer, .main { display: block !important; }
+
+    /* --- THEATER MODE --- */
+    .single-post-view { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+    .close-btn { position: absolute; top: 30px; right: 40px; color: #fff; font-size: 40px; cursor: pointer; z-index: 10000; }
+    .video-wrapper { width: 90%; max-width: 1400px; aspect-ratio: 16/9; position: relative; }
+    .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; border-radius: 8px; }
+
+    @media (max-width: 768px) {
+      .header-top { flex-direction: column; padding: 20px; text-align: center; }
+      .header-search { max-width: 100%; }
+      .grid-container { grid-template-columns: 1fr; padding: 20px; }
+      .site-footer { padding: 40px 20px; }
+    }
+    
+    /* --- SESSIONS APP STYLES --- */
+    .sessions-app-container { position: relative; width: 100%; min-height: calc(100vh - 140px); justify-content: center; align-items: center; font-family: var(--font-main); padding: 40px 20px; }
+    
+    .sessions-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #2c3e50; background-image: url('https://images.pexels.com/photos/1624496/pexels-photo-1624496.jpeg?auto=compress&cs=tinysrgb&w=1600'); background-size: cover; background-position: center; transition: background-image 0.5s ease; z-index: -2; }
+    .sessions-bg::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.35); z-index: -1; }
+    
+    .ui-glass-panel { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.2); padding: 30px; border-radius: 16px; width: 100%; max-width: 900px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); z-index: 5; margin-bottom: 40px; }
+    .widget-box { background: rgba(25, 25, 25, 0.6); color: white; padding: 25px; border-radius: 12px; }
+    .widget-box h3 { margin-top: 0; font-size: 18px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 8px; letter-spacing: 0.5px; }
+
+    .timer-widget { grid-column: span 2; text-align: center; }
+    .affirmation-text { font-size: 15px; font-style: italic; color: #ffeb3b; min-height: 22px; margin-bottom: 10px; font-weight: 500; transition: opacity 0.5s ease; opacity: 1; }
+    .time-display { font-size: 80px; font-weight: 800; letter-spacing: 2px; margin: 0 0 10px 0; font-family: monospace; }
+    
+    .timer-modes { display: flex; justify-content: center; align-items: center; gap: 5px; margin-bottom: 15px; flex-wrap: wrap; }
+    .timer-modes button, .timer-controls button, .bg-widget button { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; transition: 0.2s; font-family: var(--font-main); font-weight: 600;}
+    .timer-modes button:hover, .timer-controls button:hover, .bg-widget button:hover { background: rgba(255,255,255,0.3); }
+    .timer-modes button.settings-btn { padding: 8px 12px; font-size: 16px; border-radius: 50%; }
+    #startBtn { background: #4CAF50; border: none; font-weight: bold; }
+    
+    .timer-settings { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px; flex-direction: column; gap: 10px; }
+    .timer-settings label { display: flex; flex-direction: column; font-size: 12px; font-weight: 600; align-items: center; gap: 5px; color: #fff; }
+    .timer-settings input { width: 60px; padding: 5px; text-align: center; border: none; border-radius: 4px; outline: none; font-family: var(--font-main); font-weight: bold; color: #333; }
+    .timer-settings button { background: #fff; color: #333; padding: 8px 15px; font-weight: bold; border-radius: 4px; border: none; cursor: pointer; width: 100%; transition: 0.2s; }
+    .timer-settings button:hover { background: #eee; }
+
+    /* Task Widget */
+    .task-input { display: flex; gap: 5px; margin-bottom: 15px; }
+    .task-input select { background: rgba(255,255,255,0.9); border: none; border-radius: 4px; padding: 8px; font-weight: bold; color: #333; outline: none; }
+    .task-input input { flex: 1; padding: 8px; border-radius: 4px; border: none; background: rgba(255,255,255,0.9); outline: none; font-family: var(--font-main); color: #333; }
+    .task-input button { background: #fff; color: #333; font-weight: bold; border: none; border-radius: 4px; padding: 8px 15px; cursor: pointer; font-family: var(--font-main); }
+    
+    .task-list { list-style: none; padding: 0; margin: 0; max-height: 150px; overflow-y: auto; }
+    .task-list li { background: rgba(0,0,0,0.4); margin-bottom: 5px; padding: 10px 12px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; gap: 10px; }
+    .task-priority { font-weight: bold; color: #ffeb3b; width: 25px; display: inline-block; text-align: center; }
+    .task-text { flex: 1; word-break: break-word; }
+    .task-check { cursor: pointer; transform: scale(1.2); margin-left: 10px; }
+    .task-delete { background: none; border: none; color: #ff7777; font-weight: bold; cursor: pointer; font-size: 16px; padding: 0 5px; transition: color 0.2s; }
+    .task-delete:hover { color: #ff0000; }
+
+    /* Notepad Widget */
+    .notepad-widget textarea { width: 100%; height: 150px; background: rgba(255,255,255,0.9); border: none; border-radius: 4px; padding: 12px; font-family: var(--font-main); font-size: 14px; resize: vertical; outline: none; color: #333; }
+
+    /* Audio Widget */
+    .audio-widget select { width: 100%; padding: 10px; border-radius: 4px; border: none; background: rgba(255,255,255,0.9); margin-bottom: 15px; outline: none; font-family: var(--font-main); color: #333; font-weight: bold; }
+    .audio-controls { display: flex; align-items: center; gap: 15px; }
+    .audio-controls button { background: #fff; color: #333; font-weight: bold; border: none; border-radius: 4px; padding: 8px 15px; cursor: pointer; font-family: var(--font-main); }
+    
+    .bg-widget { display: flex; align-items: center; justify-content: center; }
+    .bg-widget button { width: 100%; padding: 15px; font-size: 16px; background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.3); font-weight: 600; }
+    
+    .mascot-container { position: absolute; bottom: 30px; right: 50px; z-index: 10; animation: float 6s ease-in-out infinite; }
+    .emoji-mascot { font-size: 80px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.4)); user-select: none; }
+    
+    @keyframes float {
+      0% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-15px) rotate(5deg); }
+      100% { transform: translateY(0px) rotate(0deg); }
+    }
+    
+    @media (max-width: 768px) {
+      .ui-glass-panel { grid-template-columns: 1fr; }
+      .timer-widget { grid-column: span 1; }
+      .mascot-container { display: none; }
+    }
+  ]]></b:skin>
+</head>
+
+<body>
+
+  <header class='site-header'>
+    <div class='header-top'>
+      <div class='site-title'><a href='/'>Learner&#39;s Landing</a></div>
+      <form action='/search' class='header-search' method='get'>
+        <input name='q' placeholder='Search study videos...' type='text'/>
+        <button type='submit'>Search</button>
+      </form>
+    </div>
+    <div class='header-bottom'>
+      <nav class='site-nav'>
+        <a href='/search'>Depository</a>
+        <a href='/search/label/Pomodoro'>Pomodoro</a>
+        <a href='/search/label/Ambience'>Ambience</a>
+        <a href='/search/label/ADHD'>ADHD</a>
+        <a href='/search/label/Meditation'>Meditation</a>
+        <a href='/search/label/Frequencies'>Frequencies</a>
+        <a class='timer-link' href='/'>Sessions</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class='sessions-app-container' id='sessionsApp'>
+
+    <div class='sessions-bg' id='sessionsBg'/>
+
+    <div class='ui-glass-panel'>
+      
+      <div class='widget-box timer-widget'>
+        <div class='timer-modes'>
+          <button onclick='applyPreset(&quot;pomo&quot;)'>Pomodoro</button>
+          <button onclick='applyPreset(&quot;short&quot;)'>Short Break</button>
+          <button onclick='applyPreset(&quot;long&quot;)'>Long Break</button>
+          <button class='settings-btn' onclick='toggleSettings()' title='Timer Settings'>&#9881;&#65039;</button>
+        </div>
+        
+        <div class='timer-settings' id='timerSettings' style='display: none;'>
+          <div style='display:flex; gap:15px; justify-content:center; flex-wrap:wrap;'>
+            <label>Pomodoro (min) <input id='pomoInput' max='120' min='1' type='number' value='25'/></label>
+            <label>Short Break (min) <input id='shortInput' max='30' min='1' type='number' value='5'/></label>
+            <label>Long Break (min) <input id='longInput' max='60' min='1' type='number' value='15'/></label>
+          </div>
+          <div style='display:flex; gap:20px; justify-content:center; align-items:center; margin-top:10px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.2);'>
+            <label style='flex-direction:row; cursor:pointer;'>
+              <input id='autoFlowToggle' style='width:auto;' type='checkbox'/> Auto-Flow
+            </label>
+            <label style='flex-direction:row;'>Alarm:
+              <select id='alarmSelect' style='padding:5px; border-radius:4px; font-family:var(--font-main); color:#333;'>
+                <option value='chime'>Soft Chime</option>
+                <option value='beep'>Digital Beep</option>
+                <option value='none'>None</option>
+              </select>
+            </label>
+          </div>
+          <button onclick='saveTimerSettings()' style='margin-top:10px;'>Save Settings</button>
+        </div>
+
+        <div class='affirmation-text' id='affirmationDisplay'>You&#39;ve got this!</div>
+        <div class='time-display' id='timeDisplay'>25:00</div>
+        
+        <div class='timer-controls'>
+          <button id='startBtn' onclick='toggleTimer()'>Start</button>
+          <button onclick='resetTimer()'>Reset</button>
+        </div>
+        <div class='progress-tracker' style='margin-top:15px; font-size: 14px; opacity: 0.8;'>Sessions completed: <span id='sessionCount'>0</span></div>
+      </div>
+
+      <div class='widget-box todo-widget'>
+        <h3>Tasks</h3>
+        <div class='task-input'>
+          <select id='prioritySelect'>
+            <option value='!'>!</option>
+            <option value='!!'>!!</option>
+            <option value='!!!'>!!!</option>
+          </select>
+          <input id='newTaskInput' placeholder='Add a new task...' type='text'/>
+          <button onclick='addTask()'>Add</button>
+        </div>
+        <ul class='task-list' id='taskList'/>
+      </div>
+
+      <div class='widget-box notepad-widget'>
+        <h3>Notes</h3>
+        <textarea id='sessionNotes' oninput='saveNotes()' placeholder='Jot down your thoughts, summaries, or reminders here...'/>
+      </div>
+
+      <div class='widget-box audio-widget'>
+        <h3>Ambience</h3>
+        <select id='audioSelect' onchange='changeAudio()'>
+          <option value='https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg'>Rainstorm</option>
+          <option value='https://actions.google.com/sounds/v1/water/waves_crashing_on_rock_beach.ogg'>Ocean Waves</option>
+        </select>
+        <div class='audio-controls'>
+          <button onclick='toggleAudio()'>Play/Pause</button>
+          <input id='volumeControl' max='1' min='0' onchange='updateVolume()' step='0.1' type='range' value='0.5'/>
+        </div>
+        <audio id='ambientPlayer' loop='loop'/>
+      </div>
+
+      <div class='widget-box bg-widget'>
+        <button onclick='changeBackground()'>Change Scenery</button>
+      </div>
+
+    </div>
+
+    <div class='mascot-container'>
+      <div class='emoji-mascot'>🦎</div>
+    </div>
+
+  </div>
+  <b:section class='main' id='main' showaddelement='yes'>
+    <b:widget id='Blog1' locked='true' title='Blog Posts' type='Blog' version='2' visible='true'>
+      <b:widget-settings>
+        <b:widget-setting name='showDateHeader'>false</b:widget-setting>
+        <b:widget-setting name='showShareButtons'>true</b:widget-setting>
+        <b:widget-setting name='showCommentLink'>true</b:widget-setting>
+        <b:widget-setting name='showAuthor'>false</b:widget-setting>
+        <b:widget-setting name='style.unittype'>TextAndImage</b:widget-setting>
+        <b:widget-setting name='reactionsLabel'/>
+        <b:widget-setting name='showAuthorProfile'>false</b:widget-setting>
+        <b:widget-setting name='style.layout'>1x1</b:widget-setting>
+        <b:widget-setting name='showLabels'>true</b:widget-setting>
+        <b:widget-setting name='showLocation'>true</b:widget-setting>
+        <b:widget-setting name='postLabelsLabel'/>
+        <b:widget-setting name='showTimestamp'>true</b:widget-setting>
+        <b:widget-setting name='postsPerAd'>2</b:widget-setting>
+        <b:widget-setting name='showBacklinks'>false</b:widget-setting>
+        <b:widget-setting name='showInlineAds'>true</b:widget-setting>
+        <b:widget-setting name='showReactions'>false</b:widget-setting>
+      </b:widget-settings>
+      <b:includable id='main'>
+        
+        <b:if cond='data:view.isSearch'>
+          <div class='status-header'>
+            <b:if cond='data:view.search.query'>Results for: &quot;<data:view.search.query.escaped/>&quot;</b:if>
+            <b:if cond='data:view.search.label'>Videos tagged: &quot;<data:view.search.label.escaped/>&quot;</b:if>
+            <b:if cond='!data:view.search.query and !data:view.search.label'>Video Depository</b:if>
+          </div>
+        </b:if>
+
+        <b:if cond='data:view.isMultipleItems'>
+          <div class='grid-container'>
+            <b:loop values='data:posts' var='post'>
+              <div class='video-card'>
+                <a expr:href='data:post.url'>
+                  <b:if cond='data:post.featuredImage'><img expr:src='data:post.featuredImage'/><b:else/><img src='https://via.placeholder.com/640x360/eee/333?text=Learners+Landing'/></b:if>
+                  <div class='card-overlay'>
+                    <div class='card-tags'><b:loop values='data:post.labels' var='label'><span class='tag'><data:label.name/></span></b:loop></div>
+                    <h3 class='card-title'><data:post.title/></h3>
+                  </div>
+                </a>
+              </div>
+            </b:loop>
+          </div>
+          <b:include name='postPagination'/>
+        </b:if>
+
+        <b:if cond='data:view.isPost'>
+          <b:loop values='data:posts' var='post'>
+            <div class='single-post-view'>
+              <a class='close-btn' href='/search'>&amp;times;</a>
+              <div class='video-wrapper'><data:post.body/></div>
+            </div>
+          </b:loop>
+          <script type='text/javascript'>
+          //<![CDATA[
+            document.addEventListener("DOMContentLoaded", function() {
+              var iframes = document.querySelectorAll(".video-wrapper iframe");
+              iframes.forEach(function(iframe) {
+                var src = iframe.getAttribute("src");
+                if (src && src.indexOf("youtube.com") !== -1 && src.indexOf("autoplay=1") === -1) {
+                  var separator = src.indexOf("?") !== -1 ? "&" : "?";
+                  iframe.setAttribute("src", src + separator + "autoplay=1");
+                }
+              });
+            });
+          //]]>
+          </script>
+        </b:if>
+
+        <b:if cond='data:view.isPage'>
+          <div class='page-container'>
+            <b:loop values='data:posts' var='post'>
+              <h1><data:post.title/></h1>
+              <div class='page-body'><data:post.body/></div>
+            </b:loop>
+          </div>
+        </b:if>
+
+      </b:includable>
+      <b:includable id='aboutPostAuthor'/>
+      <b:includable id='addComments'/>
+      <b:includable id='commentAuthorAvatar'/>
+      <b:includable id='commentDeleteIcon'/>
+      <b:includable id='commentForm'/>
+      <b:includable id='commentFormIframeSrc'/>
+      <b:includable id='commentItem'/>
+      <b:includable id='commentList'/>
+      <b:includable id='commentPicker'/>
+      <b:includable id='comments'/>
+      <b:includable id='commentsTitle'/>
+      <b:includable id='defaultAdSense'/>
+      <b:includable id='feedLinks'/>
+      <b:includable id='feedLinksBody'/>
+      <b:includable id='homePageLink'/>
+      <b:includable id='iframeComments'/>
+      <b:includable id='inlineAd'/>
+      <b:includable id='manageComments'/>
+      <b:includable id='nextPageLink'/>
+      <b:includable id='post'/>
+      <b:includable id='postBody'/>
+      <b:includable id='postBodySnippet'/>
+      <b:includable id='postCommentsAndAd'/>
+      <b:includable id='postCommentsLink'/>
+      <b:includable id='postFooter'/>
+      <b:includable id='postFooterAuthorProfile'/>
+      <b:includable id='postHeader'/>
+      <b:includable id='postMeta'/>
+      <b:includable id='postPagination'>
+        <div class='blog-pager' id='blog-pager'>
+          <b:if cond='data:newerPageUrl'>
+            <b:if cond='data:newerPageUrl == data:blog.homepageUrl'>
+              <a class='newer-link' href='/search'>Newer Videos</a>
+            <b:else/>
+              <a class='newer-link' expr:href='data:newerPageUrl'>Newer Videos</a>
+            </b:if>
+          </b:if>
+          <b:if cond='data:olderPageUrl'>
+            <a class='older-link' expr:href='data:olderPageUrl'>Older Videos</a>
+          </b:if>
+        </div>
+      </b:includable>
+      <b:includable id='postTitle'/>
+      <b:includable id='previousPageLink'/>
+      <b:includable id='status-message'/>
+      <b:includable id='threadedCommentForm'/>
+      <b:includable id='threadedCommentJs'/>
+      <b:includable id='threadedComments'/>
+      <b:includable id='tooltipCss'>
+  <!-- LINT.IfChange -->
+  <style>
+    .post-body a.b-tooltip-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    .post-body a.b-tooltip-container .b-tooltip {
+      display: block !important;
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translate(-20%, 1px);
+      visibility: hidden;
+      opacity: 0;
+      z-index: 1;
+      transition: opacity 0.2s ease-in-out;
+    }
+
+    .post-body a.b-tooltip-container .b-tooltip iframe {
+      width: 200px;
+      height: 198px;
+      max-width: none;
+      border: none;
+      border-radius: 20px;
+      box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (hover: hover) {
+      .post-body a.b-tooltip-container:hover .b-tooltip {
+        visibility: visible;
+        opacity: 1;
+      }
+    }
+  </style>
+  <!-- LINT.ThenChange(//depot/google3/java/com/google/blogger/b2/layouts/widgets/v2-style.css) -->
+</b:includable>
+    </b:widget>
+    <b:widget id='Header1' locked='false' title='Learner&apos;s Landing (Header)' type='Header' visible='true'>
+      <b:widget-settings>
+        <b:widget-setting name='displayUrl'/>
+        <b:widget-setting name='displayHeight'>0</b:widget-setting>
+        <b:widget-setting name='sectionWidth'>-1</b:widget-setting>
+        <b:widget-setting name='useImage'>false</b:widget-setting>
+        <b:widget-setting name='shrinkToFit'>false</b:widget-setting>
+        <b:widget-setting name='imagePlacement'>BEHIND</b:widget-setting>
+        <b:widget-setting name='displayWidth'>0</b:widget-setting>
+      </b:widget-settings>
+      <b:includable id='main' var='this'>
+    <div class='header-widget'>
+      <b:include cond='data:imagePlacement in {&quot;REPLACE&quot;, &quot;BEFORE_DESCRIPTION&quot;}' name='image'/>
+      <b:include cond='data:imagePlacement not in {&quot;REPLACE&quot;, &quot;BEFORE_DESCRIPTION&quot;}' name='title'/>
+      <b:include cond='data:imagePlacement != &quot;REPLACE&quot;' name='description'/>
+    </div>
+    <b:include cond='data:imagePlacement == &quot;BEHIND&quot;' name='behindImageStyle'/>
+  </b:includable>
+      <b:includable id='behindImageStyle'>
+    <b:if cond='data:sourceUrl'>
+      <b:include cond='data:this.image' data='{                    image: data:this.image,                    selector: &quot;.header-widget&quot;                  }' name='responsiveImageStyle'/>
+      <style type='text/css'>
+        .header-widget {
+          background-position: <data:blog.locale.languageAlignment/>;
+          background-repeat: no-repeat;
+          background-size: cover;
+        }
+      </style>
+    </b:if>
+  </b:includable>
+      <b:includable id='description'>
+    <p>
+      <data:this.description/>
+    </p>
+  </b:includable>
+      <b:includable id='image'>
+    <a class='header-image-wrapper' expr:href='data:blog.homepageUrl'>
+      <b:include data='{                                                 image: data:image,                                                 altText: data:blog.title.escaped,                                                 originalWidth: data:width,                                                 originalHeight: data:height                                               }' name='responsiveImage'/>
+    </a>
+  </b:includable>
+      <b:includable id='title'>
+    <h1>
+      <b:tag cond='data:view.url != data:blog.homepageUrl' expr:href='data:blog.homepageUrl' name='a'>
+        <data:title/>
+      </b:tag>
+    </h1>
+  </b:includable>
+    </b:widget>
+    <b:widget id='BlogSearch1' locked='false' title='Search This Blog' type='BlogSearch' visible='true'>
+      <b:includable id='main'>
+  <b:include name='widget-title'/>
+  <b:include name='content'/>
+</b:includable>
+      <b:includable id='content'>
+  <div class='widget-content' role='search'>
+    <b:include name='searchForm'/>
+  </div>
+</b:includable>
+      <b:includable id='searchForm'>
+  <form expr:action='data:blog.searchUrl'>
+    <b:attr cond='not data:view.isPreview' name='target' value='_top'/>
+    <b:include name='urlParamsAsFormInput'/>
+    <div class='search-input'>
+      <input autocomplete='off' expr:aria-label='data:messages.searchThisBlog' expr:placeholder='data:messages.searchThisBlog' expr:value='data:view.isSearch ? data:view.search.query.escaped : &quot;&quot;' name='q'/>
+    </div>
+    <b:include name='searchSubmit'/>
+  </form>
+</b:includable>
+      <b:includable id='searchSubmit'>
+  <input class='search-action' expr:value='data:messages.search.escaped' type='submit'/>
+</b:includable>
+    </b:widget>
+    <b:widget id='AdSense1' locked='false' title='' type='AdSense' visible='true'>
+      <b:includable id='main'>
+  <div class='widget-content'>
+    <b:if cond='data:adCode'>
+      <data:adCode/>
+    <b:else/>
+      <b:include name='defaultAdUnit'/>
+    </b:if>
+  </div>
+</b:includable>
+    </b:widget>
+    <b:widget id='AdSense2' locked='false' title='' type='AdSense' visible='true'>
+      <b:includable id='main'>
+  <div class='widget-content'>
+    <b:if cond='data:adCode'>
+      <data:adCode/>
+    <b:else/>
+      <b:include name='defaultAdUnit'/>
+    </b:if>
+  </div>
+</b:includable>
+    </b:widget>
+    <b:widget id='BlogArchive1' locked='false' title='' type='BlogArchive' visible='true'>
+      <b:widget-settings>
+        <b:widget-setting name='showStyle'>FLAT</b:widget-setting>
+        <b:widget-setting name='yearPattern'>yyyy</b:widget-setting>
+        <b:widget-setting name='showWeekEnd'>true</b:widget-setting>
+        <b:widget-setting name='monthPattern'>MMMM yyyy</b:widget-setting>
+        <b:widget-setting name='dayPattern'>MMM dd</b:widget-setting>
+        <b:widget-setting name='weekPattern'>MM/dd</b:widget-setting>
+        <b:widget-setting name='chronological'>false</b:widget-setting>
+        <b:widget-setting name='showPosts'>true</b:widget-setting>
+        <b:widget-setting name='frequency'>MONTHLY</b:widget-setting>
+      </b:widget-settings>
+      <b:includable id='main' var='this'>
+  <b:include name='widget-title'/>
+  <b:include name='content'/>
+</b:includable>
+      <b:includable id='content'>
+  <div class='widget-content'>
+    <div id='ArchiveList'>
+      <div expr:id='data:widget.instanceId + &quot;_ArchiveList&quot;'>
+        <b:include cond='data:this.style == &quot;HIERARCHY&quot;' name='hierarchy'/>
+        <b:include cond='data:this.style in {&quot;FLAT&quot;, &quot;MENU&quot;}' name='flat'/>
+      </div>
+    </div>
+  </div>
+</b:includable>
+      <b:includable id='flat'>
+  <ul class='flat'>
+    <b:loop values='data:data' var='i'>
+      <li class='archivedate'>
+        <a expr:href='data:i.url'>
+          <data:i.name/><span class='post-count'><data:i.post-count/></span>
+        </a>
+      </li>
+    </b:loop>
+  </ul>
+</b:includable>
+      <b:includable id='hierarchy'>
+  <b:include data='data' name='interval'/>
+</b:includable>
+      <b:includable id='interval' var='intervals'>
+  <ul class='hierarchy'>
+    <b:loop values='data:intervals' var='interval'>
+      <li class='archivedate'>
+        <div class='hierarchy-title'>
+          <a class='post-count-link' expr:href='data:interval.url'>
+            <data:interval.name/>
+            <span class='post-count'><data:interval.post-count/></span>
+          </a>
+        </div>
+        <div class='hierarchy-content'>
+          <b:include cond='data:interval.data' data='interval.data' name='interval'/>
+          <b:include cond='data:interval.posts' data='interval.posts' name='posts'/>
+        </div>
+      </li>
+    </b:loop>
+  </ul>
+</b:includable>
+      <b:includable id='posts' var='posts'>
+  <ul class='posts hierarchy'>
+    <b:loop values='data:posts' var='post'>
+      <li>
+        <a expr:href='data:post.url'><data:post.title/></a>
+      </li>
+    </b:loop>
+  </ul>
+</b:includable>
+    </b:widget>
+    <b:widget id='Attribution1' locked='false' title='' type='Attribution' visible='true'>
+      <b:widget-settings>
+        <b:widget-setting name='copyright'/>
+      </b:widget-settings>
+      <b:includable id='main' var='this'>
+  <div class='widget-content'>
+    <div class='blogger'>
+      <a expr:href='data:bloggerUrl' rel='nofollow'>
+        <b:include name='flatBloggerIcon'/>
+        <b:message name='messages.poweredByBlogger'/>
+      </a>
+    </div>
+
+    <b:if cond='data:imageAuthor'>
+      <div class='image-attribution'>
+        <b:if cond='data:imageAuthor.url'>
+          <b:message name='messages.templateImagesByLink'>
+            <b:param expr:value='data:imageAuthor.url'/>
+            <b:param expr:value='data:imageAuthor.name'/>
+          </b:message>
+        <b:else/>
+          <b:message name='messages.templateImagesBy'>
+            <b:param expr:value='data:imageAuthor.name'/>
+          </b:message>
+        </b:if>
+      </div>
+    </b:if>
+
+    <b:if cond='data:copyright != &quot;&quot;'>
+      <div class='copyright'><data:copyright/></div>
+    </b:if>
+  </div>
+</b:includable>
+    </b:widget>
+    <b:widget id='Label1' locked='false' title='Labels' type='Label' visible='true'>
+      <b:widget-settings>
+        <b:widget-setting name='sorting'>ALPHA</b:widget-setting>
+        <b:widget-setting name='display'>LIST</b:widget-setting>
+        <b:widget-setting name='selectedLabelsList'/>
+        <b:widget-setting name='showType'>ALL</b:widget-setting>
+        <b:widget-setting name='showFreqNumbers'>false</b:widget-setting>
+      </b:widget-settings>
+      <b:includable id='main' var='this'>
+  <b:include name='widget-title'/>
+  <b:include name='content'/>
+</b:includable>
+      <b:includable id='cloud'>
+  <b:loop values='data:labels' var='label'>
+    <span class='label-size'>
+      <b:class expr:name='&quot;label-size-&quot; + data:label.cssSize'/>
+      <a class='label-name' expr:href='data:label.url'>
+        <data:label.name/>
+        <b:if cond='data:this.showFreqNumbers'>
+          <span class='label-count'><data:label.count/></span>
+        </b:if>
+      </a>
+    </span>
+  </b:loop>
+</b:includable>
+      <b:includable id='content'>
+  <div class='widget-content'>
+    <b:class expr:name='data:this.display + &quot;-label-widget-content&quot;'/>
+    <b:include cond='data:this.display == &quot;list&quot;' name='list'/>
+    <b:include cond='data:this.display == &quot;cloud&quot;' name='cloud'/>
+  </div>
+</b:includable>
+      <b:includable id='list'>
+  <ul>
+    <b:loop values='data:labels' var='label'>
+      <li>
+        <a class='label-name' expr:href='data:label.url'>
+          <data:label.name/>
+          <b:if cond='data:this.showFreqNumbers'>
+            <span class='label-count'><data:label.count/></span>
+          </b:if>
+        </a>
+      </li>
+    </b:loop>
+  </ul>
+</b:includable>
+    </b:widget>
+    <b:widget id='ReportAbuse1' locked='false' title='' type='ReportAbuse' visible='true'>
+      <b:includable id='main'>
+  <b:include name='reportAbuse'/>
+</b:includable>
+    </b:widget>
+    <b:widget cond='data:posts any (p =&gt; p.id != data:view.postId)' id='PopularPosts1' locked='false' title='' type='PopularPosts' visible='true'>
+      <b:widget-settings>
+        <b:widget-setting name='numItemsToShow'>3</b:widget-setting>
+        <b:widget-setting name='showThumbnails'>true</b:widget-setting>
+        <b:widget-setting name='showSnippets'>true</b:widget-setting>
+        <b:widget-setting name='timeRange'>LAST_YEAR</b:widget-setting>
+      </b:widget-settings>
+      <b:includable id='main' var='this'>
+  <b:include name='widget-title'/>
+  <div class='widget-content'>
+    <b:include name='snippetedPosts'/>
+  </div>
+</b:includable>
+    </b:widget>
+    <b:widget id='PageList1' locked='false' title='' type='PageList' visible='false'>
+      <b:widget-settings>
+        <b:widget-setting name='pageListJson'><![CDATA[{"home":{"href":"http://learnerslanding.blogspot.com/","position":0,"title":"Home"}}]]></b:widget-setting>
+        <b:widget-setting name='homeTitle'>Home</b:widget-setting>
+      </b:widget-settings>
+      <b:includable id='main'>
+  <b:include name='widget-title'/>
+  <b:include name='content'/>
+</b:includable>
+      <b:includable id='content'>
+  <div class='widget-content'>
+    <b:include name='pageList'/>
+  </div>
+</b:includable>
+      <b:includable id='overflowButton'>
+  <b:include name='verticalMoreIcon'/>
+</b:includable>
+      <b:includable id='overflowablePageList'>
+  <div class='overflowable-container'>
+    <div class='overflowable-contents'>
+      <div class='container'>
+        <b:with value='true' var='overflow'>
+        <b:with value='&quot;tabs&quot;' var='pageListClass'>
+          <b:include name='pageList'/>
+        </b:with>
+        </b:with>
+      </div>
+    </div>
+    <div class='overflow-button hidden'>
+      <b:include name='overflowButton'/>
+    </div>
+  </div>
+</b:includable>
+      <b:includable id='pageLink'>
+  <li>
+    <b:class cond='data:overflow' name='overflowable-item'/>
+    <b:class cond='data:link.isCurrentPage' name='selected'/>
+
+    <a expr:href='data:link.href'><data:link.title/></a>
+  </li>
+</b:includable>
+      <b:includable id='pageList'>
+  <ul>
+    <b:class cond='data:pageListClass' expr:name='data:pageListClass'/>
+    <b:loop values='data:links' var='link'>
+      <b:include name='pageLink'/>
+    </b:loop>
+  </ul>
+</b:includable>
+    </b:widget>
+    <b:widget id='Profile1' locked='false' title='About Me' type='Profile' visible='true'>
+      <b:widget-settings>
+        <b:widget-setting name='showaboutme'>true</b:widget-setting>
+        <b:widget-setting name='showlocation'>false</b:widget-setting>
+      </b:widget-settings>
+      <b:includable id='main' var='this'>
+  <b:include name='widget-title'/>
+  <b:include name='content'/>
+</b:includable>
+      <b:includable id='authorProfileImage'>
+  <img class='profile-img' expr:alt='data:messages.myPhoto' expr:height='data:authorPhoto.height' expr:src='data:authorPhoto.image' expr:width='data:authorPhoto.width'/>
+</b:includable>
+      <b:includable id='content'>
+  <b:if cond='data:team'>
+    <div class='widget-content team'>
+      <b:include name='teamProfile'/>
+    </div>
+  <b:else/>
+    <div class='widget-content individual'>
+      <b:include name='userProfile'/>
+    </div>
+  </b:if>
+</b:includable>
+      <b:includable id='defaultProfileImage'>
+  <div class='default-avatar'/>
+</b:includable>
+      <b:includable id='profileImage'>
+  <b:if cond='data:authorPhoto.image'>
+    <b:include name='authorProfileImage'/>
+  <b:else/>
+    <b:include name='defaultProfileImage'/>
+  </b:if>
+</b:includable>
+      <b:includable id='teamProfile'>
+  <ul>
+    <b:loop values='data:authors' var='author'>
+      <li>
+        <div class='team-member'>
+          <b:include data='author' name='teamProfileLink'/>
+        </div>
+      </li>
+    </b:loop>
+  </ul>
+</b:includable>
+      <b:includable id='teamProfileLink'>
+  <a class='profile-link g-profile' expr:href='data:userUrl' rel='nofollow'>
+    <b:include name='profileImage'/>
+    <span class='profile-name'><data:display-name/></span>
+  </a>
+</b:includable>
+      <b:includable id='userLocation'>
+  <dd class='profile-data location'><data:location/></dd>
+</b:includable>
+      <b:includable id='userProfile'>
+  <b:include name='userProfileImage'/>
+  <b:include name='userProfileInfo'/>
+</b:includable>
+      <b:includable id='userProfileData'>
+  <dt class='profile-data'>
+    <a class='profile-link g-profile' expr:href='data:userUrl' rel='author nofollow'>
+      <data:displayname/>
+    </a>
+  </dt>
+</b:includable>
+      <b:includable id='userProfileImage'>
+  <a expr:href='data:userUrl' rel='nofollow'>
+    <b:include name='profileImage'/>
+  </a>
+</b:includable>
+      <b:includable id='userProfileInfo'>
+  <div class='profile-info'>
+    <dl class='profile-datablock'>
+      <b:class cond='data:showlocation and data:location != &quot;&quot;' name='has-location'/>
+
+      <b:include name='userProfileData'/>
+      <b:include cond='data:showlocation and data:location != &quot;&quot;' name='userLocation'/>
+      <b:include cond='data:aboutme != &quot;&quot;' name='userProfileText'/>
+    </dl>
+    <b:include name='viewProfileLink'/>
+  </div>
+</b:includable>
+      <b:includable id='userProfileText'>
+  <dd class='profile-textblock'>
+    <data:aboutme/>
+  </dd>
+</b:includable>
+      <b:includable id='viewProfileLink'>
+  <a class='profile-link' expr:href='data:userUrl' rel='author nofollow'>
+    <data:messages.viewMyCompleteProfile/>
+  </a>
+</b:includable>
+    </b:widget>
+    <b:widget id='FeaturedPost1' locked='false' title='' type='FeaturedPost' visible='true'>
+      <b:widget-settings>
+        <b:widget-setting name='showSnippet'>false</b:widget-setting>
+        <b:widget-setting name='showPostTitle'>true</b:widget-setting>
+        <b:widget-setting name='showFirstImage'>true</b:widget-setting>
+        <b:widget-setting name='useMostRecentPost'>true</b:widget-setting>
+      </b:widget-settings>
+      <b:includable id='main' var='this'>
+  <b:include name='widget-title'/>
+  <div class='widget-content'>
+    <b:include name='snippetedPosts'/>
+  </div>
+</b:includable>
+    </b:widget>
+  </b:section>
+
+  <footer class='site-footer'>
+    <div class='footer-grid'>
+      <div class='footer-col'>
+        <h4>About</h4>
+        <p>Learner&#39;s Landing is your go-to place for focus. A curated collection of the best study videos, ambience, and tools.</p>
+      </div>
+      <div class='footer-col'>
+        <h4>Tags</h4>
+        <ul class='footer-links'>
+          <li><a href='/search/label/Pomodoro'>Pomodoro</a></li>
+          <li><a href='/search/label/Ambience'>Ambience</a></li>
+          <li><a href='/search/label/ADHD'>ADHD</a></li>
+          <li><a href='/search/label/Meditation'>Meditation</a></li>
+          <li><a href='/search/label/Frequencies'>Frequencies</a></li>
+        </ul>
+      </div>
+      <div class='footer-col'>
+        <h4>Legal &amp; Pages</h4>
+        <ul class='footer-links'>
+          <li><a href='/p/about.html'>About Us</a></li>
+          <li><a href='/p/privacy-policy.html'>Privacy Policy</a></li>
+          <li><a href='/p/terms.html'>Terms of Service</a></li>
+          <li><a href='/p/contact.html'>Contact</a></li>
+        </ul>
+      </div>
+      <div class='footer-col'>
+        <h4>Check Out</h4>
+        <ul class='footer-links'>
+          <li><a href='https://minigamesplanet.blogspot.com/' rel='noopener noreferrer' target='_blank'>Mini Games Planet</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class='footer-bottom'>&amp;copy; 2026 Learner&#39;s Landing. All rights reserved.</div>
+  </footer>
+
+  <script>
+  //<![CDATA[
+    if(document.getElementById('sessionsApp')) {
+      
+      // Load Settings from Memory
+      let pomoDuration = parseInt(localStorage.getItem('ll_pomo')) || 25;
+      let shortDuration = parseInt(localStorage.getItem('ll_short')) || 5;
+      let longDuration = parseInt(localStorage.getItem('ll_long')) || 15;
+      let isAutoFlow = localStorage.getItem('ll_auto') === 'true';
+      let currentAlarm = localStorage.getItem('ll_alarm') || 'chime';
+      
+      // Initialize Inputs
+      document.getElementById('pomoInput').value = pomoDuration;
+      document.getElementById('shortInput').value = shortDuration;
+      document.getElementById('longInput').value = longDuration;
+      document.getElementById('autoFlowToggle').checked = isAutoFlow;
+      document.getElementById('alarmSelect').value = currentAlarm;
+
+      let currentPreset = "pomo";
+      let timerInterval;
+      let timeLeft = pomoDuration * 60;
+      let isRunning = false;
+      let sessionsCompleted = 0;
+
+      function updateDisplay() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        document.getElementById('timeDisplay').innerText =
+          `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      }
+
+      function applyPreset(type) {
+        currentPreset = type;
+        clearInterval(timerInterval);
+        isRunning = false;
+        document.getElementById('startBtn').innerText = 'Start';
+        
+        if(type === 'pomo') timeLeft = pomoDuration * 60;
+        if(type === 'short') timeLeft = shortDuration * 60;
+        if(type === 'long') timeLeft = longDuration * 60;
+        
+        updateDisplay();
+      }
+
+      // NATIVE WEB AUDIO ALARMS
+      function playAlarm() {
+        if(currentAlarm === 'none') return;
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        if(currentAlarm === 'chime') {
+          const osc1 = ctx.createOscillator();
+          const osc2 = ctx.createOscillator();
+          const gainNode = ctx.createGain();
+          osc1.connect(gainNode);
+          osc2.connect(gainNode);
+          gainNode.connect(ctx.destination);
+          
+          osc1.type = 'sine'; osc2.type = 'sine';
+          osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
+          osc2.frequency.setValueAtTime(659.25, ctx.currentTime);
+          
+          gainNode.gain.setValueAtTime(0, ctx.currentTime);
+          gainNode.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.1);
+          gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2);
+          
+          osc1.start(ctx.currentTime); osc2.start(ctx.currentTime);
+          osc1.stop(ctx.currentTime + 2.5); osc2.stop(ctx.currentTime + 2.5);
+        } else if (currentAlarm === 'beep') {
+          let startTime = ctx.currentTime;
+          for(let i=0; i<3; i++) {
+            const osc = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(800, startTime);
+            gainNode.gain.setValueAtTime(0.1, startTime);
+            gainNode.gain.setValueAtTime(0, startTime + 0.15);
+            osc.start(startTime);
+            osc.stop(startTime + 0.15);
+            startTime += 0.25;
+          }
+        }
+      }
+
+      function toggleTimer() {
+        if (isRunning) {
+          clearInterval(timerInterval);
+          document.getElementById('startBtn').innerText = 'Resume';
+        } else {
+          timerInterval = setInterval(() => {
+            if (timeLeft > 0) {
+              timeLeft--;
+              updateDisplay();
+            } else {
+              clearInterval(timerInterval);
+              playAlarm();
+
+              if(currentPreset === 'pomo') {
+                sessionsCompleted++;
+                document.getElementById('sessionCount').innerText = sessionsCompleted;
+              }
+
+              // Auto-Flow Logic
+              if(isAutoFlow) {
+                if(currentPreset === 'pomo') {
+                  applyPreset(sessionsCompleted > 0 && sessionsCompleted % 4 === 0 ? 'long' : 'short');
+                } else {
+                  applyPreset('pomo');
+                }
+                toggleTimer();
+              } else {
+                document.getElementById('startBtn').innerText = 'Start';
+              }
+
+            }
+          }, 1000);
+          document.getElementById('startBtn').innerText = 'Pause';
+        }
+        isRunning = !isRunning;
+      }
+
+      function resetTimer() { applyPreset(currentPreset); }
+
+      function toggleSettings() {
+        const panel = document.getElementById('timerSettings');
+        panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+      }
+
+      function saveTimerSettings() {
+        pomoDuration = parseInt(document.getElementById('pomoInput').value) || 25;
+        shortDuration = parseInt(document.getElementById('shortInput').value) || 5;
+        longDuration = parseInt(document.getElementById('longInput').value) || 15;
+        isAutoFlow = document.getElementById('autoFlowToggle').checked;
+        currentAlarm = document.getElementById('alarmSelect').value;
+
+        localStorage.setItem('ll_pomo', pomoDuration);
+        localStorage.setItem('ll_short', shortDuration);
+        localStorage.setItem('ll_long', longDuration);
+        localStorage.setItem('ll_auto', isAutoFlow);
+        localStorage.setItem('ll_alarm', currentAlarm);
+
+        toggleSettings();
+        applyPreset(currentPreset);
+      }
+
+      const affirmations = [
+        "You've got this!",
+        "Focus on the present moment.",
+        "One step at a time.",
+        "Breathe in, breathe out, focus.",
+        "Consistency is key.",
+        "You are capable of amazing things.",
+        "Progress over perfection."
+      ];
+      let affIndex = 0;
+      const affDisplay = document.getElementById('affirmationDisplay');
+      setInterval(() => {
+        affDisplay.style.opacity = 0;
+        setTimeout(() => {
+          affIndex = (affIndex + 1) % affirmations.length;
+          affDisplay.innerText = affirmations[affIndex];
+          affDisplay.style.opacity = 1;
+        }, 500);
+      }, 10000);
+
+      function loadTasks() {
+        const saved = localStorage.getItem('learnersLandingTasks');
+        if(saved) document.getElementById('taskList').innerHTML = saved;
+      }
+      
+      function saveTasks() {
+        const checkboxes = document.querySelectorAll('.task-check');
+        checkboxes.forEach(cb => {
+          if(cb.checked) cb.setAttribute('checked', 'checked');
+          else cb.removeAttribute('checked');
+        });
+        localStorage.setItem('learnersLandingTasks', document.getElementById('taskList').innerHTML);
+      }
+
+      function addTask() {
+        const input = document.getElementById('newTaskInput');
+        const priority = document.getElementById('prioritySelect').value;
+        if(input.value.trim() === '') return;
+        
+        const ul = document.getElementById('taskList');
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span class='task-priority'>${priority}</span>
+          <span class='task-text'>${input.value}</span>
+          <input type='checkbox' class='task-check' onclick='this.parentElement.style.textDecoration = this.checked ? "line-through" : "none"; this.parentElement.style.opacity = this.checked ? "0.5" : "1"; setTimeout(saveTasks, 50);'>
+          <button class='task-delete' onclick='this.parentElement.remove(); setTimeout(saveTasks, 50);' title='Delete'>✕</button>
+        `;
+        ul.appendChild(li);
+        input.value = '';
+        saveTasks();
+      }
+
+      const notepad = document.getElementById('sessionNotes');
+      if(localStorage.getItem('learnersLandingNotes')) {
+        notepad.value = localStorage.getItem('learnersLandingNotes');
+      }
+      function saveNotes() {
+        localStorage.setItem('learnersLandingNotes', notepad.value);
+      }
+
+      const player = document.getElementById('ambientPlayer');
+      function changeAudio() {
+        player.src = document.getElementById('audioSelect').value;
+        player.play();
+      }
+      function toggleAudio() {
+        player.paused ? player.play() : player.pause();
+      }
+      function updateVolume() {
+        player.volume = document.getElementById('volumeControl').value;
+      }
+
+      const backgrounds = [
+        "https://images.pexels.com/photos/1624496/pexels-photo-1624496.jpeg?auto=compress&cs=tinysrgb&w=1600",
+        "https://images.pexels.com/photos/3747463/pexels-photo-3747463.jpeg?auto=compress&cs=tinysrgb&w=1600",
+        "https://images.pexels.com/photos/167699/pexels-photo-167699.jpeg?auto=compress&cs=tinysrgb&w=1600",
+        "https://images.pexels.com/photos/155395/pexels-photo-155395.jpeg?auto=compress&cs=tinysrgb&w=1600"
+      ];
+      let bgIndex = 0;
+      function changeBackground() {
+        bgIndex = (bgIndex + 1) % backgrounds.length;
+        document.getElementById('sessionsBg').style.backgroundImage = `url('${backgrounds[bgIndex]}')`;
+      }
+
+      updateDisplay();
+      loadTasks();
+      player.src = document.getElementById('audioSelect').value;
+    }
+  //]]>
+  </script>
+</body>
+</html>
