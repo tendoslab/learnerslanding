@@ -1,0 +1,32 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { readingTime } from '../../data/reading-time';
+
+const articles = (await getCollection('articles', ({ data }) => !data.draft)).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<BaseLayout title="Study Guides" description="Practical, science-informed guides to studying better: beating procrastination, the pomodoro technique, deep work, habits and planning.">
+  <section class="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
+    <h1 class="font-display text-4xl font-bold">Study guides</h1>
+    <p class="mt-4 max-w-3xl text-lg text-ink/75">
+      Short, practical guides on focusing, planning and actually starting the work, built from the ideas and systems that made the biggest difference to our own study routine.
+    </p>
+    <div class="mt-10 grid gap-6 md:grid-cols-2">
+      {
+        articles.map((a) => (
+          <a href={`/articles/${a.id}`} class="group flex gap-5 rounded-2xl border border-line bg-paper p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+            <span class="text-4xl">{a.data.emoji}</span>
+            <div>
+              <p class="text-xs font-bold uppercase tracking-wider text-plum">
+                {a.data.category} · {readingTime(a.body ?? '')} min read
+              </p>
+              <h2 class="mt-1 text-xl font-bold leading-snug group-hover:text-plum">{a.data.title}</h2>
+              <p class="mt-2 text-ink/70">{a.data.description}</p>
+            </div>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

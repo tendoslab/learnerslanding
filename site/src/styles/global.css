@@ -1,0 +1,54 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+@theme {
+  --font-sans: 'Nunito Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Fredoka Variable', 'Nunito Variable', ui-rounded, system-ui, sans-serif;
+
+  --color-cream: #fbf6ee;
+  --color-paper: #fffdf8;
+  --color-ink: #2a1b3d;
+  --color-plum: #6d3fc0;
+  --color-plum-dark: #4c2a8a;
+  --color-moss: #3f7d4e;
+  --color-honey: #f2b33d;
+  --color-line: #eadfcf;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-cream text-ink font-sans antialiased;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-plum);
+    outline-offset: 2px;
+  }
+}
+
+@utility pixelated {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Chunky "game UI" button used across content pages */
+@utility btn-pixel {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 font-display text-lg transition-transform;
+  box-shadow: 0 4px 0 0 rgb(0 0 0 / 0.25);
+  &:hover {
+    transform: translateY(-1px);
+  }
+  &:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 0 rgb(0 0 0 / 0.25);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+}

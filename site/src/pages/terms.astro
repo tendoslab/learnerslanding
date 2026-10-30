@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../data/site';
+---
+
+<BaseLayout title="Terms of Use" description={`Terms for using ${SITE.name}.`}>
+  <article class="prose mx-auto max-w-3xl px-4 pt-12 prose-headings:font-display prose-a:text-plum sm:px-6">
+    <h1>Terms of use</h1>
+    <p><em>Last updated: {SITE.lastPolicyUpdate}</em></p>
+    <p>By using {SITE.name} you agree to these terms. If you don't agree, please don't use the site.</p>
+    <h2>Using the site</h2>
+    <p>{SITE.name} is provided free of charge, as-is, for personal study. We may change, pause or remove features at any time.</p>
+    <h2>Your data</h2>
+    <p>Workspace data is stored only in your browser. We can't recover it if it is deleted, so keep a backup if it matters to you.</p>
+    <h2>Content</h2>
+    <p>
+      Guides on this site are general information, not medical, psychological or professional advice. Embedded videos belong to their creators and are subject to YouTube's
+      terms. Pixel art is used under the licences listed on our <a href="/about#credits">about page</a>.
+    </p>
+    <h2>Liability</h2>
+    <p>To the fullest extent permitted by law, we are not liable for any loss arising from your use of the site.</p>
+    <h2>Contact</h2>
+    <p>Questions about these terms? Visit the <a href="/contact">contact page</a>.</p>
+  </article>
+</BaseLayout>

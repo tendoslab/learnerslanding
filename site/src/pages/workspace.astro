@@ -1,0 +1,18 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import App from '../workspace/App';
+---
+
+<BaseLayout
+  title="Study Workspace"
+  description="A free cozy pomodoro timer with tasks, notes and study music, set in a pixel-art village that grows as you focus."
+  bare
+  ads={false}
+>
+  <App client:only="react" />
+  <noscript>
+    <p style="padding:2rem;font-family:sans-serif;color:#fff;background:#2a1b3d;min-height:100vh">
+      The study workspace needs JavaScript. You can still read our <a href="/articles" style="color:#f2b33d">study guides</a>.
+    </p>
+  </noscript>
+</BaseLayout>

@@ -1,0 +1,33 @@
+---
+import { SITE } from '../data/site';
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-16 border-t border-line bg-paper">
+  <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-3 sm:px-6">
+    <div>
+      <p class="font-display text-lg font-bold">{SITE.name}</p>
+      <p class="mt-2 text-sm text-ink/70">{SITE.tagline}</p>
+    </div>
+    <nav aria-label="Explore" class="text-sm">
+      <p class="mb-2 font-bold">Explore</p>
+      <ul class="space-y-1.5 text-ink/70">
+        <li><a class="hover:text-plum" href="/workspace">Study workspace</a></li>
+        <li><a class="hover:text-plum" href="/videos">Study videos</a></li>
+        <li><a class="hover:text-plum" href="/articles">Study guides</a></li>
+      </ul>
+    </nav>
+    <nav aria-label="Site information" class="text-sm">
+      <p class="mb-2 font-bold">About</p>
+      <ul class="space-y-1.5 text-ink/70">
+        <li><a class="hover:text-plum" href="/about">About</a></li>
+        <li><a class="hover:text-plum" href="/contact">Contact</a></li>
+        <li><a class="hover:text-plum" href="/privacy">Privacy policy</a></li>
+        <li><a class="hover:text-plum" href="/terms">Terms of use</a></li>
+      </ul>
+    </nav>
+  </div>
+  <p class="border-t border-line py-4 text-center text-xs text-ink/50">
+    © {year} {SITE.name}. Pixel art by GrafxKid and other artists. See <a class="underline" href="/about#credits">credits</a>.
+  </p>
+</footer>

@@ -1,0 +1,204 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import VideoCard from '../components/VideoCard.astro';
+import { VIDEOS } from '../data/videos';
+import { RESIDENTS } from '../workspace/rewards';
+import { SITE } from '../data/site';
+
+const articles = (await getCollection('articles', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+const featured = VIDEOS.filter((v) => ['library-fireplace-thunderstorm', 'yokohama-harbour-25-5', 'animal-crossing-ambience'].includes(v.slug));
+
+// Decorations for the hero scene: [id, left %, bottom px, scale]
+const scene: [string, number, number, number][] = [
+  ['pine', 6, 30, 4], ['tree', 16, 18, 4], ['cottage', 34, 26, 4], ['lamp', 50, 22, 4], ['bench', 58, 14, 4],
+  ['well', 72, 28, 4], ['cafe', 87, 20, 4], ['flowers', 27, 6, 4], ['bush', 64, 4, 4], ['campfire', 44, 2, 4],
+];
+const critters = [
+  { src: '/sprites/animals/cat-walk.png', frames: 4, size: 32, left: 40, bottom: 14, scale: 3, dur: 0.7 },
+  { src: '/sprites/critters/penguin-walk.png', frames: 6, size: 16, left: 78, bottom: 8, scale: 3, dur: 0.75 },
+  { src: '/sprites/critters/fairy-fly.png', frames: 4, size: 32, left: 22, bottom: 130, scale: 3, dur: 0.5 },
+  { src: '/sprites/animals/bunny-walk.png', frames: 4, size: 32, left: 66, bottom: 40, scale: 3, dur: 0.6 },
+];
+---
+
+<BaseLayout>
+  <!-- Hero -->
+  <section class="relative overflow-hidden bg-gradient-to-b from-[#2a1b3d] via-[#5a3f7d] to-[#e88f6f] text-white">
+    <div class="mx-auto max-w-6xl px-4 pb-0 pt-14 text-center sm:px-6 sm:pt-20">
+      <p class="font-display text-honey">free · no sign-up · works in your browser</p>
+      <h1 class="mx-auto mt-3 max-w-3xl font-display text-4xl font-bold leading-tight sm:text-6xl">Study a little. Grow a village.</h1>
+      <p class="mx-auto mt-5 max-w-2xl text-lg text-white/85">
+        {SITE.name} is a cozy study workspace. Every pomodoro you finish earns coins for decorating your own pixel-art village, and new animal friends move in the more you focus.
+      </p>
+      <div class="mt-8 flex flex-wrap justify-center gap-3">
+        <a href="/workspace" class="btn-pixel bg-honey text-ink">▶ Start a focus session</a>
+        <a href="/articles" class="btn-pixel bg-white/15 text-white backdrop-blur">Read the study guides</a>
+      </div>
+    </div>
+
+    <div class="relative mt-10 h-[260px] sm:h-[300px]" aria-hidden="true">
+      <div class="absolute inset-x-0 bottom-0 h-[150px] bg-gradient-to-b from-[#6aa06a] to-[#3f6d48] shadow-[inset_0_6px_0_0_#8cc47e]"></div>
+      {
+        scene.map(([id, left, bottom, scale]) => (
+          <img
+            src={`/sprites/decor/${id}.png`}
+            alt=""
+            class="hero-decor pixelated absolute"
+            style={`left:${left}%;bottom:${bottom}px;--s:${scale};`}
+          />
+        ))
+      }
+      {
+        critters.map((c) => (
+          <div
+            class="hero-sprite pixelated absolute"
+            style={`left:${c.left}%;bottom:${c.bottom}px;width:${c.size * c.scale}px;height:${c.size * c.scale}px;background-image:url(${c.src});background-size:${c.frames * c.size * c.scale}px ${c.size * c.scale}px;--end:-${c.frames * c.size * c.scale}px;animation-duration:${c.dur}s;animation-timing-function:steps(${c.frames});`}
+          />
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+    <h2 class="text-center font-display text-3xl font-bold">How it works</h2>
+    <div class="mt-10 grid gap-6 sm:grid-cols-3">
+      {
+        [
+          { n: '1', t: 'Pick a task', d: 'Write down what you want to get done and break it into small, concrete steps. Starting is the hardest part, so make the first step tiny.' },
+          { n: '2', t: 'Focus for one session', d: 'Start a 25-minute pomodoro (or set your own length). Put your phone away, turn on rain sounds or a study playlist, and work on just that one thing.' },
+          { n: '3', t: 'Watch your village grow', d: 'Finished sessions and tasks earn coins. Spend them on trees, lamps, cottages and more, and unlock new residents as your total focus time grows.' },
+        ].map((s) => (
+          <div class="rounded-2xl border border-line bg-paper p-6 shadow-sm">
+            <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-plum font-display text-xl text-white">{s.n}</span>
+            <h3 class="mt-4 text-lg font-bold">{s.t}</h3>
+            <p class="mt-2 text-ink/75">{s.d}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="bg-paper py-16">
+    <div class="mx-auto grid max-w-6xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-2">
+      <div>
+        <h2 class="font-display text-3xl font-bold">Everything you need for a study session, in one tab</h2>
+        <ul class="mt-6 space-y-4 text-ink/80">
+          <li><strong class="text-ink">Pomodoro timer</strong>: focus, short and long breaks, with custom lengths and an optional auto-start.</li>
+          <li><strong class="text-ink">Tasks with steps</strong>: prioritise, break work into sub-steps, and see how many minutes you spent on each task.</li>
+          <li><strong class="text-ink">Distraction notepad</strong>: park stray thoughts so they stop nagging you mid-session.</li>
+          <li><strong class="text-ink">Study music &amp; rain</strong>: a built-in player with our favourite lofi, ambience and pomodoro videos, plus a gentle rain generator.</li>
+          <li><strong class="text-ink">A reward that's actually cozy</strong>: a day/night village that follows your local time, with {RESIDENTS.length} residents to unlock.</li>
+          <li><strong class="text-ink">Private by default</strong>: no account needed. Your progress is saved in your own browser.</li>
+        </ul>
+        <a href="/workspace" class="btn-pixel mt-8 bg-plum text-white">Open the workspace</a>
+      </div>
+      <div class="rounded-3xl border border-line bg-cream p-6">
+        <p class="font-display text-lg">Today's tiny study plan</p>
+        <ol class="mt-4 space-y-3">
+          {
+            ['Pick 3 tasks that matter most', 'Do one 25-minute session on the hardest one', 'Take a real 5-minute break (no phone!)', 'Repeat, then buy yourself a lamp post 🏮'].map((t, i) => (
+              <li class="flex items-start gap-3 rounded-xl bg-paper p-3 shadow-sm">
+                <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 border-ink/20 text-xs font-bold">{i + 1}</span>
+                <span>{t}</span>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- Guides -->
+  {
+    articles.length > 0 && (
+      <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        <div class="flex items-end justify-between gap-4">
+          <h2 class="font-display text-3xl font-bold">Latest study guides</h2>
+          <a href="/articles" class="font-bold text-plum hover:underline">All guides →</a>
+        </div>
+        <div class="mt-8 grid gap-6 md:grid-cols-3">
+          {articles.map((a) => (
+            <a href={`/articles/${a.id}`} class="group rounded-2xl border border-line bg-paper p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+              <span class="text-3xl">{a.data.emoji}</span>
+              <p class="mt-3 text-xs font-bold uppercase tracking-wider text-plum">{a.data.category}</p>
+              <h3 class="mt-1 text-lg font-bold leading-snug group-hover:text-plum">{a.data.title}</h3>
+              <p class="mt-2 text-sm text-ink/70">{a.data.description}</p>
+            </a>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <!-- Videos -->
+  <section class="bg-paper py-16">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6">
+      <div class="flex items-end justify-between gap-4">
+        <h2 class="font-display text-3xl font-bold">Study videos we love</h2>
+        <a href="/videos" class="font-bold text-plum hover:underline">Browse the library →</a>
+      </div>
+      <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {featured.map((v) => <VideoCard video={v} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+    <h2 class="text-center font-display text-3xl font-bold">Questions</h2>
+    <div class="mt-8 space-y-3">
+      {
+        [
+          { q: 'Is it really free?', a: `Yes. ${SITE.name} is free to use, with no account and no download. The site may show a small number of ads on article pages to cover hosting, but never inside the workspace while you study.` },
+          { q: 'Where is my progress saved?', a: 'In your browser, on your device. Nothing is uploaded. Clearing your browser data will erase it, so use "Download backup" in the workspace settings if you want to keep a copy or move to another device.' },
+          { q: 'What is the pomodoro technique?', a: 'A simple method where you work in short, timed bursts (traditionally 25 minutes) followed by short breaks, with a longer break every four rounds. Our guide explains how to get the most out of it.' },
+          { q: 'Does it work on my phone?', a: 'Yes. The workspace works on phones and tablets too, though it is cosiest on a laptop or desktop where the village has room to spread out.' },
+        ].map((f) => (
+          <details class="group rounded-xl border border-line bg-paper p-5">
+            <summary class="cursor-pointer list-none font-bold">
+              <span class="mr-2 inline-block transition group-open:rotate-90">›</span>
+              {f.q}
+            </summary>
+            <p class="mt-3 text-ink/75">{f.a}</p>
+          </details>
+        ))
+      }
+    </div>
+  </section>
+
+  <style>
+    .hero-decor {
+      transform: translateX(-50%) scale(var(--s));
+      transform-origin: bottom center;
+    }
+    @media (max-width: 640px) {
+      .hero-decor {
+        transform: translateX(-50%) scale(calc(var(--s) * 0.5));
+      }
+      .hero-sprite {
+        scale: 0.6;
+        transform-origin: bottom center;
+      }
+    }
+    .hero-sprite {
+      image-rendering: pixelated;
+      animation-name: hero-walk;
+      animation-iteration-count: infinite;
+    }
+    @keyframes hero-walk {
+      to {
+        background-position-x: var(--end);
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hero-sprite {
+        animation: none;
+      }
+    }
+  </style>
+</BaseLayout>
