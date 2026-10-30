@@ -44,7 +44,7 @@ export default function Timer({ compact = false }: { compact?: boolean }) {
   const dots = Array.from({ length: settings.longEvery }, (_, i) => i < timer.cycle % settings.longEvery);
 
   return (
-    <div className={`flex w-full max-w-md flex-col items-center rounded-[2rem] border border-white/15 bg-black/35 text-white shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl ${compact ? 'p-5' : 'p-6 sm:p-8'} short:grid short:max-w-xl short:grid-cols-[auto_auto] short:items-center short:justify-center short:gap-x-6 short:gap-y-2 short:rounded-2xl short:px-5! short:py-3!`}>
+    <div className={`flex w-full max-w-md flex-col items-center rounded-[2rem] border border-white/15 bg-black/35 text-white shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl ${compact ? 'p-5' : 'p-6 sm:p-8'} short:grid short:max-w-xl short:grid-cols-[auto_auto] short:items-center short:justify-center short:gap-x-5 short:gap-y-1.5 short:rounded-2xl short:px-4! short:py-2!`}>
       <div role="tablist" aria-label="Timer mode" className="mb-5 flex gap-1 rounded-full short:col-start-2 short:row-start-1 short:mb-0 short:justify-self-center border border-white/10 bg-black/30 p-1">
         {MODES.map((m) => (
           <button
@@ -52,7 +52,7 @@ export default function Timer({ compact = false }: { compact?: boolean }) {
             role="tab"
             aria-selected={timer.mode === m.id}
             onClick={() => setMode(m.id)}
-            className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors sm:px-4 sm:text-sm ${
+            className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors sm:px-4 sm:text-sm short:py-1 short:text-xs! ${
               timer.mode === m.id ? 'bg-plum text-white shadow-[0_0_12px_rgba(140,90,230,0.5)]' : 'text-white/70 hover:text-white'
             }`}
           >
@@ -63,7 +63,7 @@ export default function Timer({ compact = false }: { compact?: boolean }) {
 
       <p className="h-5 text-sm italic text-honey short:hidden">{timer.mode === 'focus' ? quote : 'Stretch, sip some water, look out a window.'}</p>
 
-      <div className="relative my-2 font-sans text-[5rem] font-medium leading-none tracking-tight tabular-nums drop-shadow-[0_4px_0_rgba(0,0,0,0.35)] sm:text-[6.5rem] short:col-start-1 short:row-span-2 short:row-start-1 short:my-0 short:text-[3.25rem]!" aria-live="off">
+      <div className="relative my-2 font-sans text-[5rem] font-medium leading-none tracking-tight tabular-nums drop-shadow-[0_4px_0_rgba(0,0,0,0.35)] sm:text-[6.5rem] short:col-start-1 short:row-span-2 short:row-start-1 short:my-0 short:text-[2.75rem]!" aria-live="off">
         {formatTime(remaining)}
       </div>
 
@@ -78,21 +78,21 @@ export default function Timer({ compact = false }: { compact?: boolean }) {
             if (timer.running) pause();
             else start();
           }}
-          className="flex items-center gap-2 rounded-full bg-white px-9 py-3 text-lg font-bold short:px-6 short:py-2 short:text-base text-ink shadow-[0_4px_0_rgba(0,0,0,0.3)] transition active:translate-y-0.5 active:shadow-none"
+          className="flex items-center gap-2 rounded-full bg-white px-9 py-3 text-lg font-bold short:px-5 short:py-1.5 short:text-sm text-ink shadow-[0_4px_0_rgba(0,0,0,0.3)] transition active:translate-y-0.5 active:shadow-none"
         >
           {timer.running ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}
           {timer.running ? 'Pause' : 'Start'}
         </button>
-        <button onClick={reset} title="Reset" className="rounded-full border border-white/15 bg-white/10 p-3 short:p-2 transition hover:bg-white/20">
+        <button onClick={reset} title="Reset" className="rounded-full border border-white/15 bg-white/10 p-3 short:p-1.5 transition hover:bg-white/20">
           <RotateCcw size={20} />
         </button>
-        <button onClick={skip} title="Skip to next (no reward)" className="rounded-full border border-white/15 bg-white/10 p-3 short:p-2 transition hover:bg-white/20">
+        <button onClick={skip} title="Skip to next (no reward)" className="rounded-full border border-white/15 bg-white/10 p-3 short:p-1.5 transition hover:bg-white/20">
           <SkipForward size={20} />
         </button>
       </div>
 
-      <div className="mt-5 flex items-center gap-3 text-xs short:col-span-2 short:row-start-4 short:mt-0 short:justify-self-center text-white/70">
-        <span className="flex gap-1" title="Sessions until long break">
+      <div className={`mt-5 flex items-center gap-3 text-xs short:col-span-2 short:row-start-4 short:mt-0 short:justify-self-center text-white/70 ${activeTask ? '' : 'short:hidden'}`}>
+        <span className="flex gap-1 short:hidden" title="Sessions until long break">
           {dots.map((done, i) => (
             <span key={i} className={`h-2.5 w-2.5 rounded-sm ${done ? 'bg-honey' : 'bg-white/20'}`} />
           ))}
