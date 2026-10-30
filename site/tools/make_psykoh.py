@@ -1,6 +1,6 @@
 """Animate Psy-Koh the chameleon from his single 32x32 drawing (tools/psykoh.png).
 
-Psy-Koh is a painter: red beret with a big paintbrush tucked behind it, a neckerchief and
+Psy-Koh is a painter: red beret, a big paintbrush standing up behind him, a neckerchief and
 paint splatters on his back. He faces right. Parts are split by position: his
 two legs (the stubby columns under his belly), his curly tail (bottom left)
 and the rest. Each frame nudges those parts a pixel:
@@ -33,9 +33,11 @@ LEG_TOP = 25
 TAIL_RIGHT = 8
 # The back leg is left of this column, the front leg right of it.
 LEG_SPLIT = 13
-# Eye: the pupil pixels, and the row the lid closes along.
+# Eye: the pupil pixels, the row the lid closes along, and the column it
+# starts at (the brush's white bristles are further left).
 PUPIL = [(22, 12), (23, 12), (22, 13), (23, 13)]
 LID_ROW = 14
+EYE_LEFT = 16
 # Paint splatters on his back, and the colours they cycle through.
 SPOTS = [(7, 17), (11, 18), (7, 20)]
 PAINT = [(255, 201, 92, 255), (38, 98, 171, 255), (235, 113, 113, 255), (253, 245, 241, 255)]
@@ -62,7 +64,7 @@ def split(px):
 def blink(body):
     """Closed eye: whites and pupil fill with skin, a lid line curves across."""
     out = dict(body)
-    whites = [k for k, c in body.items() if c[:3] == WHITE and k[1] < LID_ROW + 3]
+    whites = [k for k, c in body.items() if c[:3] == WHITE and k[0] >= EYE_LEFT and k[1] < LID_ROW + 3]
     for k in whites + PUPIL:
         out[k] = GREEN
     xs = [x for x, y in whites if y == LID_ROW]

@@ -64,7 +64,7 @@ const critter = (n: string, walkFrames: number, idleFrames: number, size = 32, e
 export const RESIDENTS: Resident[] = [
   // Temporarily unlocked from the start for a preview; was unlockAt: 4300 (between Geralt and Sir Bones).
   { id: 'bobby', name: 'Bobby', species: 'Alien', unlockAt: 0, sprite: critter('bobby', 6, 6, 32, { facing: 'front', speed: 2.2, foot: 2, body: 18, box: [1, 3, 30, 27] }) },
-  // Also unlocked from the start for a preview; meant to be unlockAt: 6000 (after Sir Bones).
+  // Also unlocked from the start for a preview; meant to be unlockAt: 6000 (adds a milestone; who arrives there is random per person).
   { id: 'psykoh', name: 'Psy-Koh', species: 'Chameleon', unlockAt: 0, sprite: critter('psykoh', 6, 6, 32, { speed: 1.8, body: 16, box: [0, 1, 31, 31] }) },
   { id: 'cat', name: 'Mochi', species: 'Cat', unlockAt: 25, sprite: animal('cat') },
   { id: 'bunny', name: 'Clover', species: 'Bunny', unlockAt: 75, sprite: animal('bunny') },
