@@ -1,0 +1,14 @@
+---
+import { withBase } from '../lib/base';
+import { SITE } from '../data/site';
+---
+
+<p class="text-sm font-medium text-honey">Free · no sign-up · works in your browser</p>
+<h1 class="mt-3 font-display text-4xl font-semibold leading-tight sm:text-5xl">Study a little. Grow a village.</h1>
+<p class="mx-auto mt-4 max-w-md text-base text-white/80 sm:text-lg">
+  {SITE.name} is a cozy study workspace. Every pomodoro you finish earns coins to decorate your own pixel-art village, and new friends move in the more you focus.
+</p>
+<div class="mt-7 flex flex-wrap justify-center gap-3">
+  <a href={withBase('/workspace')} class="btn-pixel bg-honey text-ink">▶ Start a focus session</a>
+  <a href={withBase('/articles')} class="btn-pixel bg-white/15 text-white backdrop-blur">Read the study guides</a>
+</div>

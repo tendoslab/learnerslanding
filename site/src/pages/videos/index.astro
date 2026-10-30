@@ -13,7 +13,7 @@ const cats = Object.entries(CATEGORIES) as [VideoCategory, (typeof CATEGORIES)[V
   description="A hand-picked library of study-with-me pomodoro videos, rain and library ambience, 40 Hz binaural beats and short meditations for focus and calm."
 >
   <section class="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
-    <h1 class="font-display text-4xl font-bold">Study video library</h1>
+    <h1 class="font-display text-4xl font-semibold">Study video library</h1>
     <p class="mt-4 max-w-3xl text-lg text-ink/75">
       These are the videos that have actually helped us get through long study days: pomodoro timers with scenery, cozy ambience that drowns out noise, focus frequencies,
       and short meditations for when stress gets in the way. Every one can be played right here, and most are available in the
@@ -44,7 +44,7 @@ const cats = Object.entries(CATEGORIES) as [VideoCategory, (typeof CATEGORIES)[V
       const list = VIDEOS.filter((v) => v.category === id);
       return (
         <section class="video-section mx-auto max-w-6xl px-4 pt-12 sm:px-6" data-category={id}>
-          <h2 class="font-display text-2xl font-bold">
+          <h2 class="font-display text-2xl font-semibold">
             {c.emoji} {c.label}
           </h2>
           <p class="mt-1 max-w-3xl text-ink/70">{c.blurb}</p>

@@ -37,13 +37,25 @@ interface Props {
   onPlaced: () => void;
   focusing: boolean;
   raining: boolean;
+  /** Home page hero: read-only, and a sample village for brand-new visitors. */
+  showcase?: boolean;
 }
 
-export default function Village({ buildMode, placing, onPlaced, focusing, raining }: Props) {
+// What a new visitor sees on the home page before they've built anything.
+const DEMO_PLACED: Placed[] = [
+  ['pine', 7, 0.15], ['tree', 17, 0.35], ['flowers', 25, 0.85], ['cottage', 33, 0.1], ['lamp', 44, 0.3], ['campfire', 50, 0.75],
+  ['bench', 58, 0.4], ['bush', 66, 0.8], ['well', 74, 0.2], ['mushrooms', 82, 0.9], ['cafe', 90, 0.05],
+].map(([itemId, x, y], i) => ({ uid: `demo-${i}`, itemId: itemId as string, x: x as number, y: y as number }));
+const DEMO_MINUTES = 160;
+
+export default function Village({ buildMode, placing, onPlaced, focusing, raining, showcase = false }: Props) {
   const sky = useSky();
   const S = usePixelScale();
-  const placed = useWorkspace((s) => s.placed);
-  const minutes = useWorkspace((s) => s.totalFocusMinutes);
+  const ownPlaced = useWorkspace((s) => s.placed);
+  const ownMinutes = useWorkspace((s) => s.totalFocusMinutes);
+  const demo = showcase && ownPlaced.length === 0 && ownMinutes === 0;
+  const placed = demo ? DEMO_PLACED : ownPlaced;
+  const minutes = demo ? DEMO_MINUTES : ownMinutes;
   const avatar = useWorkspace((s) => s.settings.avatar);
   const place = useWorkspace((s) => s.place);
   const hasInventory = useWorkspace((s) => Object.values(s.inventory).some((n) => n > 0));
@@ -137,8 +149,8 @@ export default function Village({ buildMode, placing, onPlaced, focusing, rainin
 
         <Actors actors={actors} S={S} focusing={focusing} placed={placed} interactive={!buildMode} />
 
-        {placed.length === 0 && !buildMode && (
-          <p className="absolute inset-x-0 top-[38%] text-center font-display text-sm text-white/60">
+        {placed.length === 0 && !buildMode && !showcase && (
+          <p className="absolute inset-x-0 top-[38%] text-center text-sm font-medium text-white/60">
             {hasInventory
               ? 'You have decorations to place! Press the hammer (top right) to start building.'
               : 'Your village is waiting. Finish focus sessions to earn coins and decorate it!'}

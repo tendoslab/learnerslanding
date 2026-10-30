@@ -3,7 +3,7 @@ import { withBase } from '../../lib/base';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import VideoCard from '../../components/VideoCard.astro';
 import AdSlot from '../../components/AdSlot.astro';
-import { CATEGORIES, VIDEOS, embedUrl, thumb, type Video } from '../../data/videos';
+import { CATEGORIES, VIDEOS, embedUrl, thumb, watchUrl, type Video } from '../../data/videos';
 
 export function getStaticPaths() {
   return VIDEOS.map((video) => ({ params: { slug: video.slug }, props: { video } }));
@@ -47,7 +47,7 @@ const tips: Record<Video['category'], string[]> = {
     <nav class="text-sm text-ink/60" aria-label="Breadcrumb">
       <a href={withBase('/videos')} class="hover:text-plum">Study videos</a> › <a href={withBase(`/videos?category=${video.category}`)} class="hover:text-plum">{cat.label}</a>
     </nav>
-    <h1 class="mt-3 font-display text-3xl font-bold sm:text-4xl">{video.title}</h1>
+    <h1 class="mt-3 font-display text-3xl font-semibold sm:text-4xl">{video.title}</h1>
     <p class="mt-2 text-sm font-bold uppercase tracking-wide text-plum">
       {cat.emoji} {cat.label} · {video.length}
     </p>
@@ -61,10 +61,10 @@ const tips: Record<Video['category'], string[]> = {
       </div>
     </div>
     <p class="mt-2 text-xs text-ink/50">
-      Video hosted on YouTube. All rights belong to its creator. <a class="underline" href={`https://www.youtube.com/watch?v=${video.youtubeId}`} rel="noopener" target="_blank">Watch on YouTube</a> to support them.
+      Video hosted on YouTube. All rights belong to its creator. Not playing? Some ad blockers stop embedded videos. <a class="underline" href={watchUrl(video.youtubeId)} rel="noopener" target="_blank">Watch on YouTube</a> to support them.
     </p>
 
-    <div class="prose prose-lg mt-8 max-w-none prose-headings:font-display">
+    <div class="prose prose-lg mt-8 max-w-none prose-headings:font-display prose-headings:font-semibold">
       <p>{video.summary}</p>
       {video.pattern && (
         <p>
@@ -92,7 +92,7 @@ const tips: Record<Video['category'], string[]> = {
     {
       related.length > 0 && (
         <section class="mt-12">
-          <h2 class="font-display text-2xl font-bold">More {cat.label.toLowerCase()} videos</h2>
+          <h2 class="font-display text-2xl font-semibold">More {cat.label.toLowerCase()} videos</h2>
           <div class="mt-6 grid gap-6 sm:grid-cols-3">
             {related.map((v) => <VideoCard video={v} />)}
           </div>

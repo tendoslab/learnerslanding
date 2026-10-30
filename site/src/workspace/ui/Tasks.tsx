@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle2, ChevronDown, ChevronUp, Circle, Plus, Target, Trash2, X } from 'lucide-react';
+import { ArrowDown, ArrowDownWideNarrow, ArrowUp, CheckCircle2, ChevronDown, ChevronUp, Circle, GripVertical, Plus, Target, Trash2, X } from 'lucide-react';
 import { useWorkspace, type Priority, type Task } from '../store';
 import { TASK_REWARD } from '../rewards';
 
@@ -8,16 +8,30 @@ const PRIORITY_STYLE: Record<Priority, string> = {
   Medium: 'text-yellow-100 bg-yellow-400/15 border-yellow-300/30',
   Low: 'text-sky-100 bg-sky-400/15 border-sky-300/30',
 };
-const ORDER: Record<Priority, number> = { High: 0, Medium: 1, Low: 2 };
+
+type DropAt = { id: string; after: boolean } | null;
 
 export default function Tasks() {
   const tasks = useWorkspace((s) => s.tasks);
   const activeTaskId = useWorkspace((s) => s.activeTaskId);
-  const { addTask, clearCompleted } = useWorkspace.getState();
+  const { addTask, clearCompleted, moveTask, sortTasksByPriority } = useWorkspace.getState();
   const [title, setTitle] = useState('');
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dropAt, setDropAt] = useState<DropAt>(null);
 
-  const open = tasks.filter((t) => !t.completed).sort((a, b) => ORDER[a.priority] - ORDER[b.priority]);
+  const open = tasks.filter((t) => !t.completed);
   const done = tasks.filter((t) => t.completed);
+
+  /** Places a task before/after another one in the open list. */
+  const moveNear = (id: string, target: string, after: boolean) => {
+    const i = open.findIndex((t) => t.id === target);
+    moveTask(id, after ? (open[i + 1]?.id ?? null) : target);
+  };
+  const shift = (id: string, by: -1 | 1) => {
+    const i = open.findIndex((t) => t.id === id);
+    const target = open[i + by];
+    if (target) moveNear(id, target.id, by === 1);
+  };
 
   return (
     <div className="space-y-4">
@@ -38,11 +52,34 @@ export default function Tasks() {
           className="w-full bg-transparent text-sm text-white placeholder-white/40 focus:outline-none"
         />
       </form>
-      <p className="text-[11px] text-white/50">Checking off a task earns {TASK_REWARD} coins. Press the target icon to track focus time on it.</p>
+      <p className="text-[11px] text-white/50">Checking off a task earns {TASK_REWARD} coins. Press the target icon to track focus time on it. Drag the handle to reorder.</p>
 
-      <ul className="space-y-2.5">
-        {open.map((t) => (
-          <TaskItem key={t.id} task={t} active={t.id === activeTaskId} />
+      {open.length > 1 && (
+        <div className="flex justify-end">
+          <button onClick={sortTasksByPriority} className="flex items-center gap-1 text-[11px] text-white/50 hover:text-white" title="Put high-priority tasks first">
+            <ArrowDownWideNarrow size={13} /> Sort by priority
+          </button>
+        </div>
+      )}
+
+      <ul className="space-y-2.5" onDragEnd={() => (setDragId(null), setDropAt(null))}>
+        {open.map((t, i) => (
+          <TaskItem
+            key={t.id}
+            task={t}
+            active={t.id === activeTaskId}
+            dragging={dragId === t.id}
+            dropEdge={dropAt?.id === t.id && dragId !== t.id ? (dropAt.after ? 'after' : 'before') : null}
+            onDragStart={() => setDragId(t.id)}
+            onDragOverItem={(after) => dragId && setDropAt({ id: t.id, after })}
+            onDropItem={() => {
+              if (dragId && dropAt) moveNear(dragId, dropAt.id, dropAt.after);
+              setDragId(null);
+              setDropAt(null);
+            }}
+            onMoveUp={i > 0 ? () => shift(t.id, -1) : undefined}
+            onMoveDown={i < open.length - 1 ? () => shift(t.id, 1) : undefined}
+          />
         ))}
       </ul>
       {open.length === 0 && <p className="py-6 text-center text-sm text-white/50">All caught up! Add something new or enjoy a break.</p>}
@@ -66,16 +103,62 @@ export default function Tasks() {
   );
 }
 
-function TaskItem({ task, active }: { task: Task; active: boolean }) {
+interface ItemProps {
+  task: Task;
+  active: boolean;
+  dragging?: boolean;
+  dropEdge?: 'before' | 'after' | null;
+  onDragStart?: () => void;
+  onDragOverItem?: (after: boolean) => void;
+  onDropItem?: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+}
+
+function TaskItem({ task, active, dragging, dropEdge, onDragStart, onDragOverItem, onDropItem, onMoveUp, onMoveDown }: ItemProps) {
   const { toggleTask, deleteTask, setPriority, setActiveTask, addSubtask, toggleSubtask, deleteSubtask, renameTask } = useWorkspace.getState();
   const [expanded, setExpanded] = useState(false);
   const [sub, setSub] = useState('');
   const [editing, setEditing] = useState(false);
+  // Only the grip handle starts a drag, so selecting text / clicking buttons still works.
+  const [grabbed, setGrabbed] = useState(false);
+  const reorderable = !!onDragStart;
   const subDone = task.subtasks.filter((s) => s.completed).length;
 
   return (
-    <li className={`rounded-xl border bg-white/5 transition ${active ? 'border-plum shadow-[0_0_14px_rgba(140,90,230,0.35)]' : 'border-white/5 hover:border-white/20'}`}>
+    <li
+      draggable={reorderable && grabbed}
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', task.id);
+        onDragStart?.();
+      }}
+      onDragEnd={() => setGrabbed(false)}
+      onDragOver={(e) => {
+        if (!onDragOverItem) return;
+        e.preventDefault();
+        const r = e.currentTarget.getBoundingClientRect();
+        onDragOverItem(e.clientY > r.top + r.height / 2);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        onDropItem?.();
+      }}
+      className={`relative rounded-xl border bg-white/5 transition ${active ? 'border-plum shadow-[0_0_14px_rgba(140,90,230,0.35)]' : 'border-white/5 hover:border-white/20'} ${dragging ? 'opacity-40' : ''}`}
+    >
+      {dropEdge && <span className={`pointer-events-none absolute inset-x-2 h-0.5 rounded-full bg-honey ${dropEdge === 'before' ? '-top-1.5' : '-bottom-1.5'}`} />}
       <div className="flex items-start gap-2.5 p-3">
+        {reorderable && (
+          <span
+            onPointerDown={() => setGrabbed(true)}
+            onPointerUp={() => setGrabbed(false)}
+            className="-ml-1.5 -mr-1 mt-0.5 shrink-0 cursor-grab text-white/25 hover:text-white/70 active:cursor-grabbing"
+            title="Drag to reorder"
+            aria-hidden
+          >
+            <GripVertical size={16} />
+          </span>
+        )}
         <button onClick={() => toggleTask(task.id)} className="mt-0.5 shrink-0" aria-label={task.completed ? 'Mark as not done' : 'Mark as done'}>
           {task.completed ? <CheckCircle2 size={18} className="text-green-300" /> : <Circle size={18} className="text-white/40 hover:text-white" />}
         </button>
@@ -136,9 +219,21 @@ function TaskItem({ task, active }: { task: Task; active: boolean }) {
                 </button>
               ))}
             </div>
-            <button onClick={() => deleteTask(task.id)} className="rounded bg-red-400/10 p-1 text-red-300/70 hover:text-red-300" aria-label="Delete task">
-              <Trash2 size={13} />
-            </button>
+            <div className="flex items-center gap-1">
+              {reorderable && (
+                <>
+                  <button onClick={onMoveUp} disabled={!onMoveUp} className="rounded p-1 text-white/50 hover:bg-white/10 hover:text-white disabled:opacity-25" aria-label="Move task up" title="Move up">
+                    <ArrowUp size={13} />
+                  </button>
+                  <button onClick={onMoveDown} disabled={!onMoveDown} className="rounded p-1 text-white/50 hover:bg-white/10 hover:text-white disabled:opacity-25" aria-label="Move task down" title="Move down">
+                    <ArrowDown size={13} />
+                  </button>
+                </>
+              )}
+              <button onClick={() => deleteTask(task.id)} className="rounded bg-red-400/10 p-1 text-red-300/70 hover:text-red-300" aria-label="Delete task">
+                <Trash2 size={13} />
+              </button>
+            </div>
           </div>
           <ul className="space-y-1.5">
             {task.subtasks.map((st) => (

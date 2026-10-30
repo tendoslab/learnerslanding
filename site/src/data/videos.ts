@@ -198,5 +198,8 @@ export const VIDEOS: Video[] = [
 export const playerVideos = VIDEOS.filter((v) => v.player);
 
 export const thumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+export const watchUrl = (id: string) => `https://www.youtube.com/watch?v=${id}`;
+// Standard youtube.com embed, the same one most sites use. The "nocookie" domain
+// is on some ad/privacy blocklists, which made videos fail for some visitors.
 export const embedUrl = (id: string, autoplay = false) =>
-  `https://www.youtube-nocookie.com/embed/${id}?rel=0${autoplay ? '&autoplay=1' : ''}`;
+  `https://www.youtube.com/embed/${id}?rel=0&playsinline=1${autoplay ? '&autoplay=1' : ''}`;

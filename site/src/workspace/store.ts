@@ -107,6 +107,9 @@ export interface WorkspaceState {
   toggleSubtask: (taskId: string, subId: string) => void;
   deleteSubtask: (taskId: string, subId: string) => void;
   clearCompleted: () => void;
+  /** Moves a task so it sits just before `beforeId` (or last when null). */
+  moveTask: (id: string, beforeId: string | null) => void;
+  sortTasksByPriority: () => void;
   // village
   buy: (itemId: string) => boolean;
   place: (itemId: string, x: number, y: number) => void;
@@ -130,6 +133,8 @@ export const DEFAULT_SETTINGS: Settings = {
   sky: 'auto',
   notify: false,
 };
+
+export const PRIORITY_ORDER: Record<Priority, number> = { High: 0, Medium: 1, Low: 2 };
 
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 const minutesFor = (s: Settings, m: Mode) => (m === 'focus' ? s.focus : m === 'short' ? s.short : s.long);
@@ -214,6 +219,10 @@ export const useWorkspace = create<WorkspaceState>()(
         });
       },
       tick: () => {
+        if (!get().timer.running || !get().timer.endsAt || Date.now() < get().timer.endsAt!) return;
+        // Another tab (workspace or a content page) may have finished this session
+        // already; pull in the saved state first so it isn't paid out twice.
+        void useWorkspace.persist.rehydrate();
         const s = get();
         const { timer, settings } = s;
         if (!timer.running || !timer.endsAt || Date.now() < timer.endsAt) return;
@@ -293,6 +302,15 @@ export const useWorkspace = create<WorkspaceState>()(
       deleteSubtask: (taskId, subId) =>
         set((s) => ({ tasks: mapTask(s.tasks, taskId, (t) => ({ ...t, subtasks: t.subtasks.filter((st) => st.id !== subId) })) })),
       clearCompleted: () => set((s) => ({ tasks: s.tasks.filter((t) => !t.completed) })),
+      moveTask: (id, beforeId) =>
+        set((s) => {
+          const task = s.tasks.find((t) => t.id === id);
+          if (!task || id === beforeId) return {};
+          const rest = s.tasks.filter((t) => t.id !== id);
+          const at = beforeId ? rest.findIndex((t) => t.id === beforeId) : -1;
+          return { tasks: at < 0 ? [...rest, task] : [...rest.slice(0, at), task, ...rest.slice(at)] };
+        }),
+      sortTasksByPriority: () => set((s) => ({ tasks: [...s.tasks].sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]) })),
 
       buy: (itemId) => {
         const item = decorById[itemId];
@@ -350,10 +368,25 @@ export const useWorkspace = create<WorkspaceState>()(
     }),
     {
       name: STORAGE_KEY,
-      version: 1,
+      version: 2,
       storage: workspaceStorage,
+      migrate: (persisted, version) => {
+        const data = persisted as WorkspaceState;
+        // v1 always showed tasks sorted by priority; v2 lets you reorder them, so
+        // start from the order people were used to seeing.
+        if (version < 2 && Array.isArray(data?.tasks)) {
+          data.tasks = [...data.tasks].sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]);
+        }
+        return data;
+      },
       partialize: ({ lastEvent, ...rest }) => rest,
     },
   ),
 );
 
+// Keep every open tab in sync (e.g. the workspace in one tab, an article in another).
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORAGE_KEY && e.newValue !== e.oldValue) void useWorkspace.persist.rehydrate();
+  });
+}

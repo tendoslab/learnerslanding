@@ -43,7 +43,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
         className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-white/10 bg-[#1d1530] text-white shadow-2xl"
       >
         <div className="sticky top-0 flex items-center justify-between border-b border-white/10 bg-[#1d1530] p-5">
-          <h2 id="settings-title" className="font-display text-xl font-bold">Settings</h2>
+          <h2 id="settings-title" className="font-display text-xl font-semibold">Settings</h2>
           <button onClick={onClose} className="rounded p-1 text-white/60 hover:bg-white/10 hover:text-white" aria-label="Close settings">
             <X size={18} />
           </button>
@@ -151,7 +151,7 @@ function NumberField({ label, value, max, onChange }: { label: string; value: nu
         max={max}
         value={value}
         onChange={(e) => onChange(Math.min(max, Math.max(1, parseInt(e.target.value) || 1)))}
-        className="w-full bg-transparent text-center font-display text-2xl font-bold focus:outline-none"
+        className="w-full bg-transparent text-center text-2xl font-semibold tabular-nums focus:outline-none"
       />
     </label>
   );
