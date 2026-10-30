@@ -1,6 +1,9 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
+/* Short screens, e.g. a phone turned sideways. */
+@custom-variant short (@media (max-height: 32rem));
+
 @theme {
   --font-sans: 'DM Sans Variable', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Fraunces Variable', ui-serif, Georgia, serif;

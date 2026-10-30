@@ -44,8 +44,8 @@ export default function Timer({ compact = false }: { compact?: boolean }) {
   const dots = Array.from({ length: settings.longEvery }, (_, i) => i < timer.cycle % settings.longEvery);
 
   return (
-    <div className={`flex w-full max-w-md flex-col items-center rounded-[2rem] border border-white/15 bg-black/35 text-white shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl ${compact ? 'p-5' : 'p-6 sm:p-8'}`}>
-      <div role="tablist" aria-label="Timer mode" className="mb-5 flex gap-1 rounded-full border border-white/10 bg-black/30 p-1">
+    <div className={`flex w-full max-w-md flex-col items-center rounded-[2rem] border border-white/15 bg-black/35 text-white shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl ${compact ? 'p-5' : 'p-6 sm:p-8'} short:p-4!`}>
+      <div role="tablist" aria-label="Timer mode" className="mb-5 flex gap-1 rounded-full short:mb-1 border border-white/10 bg-black/30 p-1">
         {MODES.map((m) => (
           <button
             key={m.id}
@@ -61,13 +61,13 @@ export default function Timer({ compact = false }: { compact?: boolean }) {
         ))}
       </div>
 
-      <p className="h-5 text-sm italic text-honey">{timer.mode === 'focus' ? quote : 'Stretch, sip some water, look out a window.'}</p>
+      <p className="h-5 text-sm italic text-honey short:hidden">{timer.mode === 'focus' ? quote : 'Stretch, sip some water, look out a window.'}</p>
 
-      <div className="relative my-2 font-sans text-[5rem] font-medium leading-none tracking-tight tabular-nums drop-shadow-[0_4px_0_rgba(0,0,0,0.35)] sm:text-[6.5rem]" aria-live="off">
+      <div className="relative my-2 font-sans text-[5rem] font-medium leading-none tracking-tight tabular-nums drop-shadow-[0_4px_0_rgba(0,0,0,0.35)] sm:text-[6.5rem] short:text-[3.75rem]!" aria-live="off">
         {formatTime(remaining)}
       </div>
 
-      <div className="mb-5 h-2.5 w-full overflow-hidden rounded-full bg-white/10" aria-hidden>
+      <div className="mb-5 h-2.5 w-full short:mb-3 overflow-hidden rounded-full bg-white/10" aria-hidden>
         <div className="h-full rounded-full bg-gradient-to-r from-honey to-plum transition-[width] duration-300" style={{ width: `${Math.max(0, Math.min(1, progress)) * 100}%` }} />
       </div>
 
@@ -91,7 +91,7 @@ export default function Timer({ compact = false }: { compact?: boolean }) {
         </button>
       </div>
 
-      <div className="mt-5 flex items-center gap-3 text-xs text-white/70">
+      <div className="mt-5 flex items-center gap-3 text-xs short:mt-2 text-white/70">
         <span className="flex gap-1" title="Sessions until long break">
           {dots.map((done, i) => (
             <span key={i} className={`h-2.5 w-2.5 rounded-sm ${done ? 'bg-honey' : 'bg-white/20'}`} />

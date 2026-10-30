@@ -144,6 +144,8 @@ export default function App() {
     setRainOn(!rain);
   };
 
+  // Phones and tablets: say "tap" rather than "click" in the build hints.
+  const touch = matchMedia('(pointer: coarse)').matches;
   const inventoryItems = Object.entries(inventory).filter(([, n]) => n > 0);
 
   return (
@@ -228,7 +230,7 @@ export default function App() {
       {/* Timer */}
       {!build && (
         <main
-          className={`absolute inset-x-0 top-[4.25rem] z-10 flex items-start justify-center px-4 pt-[4vh] transition-[padding] duration-300 sm:pt-[8vh] ${
+          className={`absolute inset-x-0 top-[4.25rem] z-10 flex items-start justify-center px-4 pt-[4vh] transition-[padding] duration-300 sm:pt-[8vh] short:pt-0! ${
             sidebar ? 'lg:pl-[21rem]' : ''
           } ${sidebar ? 'max-lg:hidden' : ''}`}
         >
@@ -244,7 +246,9 @@ export default function App() {
               <p className="text-sm">
                 <strong className="font-semibold">Build mode.</strong>{' '}
                 <span className="text-white/70">
-                  {placing ? `Click the grass to place your ${decorById[placing]?.name.toLowerCase()}.` : 'Pick an item, then click the grass. Drag items to move them; click one for more options.'}
+                  {placing
+                    ? `${touch ? 'Tap' : 'Click'} the grass to place your ${decorById[placing]?.name.toLowerCase()}.`
+                    : `Pick an item, then ${touch ? 'tap' : 'click'} the grass. Drag items to move them; ${touch ? 'tap' : 'click'} one for more options.`}
                 </span>
               </p>
               <button onClick={() => toggleBuild(false)} className="shrink-0 rounded-lg bg-white px-3 py-1.5 text-sm font-bold text-ink">

@@ -65,7 +65,7 @@ export default function ShareModal({ onClose }: { onClose: () => void }) {
         aria-modal="true"
         aria-labelledby="share-title"
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-2xl rounded-2xl border border-white/10 bg-[#1d1530] text-white shadow-2xl"
+        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/10 bg-[#1d1530] text-white shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-white/10 p-5">
           <h2 id="share-title" className="font-display text-xl font-semibold">Share your village</h2>
