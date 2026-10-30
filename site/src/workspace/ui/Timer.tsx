@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Pause, Play, RotateCcw, SkipForward } from 'lucide-react';
 import { remainingMs, useWorkspace, type Mode } from '../store';
+import { primeAudio } from '../audio';
 
 export const formatTime = (ms: number) => {
   const total = Math.ceil(ms / 1000);
@@ -70,7 +71,11 @@ export default function Timer({ compact = false }: { compact?: boolean }) {
 
       <div className="flex items-center gap-3">
         <button
-          onClick={timer.running ? pause : start}
+          onClick={() => {
+            primeAudio();
+            if (timer.running) pause();
+            else start();
+          }}
           className="flex items-center gap-2 rounded-full bg-white px-9 py-3 text-lg font-extrabold text-ink shadow-[0_4px_0_rgba(0,0,0,0.3)] transition active:translate-y-0.5 active:shadow-none"
         >
           {timer.running ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}

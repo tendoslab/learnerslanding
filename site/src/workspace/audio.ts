@@ -39,6 +39,9 @@ const buildNoise = (ac: AudioContext) => {
   return gain;
 };
 
+/** Call from a click/keypress so later chimes are allowed to play, even in a background tab. */
+export const primeAudio = () => void audio();
+
 export const setRain = (on: boolean, volume = 0.5) => {
   const ac = audio();
   if (!noiseGain) noiseGain = buildNoise(ac);

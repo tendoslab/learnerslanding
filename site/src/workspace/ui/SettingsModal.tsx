@@ -60,6 +60,21 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
             <div className="mt-3 space-y-2 text-sm">
               <Toggle label="Start the next session automatically" checked={settings.autoStart} onChange={(autoStart) => update({ autoStart })} />
               <Toggle label="Play a chime when a session ends" checked={settings.chime} onChange={(chime) => update({ chime })} />
+              <Toggle
+                label="Desktop notification when a session ends (if you're on another tab)"
+                checked={settings.notify}
+                onChange={async (notify) => {
+                  if (notify && 'Notification' in window && Notification.permission !== 'granted') {
+                    const permission = await Notification.requestPermission();
+                    if (permission !== 'granted') {
+                      setMessage('Notifications are blocked in your browser settings for this site.');
+                      return;
+                    }
+                  }
+                  update({ notify });
+                }}
+              />
+              <p className="px-1 text-xs text-white/45">The countdown also shows in your browser tab, so you can glance at it from any tab.</p>
             </div>
           </section>
 

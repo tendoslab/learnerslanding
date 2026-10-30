@@ -51,6 +51,8 @@ export interface Settings {
   chime: boolean;
   avatar: number;
   sky: SkyMode;
+  /** Desktop notification when a session ends (needs browser permission). */
+  notify: boolean;
 }
 
 export interface CompletionEvent {
@@ -126,6 +128,7 @@ export const DEFAULT_SETTINGS: Settings = {
   chime: true,
   avatar: 1,
   sky: 'auto',
+  notify: false,
 };
 
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);

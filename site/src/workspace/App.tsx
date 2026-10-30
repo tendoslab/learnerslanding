@@ -13,11 +13,12 @@ import {
   Settings,
   ShoppingBag,
 } from 'lucide-react';
-import { useWorkspace } from './store';
+import { remainingMs, useWorkspace } from './store';
 import { decorById } from './rewards';
-import { chime, setRain } from './audio';
+import { chime, primeAudio, setRain } from './audio';
+import { setFaviconProgress, startTicker } from './ticker';
 import Village from './village/Village';
-import Timer, { formatTime, useRemaining } from './ui/Timer';
+import Timer, { formatTime } from './ui/Timer';
 import Tasks from './ui/Tasks';
 import Shop from './ui/Shop';
 import Progress from './ui/Progress';
@@ -38,7 +39,6 @@ export default function App() {
   const chimeOn = useWorkspace((s) => s.settings.chime);
   const inventory = useWorkspace((s) => s.inventory);
   const notes = useWorkspace((s) => s.notes);
-  const remaining = useRemaining();
 
   const [tab, setTab] = useState<Tab>('tasks');
   const [sidebar, setSidebar] = useState(false);
@@ -54,17 +54,27 @@ export default function App() {
   // Open the sidebar by default on wide screens.
   useEffect(() => setSidebar(window.innerWidth >= 1024), []);
 
-  // Drive the timer. Time is computed from timestamps, so background tabs stay accurate.
+  // Drive the timer from a worker so it keeps going (and the tab title/icon keep
+  // updating) while you're on another tab. Time is computed from timestamps.
   useEffect(() => {
-    const id = setInterval(() => useWorkspace.getState().tick(), 500);
-    return () => clearInterval(id);
+    const update = () => {
+      const s = useWorkspace.getState();
+      s.tick();
+      const { timer, settings } = useWorkspace.getState();
+      const left = remainingMs(timer);
+      const total = (timer.mode === 'focus' ? settings.focus : timer.mode === 'short' ? settings.short : settings.long) * 60_000;
+      const label = timer.mode === 'focus' ? 'Focus' : 'Break';
+      if (timer.running) {
+        document.title = `${formatTime(left)} · ${label} | Learner's Landing`;
+        setFaviconProgress(1 - left / total, timer.mode === 'focus' ? '#f2b33d' : '#86efac');
+      } else {
+        document.title = left < total ? `⏸ ${formatTime(left)} · Paused | Learner's Landing` : "Study Workspace | Learner's Landing";
+        setFaviconProgress(null);
+      }
+    };
+    update();
+    return startTicker(update);
   }, []);
-
-  useEffect(() => {
-    document.title = timer.running
-      ? `${formatTime(remaining)} · ${timer.mode === 'focus' ? 'Focus' : 'Break'} | Learner's Landing`
-      : "Study Workspace | Learner's Landing";
-  }, [remaining, timer.running, timer.mode]);
 
   const toast = (text: string) => {
     const id = Date.now() + Math.random();
@@ -81,6 +91,14 @@ export default function App() {
       task: `Task done! +${lastEvent.coins} coins`,
     };
     toast(messages[lastEvent.kind]);
+    const { notify } = useWorkspace.getState().settings;
+    if (notify && lastEvent.kind !== 'task' && document.hidden && 'Notification' in window && Notification.permission === 'granted') {
+      new Notification(lastEvent.kind === 'focus' ? 'Focus session complete! 🎉' : 'Break is over ⏰', {
+        body: lastEvent.kind === 'focus' ? `+${lastEvent.coins} coins. Time for a break.` : 'Ready for another round?',
+        icon: '/favicon.svg',
+        tag: 'learners-landing-timer',
+      });
+    }
     lastEvent.unlocked.forEach((r) => toast(`🎉 ${r.name} the ${r.species.toLowerCase()} moved into your village!`));
     if (chimeOn && lastEvent.kind !== 'task') chime();
   }, [lastEvent?.id]);
@@ -97,6 +115,7 @@ export default function App() {
       if (e.code === 'Space') {
         e.preventDefault();
         const s = useWorkspace.getState();
+        primeAudio();
         s.timer.running ? s.pause() : s.start();
       } else if (e.key === 'b') toggleBuild();
       else if (e.key === 'f') toggleFullscreen();
@@ -123,7 +142,7 @@ export default function App() {
 
   return (
     <div className="relative h-dvh w-screen overflow-hidden bg-[#2a1b3d] font-sans text-white">
-      <Village buildMode={build} placing={placing} onPlaced={() => setPlacing(null)} focusing={focusing} />
+      <Village buildMode={build} placing={placing} onPlaced={() => setPlacing(null)} focusing={focusing} raining={rain} />
 
       {/* Top bar */}
       <header className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-2 p-3 sm:p-4">
