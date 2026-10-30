@@ -3,6 +3,8 @@ import { ArrowDownWideNarrow, CheckCircle2, ChevronDown, ChevronUp, Circle, Grip
 import { useWorkspace, type Priority, type Task } from '../store';
 import { TASK_REWARD } from '../rewards';
 
+const PRIORITIES: Priority[] = ['Low', 'Medium', 'High'];
+
 const PRIORITY_STYLE: Record<Priority, string> = {
   High: 'text-red-200 bg-red-400/15 border-red-300/30',
   Medium: 'text-yellow-100 bg-yellow-400/15 border-yellow-300/30',
@@ -16,6 +18,8 @@ export default function Tasks() {
   const activeTaskId = useWorkspace((s) => s.activeTaskId);
   const { addTask, clearCompleted, moveTask, sortTasksByPriority } = useWorkspace.getState();
   const [title, setTitle] = useState('');
+  // Stays on your last pick, so a run of high-priority tasks doesn't need re-picking each time.
+  const [priority, setNewPriority] = useState<Priority>('Medium');
   const [dragId, setDragId] = useState<string | null>(null);
   const [dropAt, setDropAt] = useState<DropAt>(null);
 
@@ -38,19 +42,36 @@ export default function Tasks() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          addTask(title);
+          addTask(title, priority);
           setTitle('');
         }}
-        className="flex items-center rounded-xl border border-white/10 bg-white/10 px-3 py-2 focus-within:border-plum"
+        className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 focus-within:border-plum"
       >
-        <Plus size={18} className="mr-2 shrink-0 text-purple-200" />
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Add a task and press Enter…"
-          aria-label="New task"
-          className="w-full bg-transparent text-sm text-white placeholder-white/40 focus:outline-none"
-        />
+        <div className="flex items-center">
+          <Plus size={18} className="mr-2 shrink-0 text-purple-200" />
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Add a task and press Enter…"
+            aria-label="New task"
+            className="w-full bg-transparent text-sm text-white placeholder-white/40 focus:outline-none"
+          />
+        </div>
+        <div className="mt-2 flex items-center gap-1 text-[10px]" role="radiogroup" aria-label="Priority for new tasks">
+          <span className="mr-1 text-white/50">Priority</span>
+          {PRIORITIES.map((p) => (
+            <button
+              key={p}
+              type="button"
+              role="radio"
+              aria-checked={priority === p}
+              onClick={() => setNewPriority(p)}
+              className={`rounded border px-2 py-0.5 ${priority === p ? PRIORITY_STYLE[p] : 'border-white/10 text-white/40 hover:text-white'}`}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
       </form>
       <p className="text-[11px] text-white/50">Checking off a task earns {TASK_REWARD} coins. Press the target icon to track focus time on it. Use the arrows or drag the handle on the left to reorder.</p>
 
@@ -218,7 +239,7 @@ function TaskItem({ task, active, dragging, dropEdge, onDragStart, onDragOverIte
         <div className="space-y-3 rounded-b-xl border-t border-white/5 bg-black/25 px-3 pb-3 pt-2">
           <div className="flex items-center justify-between">
             <div className="flex gap-1">
-              {(['Low', 'Medium', 'High'] as Priority[]).map((p) => (
+              {PRIORITIES.map((p) => (
                 <button
                   key={p}
                   onClick={() => setPriority(task.id, p)}

@@ -106,7 +106,7 @@ export interface WorkspaceState {
   setMode: (mode: Mode) => void;
   tick: () => void;
   // tasks
-  addTask: (title: string) => void;
+  addTask: (title: string, priority?: Priority) => void;
   toggleTask: (id: string) => void;
   deleteTask: (id: string) => void;
   renameTask: (id: string, title: string) => void;
@@ -276,10 +276,10 @@ export const useWorkspace = create<WorkspaceState>()(
         set(patch);
       },
 
-      addTask: (title) => {
+      addTask: (title, priority = 'Medium') => {
         if (!title.trim()) return;
         set((s) => ({
-          tasks: [...s.tasks, { id: uid(), title: title.trim(), priority: 'Medium', completed: false, rewarded: false, focusMinutes: 0, subtasks: [] }],
+          tasks: [...s.tasks, { id: uid(), title: title.trim(), priority, completed: false, rewarded: false, focusMinutes: 0, subtasks: [] }],
         }));
       },
       toggleTask: (id) =>
