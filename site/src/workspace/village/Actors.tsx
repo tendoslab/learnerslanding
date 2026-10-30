@@ -34,7 +34,7 @@ interface ActorState {
   emoteUntil: number;
   hopUntil: number;
   t: number;
-  anim: SheetAnim | null;
+  sheets: string;
 }
 
 const YOU = 'you';
@@ -193,7 +193,7 @@ export default function Actors({ actors, S, focusing, placed, interactive }: Pro
           const slot = actors.indexOf(spec);
           const x = spot?.x ?? 8 + ((slot + 0.2 + Math.random() * 0.6) * 84) / actors.length;
           const y = spot?.y ?? 0.25 + Math.random() * 0.7;
-          st = { x, y, tx: x, ty: y, dir: spot?.dir ?? 1, moving: false, task: 'idle', timer: rand(0.5, 4), partner: null, ready: false, next: 0, tags: 0, decor: null, emote: null, emoteUntil: 0, hopUntil: 0, t: Math.random() * 10, anim: null };
+          st = { x, y, tx: x, ty: y, dir: spot?.dir ?? 1, moving: false, task: 'idle', timer: rand(0.5, 4), partner: null, ready: false, next: 0, tags: 0, decor: null, emote: null, emoteUntil: 0, hopUntil: 0, t: Math.random() * 10, sheets: '' };
           states.current.set(spec.id, st);
         }
         st.t += dt;
@@ -388,10 +388,12 @@ export default function Actors({ actors, S, focusing, placed, interactive }: Pro
         // Both sheets stay on the element as two background layers and the
         // unused one is parked out of view. Swapping background-image when
         // someone starts or stops walking left them blank for a frame while
-        // the other sheet loaded/decoded.
-        if (!st.anim) {
-          el.style.backgroundImage = `url(${sp.walk.src}), url(${sp.idle.src})`;
-          st.anim = anim;
+        // the other sheet loaded/decoded. Reload them only when the sprite
+        // itself changes (e.g. you pick a new character).
+        const sheets = `url(${sp.walk.src}), url(${sp.idle.src})`;
+        if (st.sheets !== sheets) {
+          el.style.backgroundImage = sheets;
+          st.sheets = sheets;
         }
         el.style.width = `${anim.w * k}px`;
         el.style.height = `${anim.h * k}px`;
