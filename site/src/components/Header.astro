@@ -1,13 +1,14 @@
 ---
+import { withBase } from '../lib/base';
 import { NAV, SITE } from '../data/site';
 const path = Astro.url.pathname;
-const isActive = (href: string) => path === href || path.startsWith(href + '/');
+const isActive = (href: string) => path === withBase(href) || path.startsWith(withBase(href) + '/');
 ---
 
 <header class="sticky top-0 z-40 border-b border-line bg-cream/90 backdrop-blur">
   <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-    <a href="/" class="flex items-center gap-2.5" aria-label={`${SITE.name} home`}>
-      <img src="/favicon.svg" alt="" width="32" height="32" class="pixelated" />
+    <a href={withBase('/')} class="flex items-center gap-2.5" aria-label={`${SITE.name} home`}>
+      <img src={withBase('/favicon.svg')} alt="" width="32" height="32" class="pixelated" />
       <span class="font-display text-xl font-bold tracking-tight sm:text-2xl">{SITE.name}</span>
     </a>
 
@@ -16,7 +17,7 @@ const isActive = (href: string) => path === href || path.startsWith(href + '/');
         NAV.map((item) =>
           item.href === '/workspace' ? null : (
             <a
-              href={item.href}
+              href={withBase(item.href)}
               class:list={[
                 'rounded-md px-3 py-2 text-sm font-bold tracking-wide transition-colors',
                 isActive(item.href) ? 'bg-ink text-cream' : 'text-ink/70 hover:bg-line hover:text-ink',
@@ -27,7 +28,7 @@ const isActive = (href: string) => path === href || path.startsWith(href + '/');
           ),
         )
       }
-      <a href="/workspace" class="btn-pixel ml-2 bg-plum text-white !text-base !py-1.5">Start studying</a>
+      <a href={withBase('/workspace')} class="btn-pixel ml-2 bg-plum text-white !text-base !py-1.5">Start studying</a>
     </nav>
 
     <details class="relative md:hidden">
@@ -35,7 +36,7 @@ const isActive = (href: string) => path === href || path.startsWith(href + '/');
       <div class="absolute right-0 mt-2 flex w-56 flex-col rounded-xl border border-line bg-paper p-2 shadow-xl">
         {
           NAV.map((item) => (
-            <a href={item.href} class:list={['rounded-md px-3 py-2 font-semibold', isActive(item.href) ? 'bg-ink text-cream' : 'hover:bg-line']}>
+            <a href={withBase(item.href)} class:list={['rounded-md px-3 py-2 font-semibold', isActive(item.href) ? 'bg-ink text-cream' : 'hover:bg-line']}>
               {item.label}
             </a>
           ))

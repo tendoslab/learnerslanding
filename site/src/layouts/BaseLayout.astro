@@ -1,4 +1,5 @@
 ---
+import { withBase } from '../lib/base';
 import '@fontsource-variable/nunito';
 import '@fontsource-variable/fredoka';
 import '../styles/global.css';
@@ -31,8 +32,8 @@ const ogImage = image ? new URL(image, Astro.site) : undefined;
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <link rel="sitemap" href={withBase('/sitemap-index.xml')} />
     <meta property="og:site_name" content={SITE.name} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />

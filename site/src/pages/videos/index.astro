@@ -1,4 +1,5 @@
 ---
+import { withBase } from '../../lib/base';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import VideoCard from '../../components/VideoCard.astro';
 import AdSlot from '../../components/AdSlot.astro';
@@ -16,7 +17,7 @@ const cats = Object.entries(CATEGORIES) as [VideoCategory, (typeof CATEGORIES)[V
     <p class="mt-4 max-w-3xl text-lg text-ink/75">
       These are the videos that have actually helped us get through long study days: pomodoro timers with scenery, cozy ambience that drowns out noise, focus frequencies,
       and short meditations for when stress gets in the way. Every one can be played right here, and most are available in the
-      <a href="/workspace" class="font-bold text-plum underline">workspace music player</a> too.
+      <a href={withBase('/workspace')} class="font-bold text-plum underline">workspace music player</a> too.
     </p>
 
     <div class="mt-8 flex flex-wrap gap-2" id="filters" role="group" aria-label="Filter by category">

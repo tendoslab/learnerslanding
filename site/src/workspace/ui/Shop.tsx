@@ -1,6 +1,7 @@
 import { Hammer } from 'lucide-react';
 import { useWorkspace } from '../store';
 import { DECOR } from '../rewards';
+import { withBase } from '../../lib/base';
 
 export default function Shop({ onBuild }: { onBuild: (itemId: string) => void }) {
   const coins = useWorkspace((s) => s.coins);
@@ -19,7 +20,7 @@ export default function Shop({ onBuild }: { onBuild: (itemId: string) => void })
           return (
             <li key={item.id} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-2.5 transition hover:bg-white/10">
               <div className="flex h-14 w-14 shrink-0 items-end justify-center rounded-lg bg-black/25 p-1">
-                <img src={`/sprites/decor/${item.id}.png`} alt="" className="pixelated max-h-full max-w-full" style={{ imageRendering: 'pixelated', height: Math.min(48, item.h * 2) }} />
+                <img src={withBase(`/sprites/decor/${item.id}.png`)} alt="" className="pixelated max-h-full max-w-full" style={{ imageRendering: 'pixelated', height: Math.min(48, item.h * 2) }} />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-bold">{item.name}</p>

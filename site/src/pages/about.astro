@@ -1,4 +1,5 @@
 ---
+import { withBase } from '../lib/base';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE } from '../data/site';
 ---
@@ -13,9 +14,9 @@ import { SITE } from '../data/site';
     </p>
     <h2>What you'll find here</h2>
     <ul>
-      <li><a href="/workspace">The study workspace</a>: a pomodoro timer, task list and notepad, set in a pixel-art village that grows as you focus. Finished sessions earn coins for decorations, and new residents move in as your focus time adds up.</li>
-      <li><a href="/videos">The video library</a>: a hand-picked set of study-with-me, ambience, focus-frequency and meditation videos.</li>
-      <li><a href="/articles">Study guides</a>: practical write-ups on procrastination, planning, habits and deep focus, based on the books, talks and research that changed how I study.</li>
+      <li><a href={withBase('/workspace')}>The study workspace</a>: a pomodoro timer, task list and notepad, set in a pixel-art village that grows as you focus. Finished sessions earn coins for decorations, and new residents move in as your focus time adds up.</li>
+      <li><a href={withBase('/videos')}>The video library</a>: a hand-picked set of study-with-me, ambience, focus-frequency and meditation videos.</li>
+      <li><a href={withBase('/articles')}>Study guides</a>: practical write-ups on procrastination, planning, habits and deep focus, based on the books, talks and research that changed how I study.</li>
     </ul>
     <h2>Why a village?</h2>
     <p>
@@ -23,7 +24,7 @@ import { SITE } from '../data/site';
       something behind. It is a small reward tied to <em>showing up</em> rather than to results, which is exactly the habit worth building.
     </p>
     <h2>Your privacy</h2>
-    <p>The workspace needs no account. Your tasks, notes and village are stored in your own browser. See the <a href="/privacy">privacy policy</a> for details.</p>
+    <p>The workspace needs no account. Your tasks, notes and village are stored in your own browser. See the <a href={withBase('/privacy')}>privacy policy</a> for details.</p>
     <h2 id="credits">Credits</h2>
     <ul>
       <li>Character and creature sprites by <strong>GrafxKid</strong> (Sprite Pack 3 &amp; 6), released under CC0.</li>
@@ -31,6 +32,6 @@ import { SITE } from '../data/site';
       <li>Villager characters from the "72 Character Free" pack.</li>
       <li>Videos in the library belong to their creators and are embedded from YouTube.</li>
     </ul>
-    <p>Got a suggestion or a video that helped you? <a href="/contact">Get in touch</a>.</p>
+    <p>Got a suggestion or a video that helped you? <a href={withBase('/contact')}>Get in touch</a>.</p>
   </article>
 </BaseLayout>

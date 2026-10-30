@@ -1,6 +1,8 @@
 // Everything you can earn in the village lives here, so balancing the game is
 // a matter of editing numbers in this one file.
 
+import { withBase } from '../lib/base';
+
 export interface SheetAnim {
   src: string;
   frames: number;
@@ -38,8 +40,8 @@ export interface Resident {
 }
 
 const animal = (n: string): SpriteDef => ({
-  walk: { src: `/sprites/animals/${n}-walk.png`, frames: 4, w: 32, h: 32, fps: 6 },
-  idle: { src: `/sprites/animals/${n}-idle.png`, frames: 2, w: 32, h: 32, fps: 2 },
+  walk: { src: withBase(`/sprites/animals/${n}-walk.png`), frames: 4, w: 32, h: 32, fps: 6 },
+  idle: { src: withBase(`/sprites/animals/${n}-idle.png`), frames: 2, w: 32, h: 32, fps: 2 },
   facing: 'front',
   speed: 2.2,
   foot: 8,
@@ -47,8 +49,8 @@ const animal = (n: string): SpriteDef => ({
 });
 
 const critter = (n: string, walkFrames: number, idleFrames: number, size = 32, extra: Partial<SpriteDef> = {}): SpriteDef => ({
-  walk: { src: `/sprites/critters/${n}-walk.png`, frames: walkFrames, w: size, h: size, fps: 8 },
-  idle: { src: `/sprites/critters/${n}-idle.png`, frames: idleFrames, w: size, h: size, fps: 4 },
+  walk: { src: withBase(`/sprites/critters/${n}-walk.png`), frames: walkFrames, w: size, h: size, fps: 8 },
+  idle: { src: withBase(`/sprites/critters/${n}-idle.png`), frames: idleFrames, w: size, h: size, fps: 4 },
   facing: 'side',
   speed: 3,
   foot: 0,
@@ -61,14 +63,14 @@ export const RESIDENTS: Resident[] = [
   { id: 'bunny', name: 'Clover', species: 'Bunny', unlockAt: 75, sprite: animal('bunny') },
   { id: 'penguin', name: 'Pip', species: 'Penguin', unlockAt: 150, sprite: critter('penguin', 6, 5, 16, { scale: 1.1, speed: 1.8, body: 14 }) },
   { id: 'pig', name: 'Truffle', species: 'Pig', unlockAt: 250, sprite: animal('pig') },
-  { id: 'fairy', name: 'Lumi', species: 'Fairy', unlockAt: 400, sprite: { ...critter('fairy', 4, 4), walk: { src: '/sprites/critters/fairy-move.png', frames: 4, w: 32, h: 32, fps: 8 }, idle: { src: '/sprites/critters/fairy-fly.png', frames: 4, w: 32, h: 32, fps: 8 }, flying: true, foot: 8, body: 14 } },
+  { id: 'fairy', name: 'Lumi', species: 'Fairy', unlockAt: 400, sprite: { ...critter('fairy', 4, 4), walk: { src: withBase('/sprites/critters/fairy-move.png'), frames: 4, w: 32, h: 32, fps: 8 }, idle: { src: withBase('/sprites/critters/fairy-fly.png'), frames: 4, w: 32, h: 32, fps: 8 }, flying: true, foot: 8, body: 14 } },
   { id: 'bear', name: 'Bramble', species: 'Bear', unlockAt: 600, sprite: animal('bear') },
   { id: 'orange', name: 'Sunny', species: 'Orange', unlockAt: 850, sprite: critter('orange', 6, 4, 32, { speed: 2.4 }) },
   { id: 'wolf', name: 'Juniper', species: 'Wolf', unlockAt: 1100, sprite: animal('wolf') },
   { id: 'robot', name: 'J5', species: 'Robot', unlockAt: 1400, sprite: critter('robot', 6, 5) },
   { id: 'gumbot', name: 'Gummy', species: 'Gum Bot', unlockAt: 1800, sprite: critter('gumbot', 6, 4) },
   { id: 'twiggy', name: 'Twiggy', species: 'Explorer', unlockAt: 2300, sprite: critter('twiggy', 6, 5, 32, { speed: 4 }) },
-  { id: 'tommy', name: 'Tommy', species: 'Adventurer', unlockAt: 2900, sprite: critter('tommy', 6, 4, 32, { idle: { src: '/sprites/critters/tommy-idle.png', frames: 4, w: 32, h: 32, fps: 1.5 } }) },
+  { id: 'tommy', name: 'Tommy', species: 'Adventurer', unlockAt: 2900, sprite: critter('tommy', 6, 4, 32, { idle: { src: withBase('/sprites/critters/tommy-idle.png'), frames: 4, w: 32, h: 32, fps: 1.5 } }) },
   { id: 'geralt', name: 'Geralt', species: 'Knight', unlockAt: 3600, sprite: critter('geralt', 3, 2, 32, { speed: 3.5, body: 13 }) },
   { id: 'skeleton', name: 'Sir Bones', species: 'Skeleton', unlockAt: 5000, sprite: critter('skeleton', 6, 9, 32, { speed: 1.6, body: 16 }) },
 ];
@@ -76,8 +78,8 @@ export const RESIDENTS: Resident[] = [
 export const AVATAR_COUNT = 18;
 
 export const avatarSprite = (n: number): SpriteDef => ({
-  idle: { src: `/sprites/characters/char-${n}.png`, frames: 4, w: 64, h: 64, y: 0, fps: 4 },
-  walk: { src: `/sprites/characters/char-${n}.png`, frames: 6, w: 64, h: 64, y: 64, fps: 9 },
+  idle: { src: withBase(`/sprites/characters/char-${n}.png`), frames: 4, w: 64, h: 64, y: 0, fps: 4 },
+  walk: { src: withBase(`/sprites/characters/char-${n}.png`), frames: 6, w: 64, h: 64, y: 64, fps: 9 },
   facing: 'side',
   scale: 0.7,
   speed: 3.2,

@@ -1,4 +1,5 @@
 ---
+import { withBase } from '../../lib/base';
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { readingTime } from '../../data/reading-time';
@@ -15,7 +16,7 @@ const articles = (await getCollection('articles', ({ data }) => !data.draft)).so
     <div class="mt-10 grid gap-6 md:grid-cols-2">
       {
         articles.map((a) => (
-          <a href={`/articles/${a.id}`} class="group flex gap-5 rounded-2xl border border-line bg-paper p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+          <a href={withBase(`/articles/${a.id}`)} class="group flex gap-5 rounded-2xl border border-line bg-paper p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
             <span class="text-4xl">{a.data.emoji}</span>
             <div>
               <p class="text-xs font-bold uppercase tracking-wider text-plum">

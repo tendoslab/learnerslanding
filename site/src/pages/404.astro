@@ -1,15 +1,16 @@
 ---
+import { withBase } from '../lib/base';
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="Page not found" ads={false}>
   <section class="mx-auto max-w-xl px-4 py-24 text-center">
-    <div class="pixelated mx-auto h-24 w-24" style="background:url(/sprites/critters/penguin-idle.png) 0 0 / 480px 96px no-repeat"></div>
+    <div class="pixelated mx-auto h-24 w-24" style={`background:url(${withBase('/sprites/critters/penguin-idle.png')}) 0 0 / 480px 96px no-repeat`}></div>
     <h1 class="mt-12 font-display text-4xl font-bold">Lost in the village?</h1>
     <p class="mt-4 text-ink/70">That page doesn't exist (any more). Let's get you back on track.</p>
     <div class="mt-8 flex justify-center gap-3">
-      <a href="/" class="btn-pixel bg-ink text-cream">Home</a>
-      <a href="/workspace" class="btn-pixel bg-plum text-white">Study workspace</a>
+      <a href={withBase('/')} class="btn-pixel bg-ink text-cream">Home</a>
+      <a href={withBase('/workspace')} class="btn-pixel bg-plum text-white">Study workspace</a>
     </div>
   </section>
 </BaseLayout>
