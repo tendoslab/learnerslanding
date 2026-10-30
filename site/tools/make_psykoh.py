@@ -43,9 +43,10 @@ FAR_DX, FAR_DY = 3, -1
 TAIL_RIGHT = 10
 TAIL_TOP = 19
 SPIRAL_TOP = 25
-# Legs: everything from this row down, right of the tail; back leg left of LEG_SPLIT.
+# Legs: from this row down; the back leg sits under his hips, the front one under his chest.
 LEG_TOP = 25
-LEG_SPLIT = 22
+BACK_LEG = range(12, 17)
+FRONT_LEG = range(22, 28)
 # Eye: pupil spots (top-left of its 2x2), the lid row, and where the eye starts.
 LOOK = {'ahead': (30, 12), 'back': (27, 12), 'up': (28, 11), 'down': (30, 14)}
 LID_ROW = 14
@@ -67,8 +68,10 @@ def split(px):
             part = 'spiral'
         elif x <= TAIL_RIGHT and y >= TAIL_TOP:
             part = 'tail'
-        elif y >= LEG_TOP:
-            part = 'back' if x < LEG_SPLIT else 'front'
+        elif y >= LEG_TOP and x in BACK_LEG:
+            part = 'back'
+        elif y >= LEG_TOP and x in FRONT_LEG:
+            part = 'front'
         else:
             part = 'body'
         parts[part][(x, y)] = c
