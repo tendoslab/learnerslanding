@@ -185,7 +185,7 @@ export default function App() {
           <Home size={16} />
           <span className="hidden text-sm font-semibold sm:inline">Learner's Landing</span>
         </a>
-        <div className="pointer-events-auto flex items-center gap-1.5 rounded-xl border border-white/10 bg-black/35 p-1.5 backdrop-blur-md">
+        <div data-ui className="pointer-events-auto flex items-center gap-1.5 rounded-xl border border-white/10 bg-black/35 p-1.5 backdrop-blur-md">
           <button onClick={() => setSettingsOpen(true)} title="Your character" aria-label="Your character" className="rounded-full transition hover:brightness-110">
             <Portrait avatar={avatar} size={34} />
           </button>
@@ -217,6 +217,7 @@ export default function App() {
       {!build && (
         <>
           <aside
+            data-ui
             className={`absolute bottom-3 left-3 top-[4.25rem] z-20 flex w-[min(20rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-2xl border border-white/10 bg-black/45 shadow-2xl backdrop-blur-2xl transition-transform duration-300 ${
               sidebar ? 'translate-x-0' : '-translate-x-[110%]'
             }`}
@@ -262,7 +263,7 @@ export default function App() {
             sidebar ? 'lg:pl-[21rem]' : ''
           } ${sidebar ? 'max-lg:hidden' : ''}`}
         >
-          <div className="pointer-events-auto flex w-full justify-center">
+          <div className="flex w-full justify-center">
             <Timer />
           </div>
         </main>
@@ -272,7 +273,7 @@ export default function App() {
       {build && (
         <div className="pointer-events-none absolute inset-x-0 top-[4.5rem] z-40 flex justify-center px-3 short:top-[4rem]">
           {/* Phones held sideways: a slimmer tray, so it doesn't cover the grass you're tapping. */}
-          <div className="pointer-events-auto w-full max-w-3xl rounded-2xl border border-white/15 bg-black/60 p-3 shadow-2xl backdrop-blur-xl short:flex short:items-center short:gap-3 short:p-2">
+          <div data-ui className="pointer-events-auto w-full max-w-3xl rounded-2xl border border-white/15 bg-black/60 p-3 shadow-2xl backdrop-blur-xl short:flex short:items-center short:gap-3 short:p-2">
             <div className="mb-2 flex items-center justify-between gap-3 short:order-last short:mb-0 short:shrink-0">
               {/* Both hints share one grid cell, so the tray stays the height of the longer one and doesn't jump when you pick an item. */}
               <p className="grid text-sm short:hidden">
@@ -341,7 +342,7 @@ export default function App() {
 
       {/* Floating music player */}
       {playerOpen && (
-        <div className="absolute bottom-3 right-3 z-40">
+        <div data-ui className="absolute bottom-3 right-3 z-40">
           <VideoPlayer onClose={() => setPlayerOpen(false)} />
         </div>
       )}

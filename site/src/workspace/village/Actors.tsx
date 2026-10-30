@@ -1,7 +1,7 @@
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useImperativeHandle, useLayoutEffect, useMemo, useRef, type Ref } from 'react';
 import type { Placed } from '../store';
 import { decorById, type SheetAnim, type SpriteDef } from '../rewards';
-import { bottomFor, clamp, depthScale } from './layout';
+import { bottomFor, clamp, depthScale, tapsHandled } from './layout';
 
 // The village residents (and your own character) run a small "social" AI:
 // they wander, meet up and chat, play tag, visit your decorations, cheer you
@@ -77,7 +77,14 @@ const saveSpots = (states: Map<string, ActorState>) => {
 
 const sheetSize = (a: SheetAnim) => (a.src.includes('/characters/') ? [384, 128] : [a.frames * a.w, a.h]);
 
+/** Lets the village say hi to whoever is under a tap that didn't land on a resident's own element. */
+export interface ActorsHandle {
+  /** Pet the resident nearest this point (client coordinates), if one is close enough. */
+  petAt: (clientX: number, clientY: number) => boolean;
+}
+
 interface Props {
+  ref?: Ref<ActorsHandle>;
   actors: ActorSpec[];
   S: number;
   focusing: boolean;
@@ -85,7 +92,7 @@ interface Props {
   interactive: boolean;
 }
 
-export default function Actors({ actors, S, focusing, placed, interactive }: Props) {
+export default function Actors({ ref, actors, S, focusing, placed, interactive }: Props) {
   const nodes = useRef(new Map<string, { wrap: HTMLDivElement; sprite: HTMLDivElement; bubble: HTMLDivElement; label: HTMLSpanElement; shadow: HTMLSpanElement }>());
   const states = useRef(new Map<string, ActorState>());
   const live = useRef({ focusing, placed, clock: 0 });
@@ -118,6 +125,23 @@ export default function Actors({ actors, S, focusing, placed, interactive }: Pro
     say(st, pick(PET), 1.6);
     if (st.task === 'idle' || st.task === 'wander') rest(st, 1.5, 3);
   };
+
+  useImperativeHandle(ref, () => ({
+    petAt: (cx, cy) => {
+      // Fingers are wide and residents keep walking, so anyone within a finger's width counts; the nearest wins.
+      const reach = 24;
+      let best: string | null = null;
+      let bestDist = Infinity;
+      for (const [id, n] of nodes.current) {
+        const r = n.sprite.getBoundingClientRect();
+        if (cx < r.left - reach || cx > r.right + reach || cy < r.top - reach || cy > r.bottom + reach) continue;
+        const d = Math.hypot(cx - (r.left + r.right) / 2, cy - (r.top + r.bottom) / 2);
+        if (d < bestDist) [best, bestDist] = [id, d];
+      }
+      if (best) pet(best);
+      return !!best;
+    },
+  }));
 
   // Layout effect + an immediate first frame, so nobody flashes in the corner before they're placed.
   useLayoutEffect(() => {
@@ -455,7 +479,14 @@ export default function Actors({ actors, S, focusing, placed, interactive }: Pro
           }}
           className={`group absolute -translate-x-1/2 ${interactive ? 'pointer-events-auto cursor-pointer' : 'pointer-events-none'}`}
           style={firstIds.current!.has(a.id) ? undefined : { animation: 'pop-in .6s cubic-bezier(.2,.8,.2,1)' }}
-          onPointerDown={interactive ? () => pet(a.id) : undefined}
+          onPointerDown={
+            interactive
+              ? (e) => {
+                  tapsHandled.add(e.nativeEvent);
+                  pet(a.id);
+                }
+              : undefined
+          }
           title={interactive ? (a.id === YOU ? 'You' : `${a.name}: click to say hi`) : undefined}
         >
           {/* A finger is wider than these little sprites (and they keep walking), so the tap target reaches a bit past them. */}

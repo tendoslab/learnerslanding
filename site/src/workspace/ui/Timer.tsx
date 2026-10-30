@@ -44,7 +44,7 @@ export default function Timer({ compact = false }: { compact?: boolean }) {
   const dots = Array.from({ length: settings.longEvery }, (_, i) => i < timer.cycle % settings.longEvery);
 
   return (
-    <div className={`flex w-full max-w-md flex-col items-center rounded-[2rem] border border-white/15 bg-black/35 text-white shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl ${compact ? 'p-5' : 'p-6 sm:p-8'} short:grid short:max-w-xl short:grid-cols-[auto_auto] short:items-center short:justify-center short:gap-x-5 short:gap-y-1.5 short:rounded-2xl short:px-4! short:py-2!`}>
+    <div data-ui className={`pointer-events-auto flex w-full max-w-md flex-col items-center rounded-[2rem] border border-white/15 bg-black/35 text-white shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl ${compact ? 'p-5' : 'p-6 sm:p-8'} short:grid short:max-w-xl short:grid-cols-[auto_auto] short:items-center short:justify-center short:gap-x-5 short:gap-y-1.5 short:rounded-2xl short:px-4! short:py-2!`}>
       <div role="tablist" aria-label="Timer mode" className="mb-5 flex gap-1 rounded-full short:col-start-2 short:row-start-1 short:mb-0 short:justify-self-center border border-white/10 bg-black/30 p-1">
         {MODES.map((m) => (
           <button
