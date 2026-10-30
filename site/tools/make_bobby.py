@@ -25,7 +25,9 @@ S = 32
 WING = {(255, 201, 1), (154, 64, 42)}
 BODY = {(133, 108, 221), (199, 202, 255), (228, 75, 151), (151, 44, 82), (255, 255, 255), (0, 29, 149)}
 PURPLE = (133, 108, 221, 255)
-OUTLINE = (55, 0, 32, 255)
+# The shared outline colour every resident uses (his drawing uses a plum one).
+OUTLINE = (27, 20, 30, 255)
+DRAWN_OUTLINE = (55, 0, 32)
 CLEAR = (0, 0, 0, 0)
 # Eye: the white/blue patch on top of his head; the lid closes on this row.
 EYE_ROWS = range(8, 15)
@@ -40,7 +42,8 @@ WING_SPLIT = 9
 
 def load():
     im = Image.open(os.path.join(HERE, 'bobby.png')).convert('RGBA')
-    return {(x, y): im.getpixel((x, y)) for x in range(S) for y in range(S) if im.getpixel((x, y))[3] > 0}
+    px = {(x, y): im.getpixel((x, y)) for x in range(S) for y in range(S) if im.getpixel((x, y))[3] > 0}
+    return {k: OUTLINE if c[:3] == DRAWN_OUTLINE else c for k, c in px.items()}
 
 
 def near(px, x, y, colours):
