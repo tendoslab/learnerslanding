@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as RPointerEvent } from 'react';
 import { FlipHorizontal2, PackageOpen } from 'lucide-react';
 import { useWorkspace, unlockedResidents, type Placed } from '../store';
-import { avatarSprite, decorById } from '../rewards';
+import { avatarSprite, decorById, landscapeFor } from '../rewards';
 import { skyFor, type Sky } from './sky';
 import { FIELD_DEPTH, FIELD_FRONT, GROUND_HEIGHT, bottomFor, clamp, depthScale } from './layout';
 import { Ambient, Backdrop, GroundDetail, SCENERY_KEYFRAMES } from './Scenery';
@@ -39,19 +39,17 @@ interface Props {
   onPlaced: () => void;
   focusing: boolean;
   raining: boolean;
-  /** Home page hero: read-only, no "start building" hint. */
-  showcase?: boolean;
 }
 
-export default function Village({ buildMode, placing, onPlaced, focusing, raining, showcase = false }: Props) {
+export default function Village({ buildMode, placing, onPlaced, focusing, raining }: Props) {
   const sky = useSky();
   const S = usePixelScale();
   // Always your own village, on every page: nothing you haven't earned yet.
   const placed = useWorkspace((s) => s.placed);
   const minutes = useWorkspace((s) => s.totalFocusMinutes);
   const avatar = useWorkspace((s) => s.settings.avatar);
+  const landscape = useWorkspace((s) => landscapeFor(s.settings.landscape, s.totalFocusMinutes));
   const place = useWorkspace((s) => s.place);
-  const hasInventory = useWorkspace((s) => Object.values(s.inventory).some((n) => n > 0));
   const bandRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
   /** Where the item being placed would land: a see-through preview that follows the pointer. */
@@ -106,7 +104,7 @@ export default function Village({ buildMode, placing, onPlaced, focusing, rainin
       }
       aria-hidden={!buildMode}
     >
-      <Backdrop sky={sky} raining={raining} />
+      <Backdrop sky={sky} raining={raining} landscape={landscape} />
 
       {/* Ground band: decorations + residents */}
       <div
@@ -154,11 +152,6 @@ export default function Village({ buildMode, placing, onPlaced, focusing, rainin
 
         <Actors actors={actors} S={S} focusing={focusing} placed={placed} interactive={!buildMode} />
 
-        {placed.length === 0 && !hasInventory && !buildMode && !showcase && (
-          <p className="absolute inset-x-0 top-[38%] text-center text-sm font-medium text-white/60">
-            Your village is waiting. Finish focus sessions to earn coins and decorate it!
-          </p>
-        )}
       </div>
 
       {/* Moonlight / sunset wash over the ground; light sources glow on top of it */}

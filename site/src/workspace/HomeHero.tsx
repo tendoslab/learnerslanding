@@ -28,7 +28,7 @@ export default function HomeHero({ children }: { children?: ReactNode }) {
 
   return (
     <section className="relative isolate h-[calc(100svh-3.75rem)] min-h-[34rem] overflow-hidden bg-[#2a1b3d] text-white">
-      <Village buildMode={false} placing={null} onPlaced={() => {}} focusing={timer.running && timer.mode === 'focus'} raining={false} showcase />
+      <Village buildMode={false} placing={null} onPlaced={() => {}} focusing={timer.running && timer.mode === 'focus'} raining={false} />
 
       <div className="relative z-10 flex justify-center px-4 pt-[6vh] sm:pt-[9vh]">
         <div className="w-full max-w-xl rounded-[2rem] border border-white/15 bg-black/35 p-6 text-center shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl sm:p-8">

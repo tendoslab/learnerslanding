@@ -13,7 +13,7 @@ export default function SessionPill() {
   const timer = useWorkspace((s) => s.timer);
   const settings = useWorkspace((s) => s.settings);
   const lastEvent = useWorkspace((s) => s.lastEvent);
-  const [now, setNow] = useState(() => Date.now());
+  const [, setNow] = useState(() => Date.now());
   const [done, setDone] = useState<string | null>(null);
   const pageTitle = useRef('');
 
@@ -28,7 +28,7 @@ export default function SessionPill() {
     });
   }, []);
 
-  const left = remainingMs(timer, now);
+  const left = remainingMs(timer);
   const total = (timer.mode === 'focus' ? settings.focus : timer.mode === 'short' ? settings.short : settings.long) * 60_000;
   const label = timer.mode === 'focus' ? 'Focus' : 'Break';
   const visible = timer.running || left < total;

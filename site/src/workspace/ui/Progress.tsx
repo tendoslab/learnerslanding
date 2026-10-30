@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
-import { Flame, Lock } from 'lucide-react';
+import { Check, Flame, Lock } from 'lucide-react';
 import { nextResident, streak, todayKey, useWorkspace } from '../store';
-import { RESIDENTS } from '../rewards';
+import { LANDSCAPES, RESIDENTS, landscapeFor } from '../rewards';
 
 export const fmtMinutes = (m: number) => (m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`);
 
@@ -10,6 +10,8 @@ export default function Progress() {
   const sessions = useWorkspace((s) => s.sessionsCompleted);
   const tasksDone = useWorkspace((s) => s.tasksCompleted);
   const history = useWorkspace((s) => s.history);
+  const landscape = useWorkspace((s) => landscapeFor(s.settings.landscape, s.totalFocusMinutes));
+  const update = useWorkspace((s) => s.updateSettings);
   const next = nextResident(minutes);
   const prevAt = [...RESIDENTS].reverse().find((r) => r.unlockAt <= minutes)?.unlockAt ?? 0;
   const pct = next ? ((minutes - prevAt) / (next.unlockAt - prevAt)) * 100 : 100;
@@ -52,6 +54,35 @@ export default function Progress() {
           </div>
         </div>
       )}
+
+      <div>
+        <p className="mb-2 text-xs uppercase tracking-wider text-white/40">Scenery</p>
+        <ul className="space-y-1.5">
+          {LANDSCAPES.map((l) => {
+            const unlocked = minutes >= l.unlockAt;
+            const current = landscape === l.id;
+            return (
+              <li key={l.id}>
+                <button
+                  disabled={!unlocked}
+                  onClick={() => update({ landscape: l.id })}
+                  aria-pressed={current}
+                  className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition ${
+                    current ? 'border-plum bg-plum/30' : unlocked ? 'border-white/10 bg-white/5 hover:bg-white/10' : 'cursor-not-allowed border-white/5 bg-black/20'
+                  }`}
+                >
+                  <span className={`text-xl ${unlocked ? '' : 'opacity-40 grayscale'}`} aria-hidden>{l.icon}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className={`block text-sm font-semibold ${unlocked ? '' : 'text-white/50'}`}>{l.name}</span>
+                    <span className="block truncate text-[11px] text-white/45">{unlocked ? l.desc : `Unlocks at ${fmtMinutes(l.unlockAt)} of focus`}</span>
+                  </span>
+                  {current ? <Check size={16} className="text-honey" /> : !unlocked && <Lock size={14} className="text-white/40" />}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
 
       <div>
         <p className="mb-2 text-xs uppercase tracking-wider text-white/40">Village residents</p>

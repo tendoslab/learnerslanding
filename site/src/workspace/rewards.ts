@@ -75,6 +75,30 @@ export const RESIDENTS: Resident[] = [
   { id: 'skeleton', name: 'Sir Bones', species: 'Skeleton', unlockAt: 5000, sprite: critter('skeleton', 6, 9, 32, { speed: 1.6, body: 16 }) },
 ];
 
+export interface Landscape {
+  id: string;
+  name: string;
+  desc: string;
+  icon: string;
+  /** Total focus minutes needed to unlock. */
+  unlockAt: number;
+}
+
+/** Scenery behind the village. The first one is the default. */
+export const LANDSCAPES: Landscape[] = [
+  { id: 'mountains', name: 'Mountain Range', desc: 'Snowy peaks over pine hills', icon: '🏔️', unlockAt: 0 },
+  { id: 'autumn', name: 'Autumn Woods', desc: 'Hills of red and gold trees', icon: '🍂', unlockAt: 150 },
+  { id: 'lake', name: 'Lakeside', desc: 'A still lake below the peaks', icon: '🏞️', unlockAt: 400 },
+  { id: 'seaside', name: 'Seaside', desc: 'Open sea, a lighthouse and passing boats', icon: '🌊', unlockAt: 800 },
+  { id: 'city', name: 'City Lights', desc: 'A skyline that lights up at night', icon: '🌃', unlockAt: 1500 },
+];
+
+/** The landscape to draw: the chosen one if it's unlocked, otherwise the default. */
+export const landscapeFor = (id: string | undefined, minutes: number) => {
+  const l = LANDSCAPES.find((x) => x.id === id);
+  return l && minutes >= l.unlockAt ? l.id : LANDSCAPES[0].id;
+};
+
 export const AVATAR_COUNT = 18;
 
 export const avatarSprite = (n: number): SpriteDef => ({

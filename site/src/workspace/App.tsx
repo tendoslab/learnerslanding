@@ -20,6 +20,7 @@ import { setFaviconProgress, startTicker } from './ticker';
 import Village from './village/Village';
 import Timer, { formatTime } from './ui/Timer';
 import Tasks from './ui/Tasks';
+import Notes from './ui/Notes';
 import Shop from './ui/Shop';
 import Progress from './ui/Progress';
 import VideoPlayer from './ui/VideoPlayer';
@@ -39,7 +40,6 @@ export default function App() {
   const lastEvent = useWorkspace((s) => s.lastEvent);
   const chimeOn = useWorkspace((s) => s.settings.chime);
   const inventory = useWorkspace((s) => s.inventory);
-  const notes = useWorkspace((s) => s.notes);
 
   const [tab, setTab] = useState<Tab>('tasks');
   // Open by default on wide screens, decided up front so it doesn't slide in on every load.
@@ -99,6 +99,7 @@ export default function App() {
       });
     }
     lastEvent.unlocked.forEach((r) => toast(`🎉 ${r.name} the ${r.species.toLowerCase()} moved into your village!`));
+    (lastEvent.scenery ?? []).forEach((l) => toast(`${l.icon} New scenery unlocked: ${l.name}! Switch to it in the Village tab.`));
     if (chimeOn && lastEvent.kind !== 'task') chime();
   }, [lastEvent?.id]);
 
@@ -197,21 +198,14 @@ export default function App() {
                 />
               )}
               {tab === 'village' && <Progress />}
-              {tab === 'notes' && (
-                <textarea
-                  value={notes}
-                  onChange={(e) => useWorkspace.getState().setNotes(e.target.value)}
-                  placeholder="Park distracting thoughts here so you can deal with them later. Saved automatically."
-                  aria-label="Notes"
-                  className="h-full min-h-[50vh] w-full resize-none rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-plum/60"
-                />
-              )}
+              {tab === 'notes' && <Notes />}
             </div>
           </aside>
           <button
             onClick={() => setSidebar(!sidebar)}
-            className="absolute top-1/2 z-20 -translate-y-1/2 rounded-r-xl border border-l-0 border-white/10 bg-black/40 px-1 py-4 text-white/70 backdrop-blur-md transition-[left] duration-300 hover:text-white"
-            style={{ left: sidebar ? 'min(21.25rem, calc(100vw - 2rem))' : 0 }}
+            className="absolute top-1/2 z-20 -translate-y-1/2 rounded-r-xl border border-l-0 border-white/10 bg-black/45 px-1 py-4 text-white/70 backdrop-blur-2xl transition-[left] duration-300 hover:text-white"
+            // Flush against the sidebar's right edge (left-3 + its width), so it reads as a tab on the panel.
+            style={{ left: sidebar ? 'min(20.75rem - 1px, calc(100vw - 2rem))' : 0 }}
             aria-label={sidebar ? 'Hide sidebar' : 'Show sidebar'}
           >
             {sidebar ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
