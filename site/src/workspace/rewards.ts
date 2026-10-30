@@ -75,6 +75,7 @@ export const RESIDENTS: Resident[] = [
   { id: 'twiggy', name: 'Twiggy', species: 'Explorer', unlockAt: 2300, sprite: critter('twiggy', 6, 5, 32, { speed: 4, box: [6, 6, 19, 26] }) },
   { id: 'tommy', name: 'Tommy', species: 'Adventurer', unlockAt: 2900, sprite: critter('tommy', 6, 4, 32, { idle: { src: withBase('/sprites/critters/tommy-idle.png'), frames: 4, w: 32, h: 32, fps: 1.5 }, box: [8, 4, 17, 28] }) },
   { id: 'geralt', name: 'Geralt', species: 'Knight', unlockAt: 3600, sprite: critter('geralt', 3, 2, 32, { speed: 3.5, body: 13, box: [10, 16, 13, 16] }) },
+  { id: 'bobby', name: 'Bobby', species: 'Alien', unlockAt: 4300, sprite: critter('bobby', 6, 6, 32, { facing: 'front', scale: 0.85, speed: 2.2, foot: 2, body: 18, box: [1, 3, 30, 27] }) },
   { id: 'skeleton', name: 'Sir Bones', species: 'Skeleton', unlockAt: 5000, sprite: critter('skeleton', 6, 9, 32, { speed: 1.6, body: 16, box: [3, 4, 27, 28] }) },
 ];
 
