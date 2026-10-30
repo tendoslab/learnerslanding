@@ -1,6 +1,6 @@
 """Animate Psy-Koh the chameleon from his single 32x32 drawing (tools/psykoh.png).
 
-Psy-Koh is a painter: red beret with a brush tucked in it, a neckerchief and
+Psy-Koh is a painter: red beret with a big paintbrush tucked behind it, a neckerchief and
 paint splatters on his back. He faces right. Parts are split by position: his
 two legs (the stubby columns under his belly), his curly tail (bottom left)
 and the rest. Each frame nudges those parts a pixel:
