@@ -68,6 +68,11 @@ The repo root has a `netlify.toml`, so on [Netlify](https://www.netlify.com) you
 "Import from GitHub" and it builds `site/` automatically. For Vercel or Cloudflare Pages, set
 the **root directory** to `site`, build command `npm run build`, output `dist`.
 
+**GitHub Pages:** `.github/workflows/deploy-pages.yml` builds and publishes the site on every
+push to `main`. One-time setup: repo **Settings → Pages → Build and deployment → Source:
+GitHub Actions**. It sets `BASE_PATH` (e.g. `/learnerslanding`) automatically; in code, wrap
+internal links and asset paths in `withBase()` from `src/lib/base.ts` so they work under it.
+
 Set these environment variables in your host's dashboard:
 
 - `SITE_URL`: your real domain, e.g. `https://learnerslanding.com`

@@ -1,4 +1,5 @@
 ---
+import { withBase } from '../lib/base';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE } from '../data/site';
 ---
@@ -36,6 +37,6 @@ import { SITE } from '../data/site';
     <p>This site is a general-audience study tool and does not knowingly collect personal information from children.</p>
 
     <h2>Changes and contact</h2>
-    <p>We may update this policy from time to time; the date at the top shows the latest version. Questions? See the <a href="/contact">contact page</a>.</p>
+    <p>We may update this policy from time to time; the date at the top shows the latest version. Questions? See the <a href={withBase('/contact')}>contact page</a>.</p>
   </article>
 </BaseLayout>

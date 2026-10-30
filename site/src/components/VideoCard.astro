@@ -1,4 +1,5 @@
 ---
+import { withBase } from '../lib/base';
 import { CATEGORIES, thumb, type Video } from '../data/videos';
 interface Props {
   video: Video;
@@ -8,7 +9,7 @@ const cat = CATEGORIES[video.category];
 ---
 
 <a
-  href={`/videos/${video.slug}`}
+  href={withBase(`/videos/${video.slug}`)}
   class="group block overflow-hidden rounded-2xl border border-line bg-paper shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
 >
   <div class="relative aspect-video overflow-hidden bg-ink">

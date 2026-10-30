@@ -2,6 +2,8 @@
 // after a few minutes hidden). Web Workers aren't throttled the same way, so we
 // tick from a tiny inline worker and fall back to setInterval if that fails.
 
+import { withBase } from '../lib/base';
+
 export const startTicker = (onTick: () => void, ms = 500) => {
   try {
     const src = `setInterval(() => postMessage(0), ${ms});`;
@@ -27,7 +29,7 @@ export const setFaviconProgress = (progress: number | null, color = '#f2b33d') =
   link ??= document.querySelector<HTMLLinkElement>('link[rel="icon"]');
   if (!link) return;
   if (progress === null) {
-    if (lastKey !== 'default') link.href = '/favicon.svg';
+    if (lastKey !== 'default') link.href = withBase('/favicon.svg');
     lastKey = 'default';
     return;
   }

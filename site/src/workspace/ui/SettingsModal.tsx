@@ -3,6 +3,7 @@ import { Download, Upload, X } from 'lucide-react';
 import { useWorkspace, type SkyMode } from '../store';
 import { AVATAR_COUNT } from '../rewards';
 import { STORAGE_KEY } from '../storage';
+import { withBase } from '../../lib/base';
 
 export default function SettingsModal({ onClose }: { onClose: () => void }) {
   const settings = useWorkspace((s) => s.settings);
@@ -105,7 +106,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
                 >
                   <div
                     className="pixelated"
-                    style={{ width: 64, height: 64, backgroundImage: `url(/sprites/characters/char-${n}.png)`, backgroundSize: '384px 128px', imageRendering: 'pixelated', transform: 'scale(0.9)' }}
+                    style={{ width: 64, height: 64, backgroundImage: `url(${withBase(`/sprites/characters/char-${n}.png`)})`, backgroundSize: '384px 128px', imageRendering: 'pixelated', transform: 'scale(0.9)' }}
                   />
                 </button>
               ))}

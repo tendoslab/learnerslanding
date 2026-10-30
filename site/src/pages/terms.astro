@@ -1,4 +1,5 @@
 ---
+import { withBase } from '../lib/base';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE } from '../data/site';
 ---
@@ -15,11 +16,11 @@ import { SITE } from '../data/site';
     <h2>Content</h2>
     <p>
       Guides on this site are general information, not medical, psychological or professional advice. Embedded videos belong to their creators and are subject to YouTube's
-      terms. Pixel art is used under the licences listed on our <a href="/about#credits">about page</a>.
+      terms. Pixel art is used under the licences listed on our <a href={withBase('/about#credits')}>about page</a>.
     </p>
     <h2>Liability</h2>
     <p>To the fullest extent permitted by law, we are not liable for any loss arising from your use of the site.</p>
     <h2>Contact</h2>
-    <p>Questions about these terms? Visit the <a href="/contact">contact page</a>.</p>
+    <p>Questions about these terms? Visit the <a href={withBase('/contact')}>contact page</a>.</p>
   </article>
 </BaseLayout>

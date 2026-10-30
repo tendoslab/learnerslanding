@@ -6,6 +6,7 @@ import { skyFor, type Sky } from './sky';
 import { FIELD_DEPTH, FIELD_FRONT, GROUND_HEIGHT, bottomFor, clamp, depthScale } from './layout';
 import { Ambient, Backdrop, GroundDetail, SCENERY_KEYFRAMES } from './Scenery';
 import Actors, { ACTOR_STYLES, type ActorSpec } from './Actors';
+import { withBase } from '../../lib/base';
 
 const usePixelScale = () => {
   const [scale, setScale] = useState(3);
@@ -279,7 +280,7 @@ function Decoration({
         title={buildMode ? `${d.name} (drag to move)` : undefined}
       >
         <img
-          src={`/sprites/decor/${d.id}.png`}
+          src={withBase(`/sprites/decor/${d.id}.png`)}
           alt={d.name}
           draggable={false}
           width={d.w * k}

@@ -24,6 +24,7 @@ import Shop from './ui/Shop';
 import Progress from './ui/Progress';
 import VideoPlayer from './ui/VideoPlayer';
 import SettingsModal from './ui/SettingsModal';
+import { withBase } from '../lib/base';
 
 type Tab = 'tasks' | 'shop' | 'village' | 'notes';
 
@@ -95,7 +96,7 @@ export default function App() {
     if (notify && lastEvent.kind !== 'task' && document.hidden && 'Notification' in window && Notification.permission === 'granted') {
       new Notification(lastEvent.kind === 'focus' ? 'Focus session complete! 🎉' : 'Break is over ⏰', {
         body: lastEvent.kind === 'focus' ? `+${lastEvent.coins} coins. Time for a break.` : 'Ready for another round?',
-        icon: '/favicon.svg',
+        icon: withBase('/favicon.svg'),
         tag: 'learners-landing-timer',
       });
     }
@@ -146,7 +147,7 @@ export default function App() {
 
       {/* Top bar */}
       <header className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-2 p-3 sm:p-4">
-        <a href="/" className="pointer-events-auto flex items-center gap-2 rounded-xl border border-white/10 bg-black/35 px-3 py-2 backdrop-blur-md hover:bg-black/50" title="Back to Learner's Landing">
+        <a href={withBase('/')} className="pointer-events-auto flex items-center gap-2 rounded-xl border border-white/10 bg-black/35 px-3 py-2 backdrop-blur-md hover:bg-black/50" title="Back to Learner's Landing">
           <Home size={16} />
           <span className="hidden font-display text-sm sm:inline">Learner's Landing</span>
         </a>
@@ -256,7 +257,7 @@ export default function App() {
                       title={decorById[id]?.name}
                     >
                       <img
-                        src={`/sprites/decor/${id}.png`}
+                        src={withBase(`/sprites/decor/${id}.png`)}
                         alt={decorById[id]?.name}
                         className="pixelated max-h-full max-w-full object-contain"
                         style={{ imageRendering: 'pixelated', height: Math.min(48, (decorById[id]?.h ?? 16) * 2) }}

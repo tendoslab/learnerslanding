@@ -1,4 +1,5 @@
 ---
+import { withBase } from '../lib/base';
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import VideoCard from '../components/VideoCard.astro';
@@ -17,10 +18,10 @@ const scene: [string, number, number, number][] = [
   ['well', 72, 28, 4], ['cafe', 87, 20, 4], ['flowers', 27, 6, 4], ['bush', 64, 4, 4], ['campfire', 44, 2, 4],
 ];
 const critters = [
-  { src: '/sprites/animals/cat-walk.png', frames: 4, size: 32, left: 40, bottom: 14, scale: 3, dur: 0.7 },
-  { src: '/sprites/critters/penguin-walk.png', frames: 6, size: 16, left: 78, bottom: 8, scale: 3, dur: 0.75 },
-  { src: '/sprites/critters/fairy-fly.png', frames: 4, size: 32, left: 22, bottom: 130, scale: 3, dur: 0.5 },
-  { src: '/sprites/animals/bunny-walk.png', frames: 4, size: 32, left: 66, bottom: 40, scale: 3, dur: 0.6 },
+  { src: withBase('/sprites/animals/cat-walk.png'), frames: 4, size: 32, left: 40, bottom: 14, scale: 3, dur: 0.7 },
+  { src: withBase('/sprites/critters/penguin-walk.png'), frames: 6, size: 16, left: 78, bottom: 8, scale: 3, dur: 0.75 },
+  { src: withBase('/sprites/critters/fairy-fly.png'), frames: 4, size: 32, left: 22, bottom: 130, scale: 3, dur: 0.5 },
+  { src: withBase('/sprites/animals/bunny-walk.png'), frames: 4, size: 32, left: 66, bottom: 40, scale: 3, dur: 0.6 },
 ];
 ---
 
@@ -34,8 +35,8 @@ const critters = [
         {SITE.name} is a cozy study workspace. Every pomodoro you finish earns coins for decorating your own pixel-art village, and new animal friends move in the more you focus.
       </p>
       <div class="mt-8 flex flex-wrap justify-center gap-3">
-        <a href="/workspace" class="btn-pixel bg-honey text-ink">▶ Start a focus session</a>
-        <a href="/articles" class="btn-pixel bg-white/15 text-white backdrop-blur">Read the study guides</a>
+        <a href={withBase('/workspace')} class="btn-pixel bg-honey text-ink">▶ Start a focus session</a>
+        <a href={withBase('/articles')} class="btn-pixel bg-white/15 text-white backdrop-blur">Read the study guides</a>
       </div>
     </div>
 
@@ -44,7 +45,7 @@ const critters = [
       {
         scene.map(([id, left, bottom, scale]) => (
           <img
-            src={`/sprites/decor/${id}.png`}
+            src={withBase(`/sprites/decor/${id}.png`)}
             alt=""
             class="hero-decor pixelated absolute"
             style={`left:${left}%;bottom:${bottom}px;--s:${scale};`}
@@ -95,7 +96,7 @@ const critters = [
           <li><strong class="text-ink">A reward that's actually cozy</strong>: a day/night village that follows your local time, with {RESIDENTS.length} residents to unlock.</li>
           <li><strong class="text-ink">Private by default</strong>: no account needed. Your progress is saved in your own browser.</li>
         </ul>
-        <a href="/workspace" class="btn-pixel mt-8 bg-plum text-white">Open the workspace</a>
+        <a href={withBase('/workspace')} class="btn-pixel mt-8 bg-plum text-white">Open the workspace</a>
       </div>
       <div class="rounded-3xl border border-line bg-cream p-6">
         <p class="font-display text-lg">Today's tiny study plan</p>
@@ -119,11 +120,11 @@ const critters = [
       <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div class="flex items-end justify-between gap-4">
           <h2 class="font-display text-3xl font-bold">Latest study guides</h2>
-          <a href="/articles" class="font-bold text-plum hover:underline">All guides →</a>
+          <a href={withBase('/articles')} class="font-bold text-plum hover:underline">All guides →</a>
         </div>
         <div class="mt-8 grid gap-6 md:grid-cols-3">
           {articles.map((a) => (
-            <a href={`/articles/${a.id}`} class="group rounded-2xl border border-line bg-paper p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+            <a href={withBase(`/articles/${a.id}`)} class="group rounded-2xl border border-line bg-paper p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
               <span class="text-3xl">{a.data.emoji}</span>
               <p class="mt-3 text-xs font-bold uppercase tracking-wider text-plum">{a.data.category}</p>
               <h3 class="mt-1 text-lg font-bold leading-snug group-hover:text-plum">{a.data.title}</h3>
@@ -140,7 +141,7 @@ const critters = [
     <div class="mx-auto max-w-6xl px-4 sm:px-6">
       <div class="flex items-end justify-between gap-4">
         <h2 class="font-display text-3xl font-bold">Study videos we love</h2>
-        <a href="/videos" class="font-bold text-plum hover:underline">Browse the library →</a>
+        <a href={withBase('/videos')} class="font-bold text-plum hover:underline">Browse the library →</a>
       </div>
       <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {featured.map((v) => <VideoCard video={v} />)}
