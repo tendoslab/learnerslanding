@@ -2,19 +2,21 @@
 (him) and tools/psykoh-brush.png (his paintbrush, drawn behind him).
 
 Psy-Koh is a painter: red beret, a neckerchief, paint splatters on his back
-and a big paintbrush leaning over his back, its handle gripped in his curly
-tail. He faces right. The drawing only has his near-side legs; the far-side
+and a big paintbrush leaning over his back, his tail coiled twice around its
+handle. He faces right. The drawing only has his near-side legs; the far-side
 pair is made here by darkening those and tucking them in behind. Parts are
 split by position:
 
-  tail    the band gripping the brush handle, and the spiral below it
+  coil    the tail where it wraps the handle (moves with the brush)
+  tip     the curled end of the tail below the handle (swings on its own)
   legs    near back / near front (and their far-side copies)
   body    everything else
 
   walk (6 frames): four-legged gait (near back with far front, then the
-                   other pair), body bob, brush rocking on his back
+                   other pair), body bob, tail tip swinging
   idle (8 frames): eye swivels around (chameleon eyes do), a dab of the
-                   brush, a breath, paint spots shifting colour, a blink
+                   brush (the coil lifts with it), a breath, the tail tip
+                   swaying, paint spots shifting colour, a blink
 
 Output goes to public/sprites/critters/psykoh-{walk,idle}.png.
 
@@ -39,10 +41,10 @@ CLEAR = (0, 0, 0, 0)
 FAR = {(104, 178, 41): (37, 125, 44, 255), (37, 125, 44): (22, 82, 36, 255)}
 # They sit a little forward and higher, as if further away.
 FAR_DX, FAR_DY = 3, -1
-# Tail: left of this column, from TAIL_TOP down; the spiral rests on the ground.
+# Tail: left of this column, from COIL_TOP down; the tip is the rows from TIP_TOP.
 TAIL_RIGHT = 10
-TAIL_TOP = 19
-SPIRAL_TOP = 25
+COIL_TOP = 19
+TIP_TOP = 29
 # Legs: from this row down; the back leg sits under his hips, the front one under his chest.
 LEG_TOP = 25
 BACK_LEG = range(12, 17)
@@ -62,12 +64,12 @@ def load(name):
 
 
 def split(px):
-    parts = {k: {} for k in ('tail', 'spiral', 'back', 'front', 'body')}
+    parts = {k: {} for k in ('coil', 'tip', 'back', 'front', 'body')}
     for (x, y), c in px.items():
-        if x <= TAIL_RIGHT and y >= SPIRAL_TOP:
-            part = 'spiral'
-        elif x <= TAIL_RIGHT and y >= TAIL_TOP:
-            part = 'tail'
+        if x <= TAIL_RIGHT and y >= TIP_TOP:
+            part = 'tip'
+        elif x <= TAIL_RIGHT and y >= COIL_TOP:
+            part = 'coil'
         elif y >= LEG_TOP and x in BACK_LEG:
             part = 'back'
         elif y >= LEG_TOP and x in FRONT_LEG:
@@ -116,9 +118,9 @@ def paint(body, shift):
     return out
 
 
-def frame(parts, body_dy=0, a=(0, 0), b=(0, 0), wobble=0, dab=0, eye='ahead', closed=False, shift=0):
+def frame(parts, body_dy=0, a=(0, 0), b=(0, 0), swing=0, dab=0, eye='ahead', closed=False, shift=0):
     """a moves the near back leg and far front leg, b the other pair ((dx, dy), dy -1 lifts).
-    wobble rocks the brush sideways, dab lifts it."""
+    swing moves the tail tip sideways, dab lifts the brush and the coil holding it."""
     img = Image.new('RGBA', (W, H), CLEAR)
 
     def put(layer, dx, dy):
@@ -126,17 +128,17 @@ def frame(parts, body_dy=0, a=(0, 0), b=(0, 0), wobble=0, dab=0, eye='ahead', cl
             if 0 <= x + dx < W and 0 <= y + dy < H:
                 img.putpixel((x + dx, y + dy), c)
 
-    # Far legs, near legs and the spiral first, so the body sits over their tops when it bobs.
+    # Far legs, near legs and the tail tip first, so the body sits over their tops when it bobs.
     put(far(parts['back']), *b)
     put(far(parts['front']), *a)
     put(parts['back'], *a)
     put(parts['front'], *b)
-    put(parts['spiral'], 0, 0)
-    # The brush leans behind him; the tail wraps over the end of its handle.
-    put(parts['brush'], wobble, body_dy - dab)
+    put(parts['tip'], swing, -dab)
+    # The brush leans behind him; the coil wraps in front of its handle and moves with it.
+    put(parts['brush'], 0, body_dy - dab)
     body = paint(look(parts['body'], eye), shift)
     put(blink(body) if closed else body, 0, body_dy)
-    put(parts['tail'], 0, body_dy)
+    put(parts['coil'], 0, body_dy - dab)
     return img
 
 
@@ -152,19 +154,19 @@ def main():
     parts['brush'] = load('psykoh-brush.png')
     walk = [
         frame(parts, a=(1, 0), b=(-1, 0)),
-        frame(parts, a=(0, -1), wobble=-1),
-        frame(parts, body_dy=1, wobble=-1),
+        frame(parts, a=(0, -1), swing=-1),
+        frame(parts, body_dy=1, swing=-1),
         frame(parts, a=(-1, 0), b=(1, 0)),
-        frame(parts, b=(0, -1), wobble=1),
-        frame(parts, body_dy=1, wobble=1),
+        frame(parts, b=(0, -1), swing=1),
+        frame(parts, body_dy=1, swing=1),
     ]
     idle = [
         frame(parts),
         frame(parts, eye='back'),
-        frame(parts, eye='back', shift=1),
-        frame(parts, eye='up', shift=1, dab=1),
+        frame(parts, eye='back', shift=1, swing=-1),
+        frame(parts, eye='up', shift=1, dab=1, swing=-1),
         frame(parts, shift=2, body_dy=1),
-        frame(parts, eye='down', shift=2),
+        frame(parts, eye='down', shift=2, swing=1),
         frame(parts, shift=3, closed=True),
         frame(parts, shift=3),
     ]
