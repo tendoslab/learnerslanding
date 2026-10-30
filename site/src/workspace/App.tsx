@@ -257,21 +257,25 @@ export default function App() {
       {/* Timer */}
       {!build && (
         <main
-          className={`absolute inset-x-0 top-[4.25rem] z-10 flex items-start justify-center px-4 pt-[4vh] transition-[padding] duration-300 sm:pt-[8vh] short:pt-0! ${
+          // Only the timer card takes taps: the empty space either side of it lies over the grass, where residents walk.
+          className={`pointer-events-none absolute inset-x-0 top-[4.25rem] z-10 flex items-start justify-center px-4 pt-[4vh] transition-[padding] duration-300 sm:pt-[8vh] short:pt-0! ${
             sidebar ? 'lg:pl-[21rem]' : ''
           } ${sidebar ? 'max-lg:hidden' : ''}`}
         >
-          <Timer />
+          <div className="pointer-events-auto flex w-full justify-center">
+            <Timer />
+          </div>
         </main>
       )}
 
       {/* Build mode tray */}
       {build && (
-        <div className="absolute inset-x-0 top-[4.5rem] z-40 flex justify-center px-3">
-          <div className="w-full max-w-3xl rounded-2xl border border-white/15 bg-black/60 p-3 shadow-2xl backdrop-blur-xl">
-            <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="pointer-events-none absolute inset-x-0 top-[4.5rem] z-40 flex justify-center px-3 short:top-[4rem]">
+          {/* Phones held sideways: a slimmer tray, so it doesn't cover the grass you're tapping. */}
+          <div className="pointer-events-auto w-full max-w-3xl rounded-2xl border border-white/15 bg-black/60 p-3 shadow-2xl backdrop-blur-xl short:flex short:items-center short:gap-3 short:p-2">
+            <div className="mb-2 flex items-center justify-between gap-3 short:order-last short:mb-0 short:shrink-0">
               {/* Both hints share one grid cell, so the tray stays the height of the longer one and doesn't jump when you pick an item. */}
-              <p className="grid text-sm">
+              <p className="grid text-sm short:hidden">
                 {[
                   `Pick an item and ${touch ? 'tap' : 'click'} the grass, or drag it there. Drag placed items to move them; ${touch ? 'tap' : 'click'} one for more options.`,
                   `${touch ? 'Tap' : 'Click'} the grass to place your ${decorById[placing ?? '']?.name.toLowerCase() ?? 'item'}.`,
@@ -286,7 +290,7 @@ export default function App() {
               </button>
             </div>
             {inventoryItems.length ? (
-              <ul className="flex gap-2 overflow-x-auto pb-1">
+              <ul className="flex gap-2 overflow-x-auto pb-1 short:min-w-0 short:flex-1 short:pb-0">
                 {inventoryItems.map(([id, n]) => (
                   <li key={id}>
                     <button
@@ -300,7 +304,7 @@ export default function App() {
                       }}
                       // Sideways swipes still scroll the tray; any other drag pulls the item out.
                       style={{ touchAction: 'pan-x' }}
-                      className={`relative flex h-16 w-16 items-end justify-center rounded-xl border p-1.5 ${placing === id ? 'border-honey bg-honey/20' : 'border-white/10 bg-white/5 hover:bg-white/10'}`}
+                      className={`relative flex h-16 w-16 short:h-12 short:w-12 items-end justify-center rounded-xl border p-1.5 ${placing === id ? 'border-honey bg-honey/20' : 'border-white/10 bg-white/5 hover:bg-white/10'}`}
                       title={decorById[id]?.name}
                     >
                       <img
@@ -316,7 +320,7 @@ export default function App() {
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-white/60">
+              <p className="text-xs text-white/60 short:flex-1">
                 Your inventory is empty.{' '}
                 <button
                   className="underline"

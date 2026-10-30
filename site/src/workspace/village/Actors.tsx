@@ -458,6 +458,8 @@ export default function Actors({ actors, S, focusing, placed, interactive }: Pro
           onPointerDown={interactive ? () => pet(a.id) : undefined}
           title={interactive ? (a.id === YOU ? 'You' : `${a.name}: click to say hi`) : undefined}
         >
+          {/* A finger is wider than these little sprites (and they keep walking), so the tap target reaches a bit past them. */}
+          {interactive && <span className="absolute -inset-3" />}
           <div data-bubble className="ll-bubble" />
           <span data-label className="pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-black/60 px-1.5 text-[10px] font-bold text-white opacity-0 transition-opacity group-hover:opacity-100">
             {a.id === YOU ? 'You' : a.name}
