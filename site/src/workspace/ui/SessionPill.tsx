@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Pause } from 'lucide-react';
 import { remainingMs, useWorkspace } from '../store';
 import { chime } from '../audio';
-import { startTicker } from '../ticker';
+import { setFaviconProgress, startTicker, timerFavicon } from '../ticker';
 import { formatTime } from './Timer';
 import { withBase } from '../../lib/base';
 
@@ -21,6 +21,9 @@ export default function SessionPill() {
     pageTitle.current = document.title;
     return startTicker(() => {
       useWorkspace.getState().tick();
+      // Same tab icon as the workspace, so it doesn't flip as you move between pages.
+      const ring = timerFavicon(useWorkspace.getState());
+      setFaviconProgress(ring?.progress ?? null, ring?.color);
       setNow(Date.now());
     });
   }, []);

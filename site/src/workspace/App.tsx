@@ -42,7 +42,8 @@ export default function App() {
   const notes = useWorkspace((s) => s.notes);
 
   const [tab, setTab] = useState<Tab>('tasks');
-  const [sidebar, setSidebar] = useState(false);
+  // Open by default on wide screens, decided up front so it doesn't slide in on every load.
+  const [sidebar, setSidebar] = useState(() => window.innerWidth >= 1024);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [playerOpen, setPlayerOpen] = useState(false);
   const [rain, setRainOn] = useState(false);
@@ -51,9 +52,6 @@ export default function App() {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const focusing = timer.running && timer.mode === 'focus';
-
-  // Open the sidebar by default on wide screens.
-  useEffect(() => setSidebar(window.innerWidth >= 1024), []);
 
   // Drive the timer from a worker so it keeps going (and the tab title/icon keep
   // updating) while you're on another tab. Time is computed from timestamps.

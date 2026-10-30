@@ -389,4 +389,9 @@ if (typeof window !== 'undefined') {
   window.addEventListener('storage', (e) => {
     if (e.key === STORAGE_KEY && e.newValue !== e.oldValue) void useWorkspace.persist.rehydrate();
   });
+  // Going Back/Forward can restore a page from the browser's cache with the
+  // state it had when you left, and storage events don't reach cached pages.
+  // Re-read the save so that page doesn't show (and later write back) an old village.
+  window.addEventListener('pageshow', (e) => e.persisted && void useWorkspace.persist.rehydrate());
+  document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && void useWorkspace.persist.rehydrate());
 }

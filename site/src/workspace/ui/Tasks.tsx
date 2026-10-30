@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowDown, ArrowDownWideNarrow, ArrowUp, CheckCircle2, ChevronDown, ChevronUp, Circle, GripVertical, Plus, Target, Trash2, X } from 'lucide-react';
+import { ArrowDownWideNarrow, CheckCircle2, ChevronDown, ChevronUp, Circle, GripVertical, Plus, Target, Trash2, X } from 'lucide-react';
 import { useWorkspace, type Priority, type Task } from '../store';
 import { TASK_REWARD } from '../rewards';
 
@@ -52,7 +52,7 @@ export default function Tasks() {
           className="w-full bg-transparent text-sm text-white placeholder-white/40 focus:outline-none"
         />
       </form>
-      <p className="text-[11px] text-white/50">Checking off a task earns {TASK_REWARD} coins. Press the target icon to track focus time on it. Drag the handle to reorder.</p>
+      <p className="text-[11px] text-white/50">Checking off a task earns {TASK_REWARD} coins. Press the target icon to track focus time on it. Use the arrows or drag the handle on the left to reorder.</p>
 
       {open.length > 1 && (
         <div className="flex justify-end">
@@ -149,15 +149,24 @@ function TaskItem({ task, active, dragging, dropEdge, onDragStart, onDragOverIte
       {dropEdge && <span className={`pointer-events-none absolute inset-x-2 h-0.5 rounded-full bg-honey ${dropEdge === 'before' ? '-top-1.5' : '-bottom-1.5'}`} />}
       <div className="flex items-start gap-2.5 p-3">
         {reorderable && (
-          <span
-            onPointerDown={() => setGrabbed(true)}
-            onPointerUp={() => setGrabbed(false)}
-            className="-ml-1.5 -mr-1 mt-0.5 shrink-0 cursor-grab text-white/25 hover:text-white/70 active:cursor-grabbing"
-            title="Drag to reorder"
-            aria-hidden
-          >
-            <GripVertical size={16} />
-          </span>
+          // Reorder: drag the grip, or use the arrows (also works on touch screens and keyboards).
+          <div className="-my-1 -ml-1.5 -mr-1 flex shrink-0 flex-col items-center text-white/45">
+            <button onClick={onMoveUp} disabled={!onMoveUp} className="rounded hover:bg-white/10 hover:text-white disabled:invisible" aria-label="Move task up" title="Move up">
+              <ChevronUp size={14} />
+            </button>
+            <span
+              onPointerDown={() => setGrabbed(true)}
+              onPointerUp={() => setGrabbed(false)}
+              className="cursor-grab hover:text-white active:cursor-grabbing"
+              title="Drag to reorder"
+              aria-hidden
+            >
+              <GripVertical size={16} />
+            </span>
+            <button onClick={onMoveDown} disabled={!onMoveDown} className="rounded hover:bg-white/10 hover:text-white disabled:invisible" aria-label="Move task down" title="Move down">
+              <ChevronDown size={14} />
+            </button>
+          </div>
         )}
         <button onClick={() => toggleTask(task.id)} className="mt-0.5 shrink-0" aria-label={task.completed ? 'Mark as not done' : 'Mark as done'}>
           {task.completed ? <CheckCircle2 size={18} className="text-green-300" /> : <Circle size={18} className="text-white/40 hover:text-white" />}
@@ -220,16 +229,6 @@ function TaskItem({ task, active, dragging, dropEdge, onDragStart, onDragOverIte
               ))}
             </div>
             <div className="flex items-center gap-1">
-              {reorderable && (
-                <>
-                  <button onClick={onMoveUp} disabled={!onMoveUp} className="rounded p-1 text-white/50 hover:bg-white/10 hover:text-white disabled:opacity-25" aria-label="Move task up" title="Move up">
-                    <ArrowUp size={13} />
-                  </button>
-                  <button onClick={onMoveDown} disabled={!onMoveDown} className="rounded p-1 text-white/50 hover:bg-white/10 hover:text-white disabled:opacity-25" aria-label="Move task down" title="Move down">
-                    <ArrowDown size={13} />
-                  </button>
-                </>
-              )}
               <button onClick={() => deleteTask(task.id)} className="rounded bg-red-400/10 p-1 text-red-300/70 hover:text-red-300" aria-label="Delete task">
                 <Trash2 size={13} />
               </button>

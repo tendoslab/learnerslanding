@@ -8,11 +8,13 @@ import { Ambient, Backdrop, GroundDetail, SCENERY_KEYFRAMES } from './Scenery';
 import Actors, { ACTOR_STYLES, type ActorSpec } from './Actors';
 import { withBase } from '../../lib/base';
 
+const scaleFor = () => (window.innerWidth < 640 ? 2 : window.innerHeight < 760 ? 2.5 : window.innerWidth >= 1280 && window.innerHeight >= 820 ? 3.5 : 3);
+
 const usePixelScale = () => {
-  const [scale, setScale] = useState(3);
+  // Start at the right size (the village only renders in the browser), so nothing resizes after the first paint.
+  const [scale, setScale] = useState(scaleFor);
   useEffect(() => {
-    const update = () => setScale(window.innerWidth < 640 ? 2 : window.innerHeight < 760 ? 2.5 : window.innerWidth >= 1280 && window.innerHeight >= 820 ? 3.5 : 3);
-    update();
+    const update = () => setScale(scaleFor());
     window.addEventListener('resize', update);
     return () => window.removeEventListener('resize', update);
   }, []);
@@ -37,30 +39,23 @@ interface Props {
   onPlaced: () => void;
   focusing: boolean;
   raining: boolean;
-  /** Home page hero: read-only, and a sample village for brand-new visitors. */
+  /** Home page hero: read-only, no "start building" hint. */
   showcase?: boolean;
 }
-
-// What a new visitor sees on the home page before they've built anything.
-const DEMO_PLACED: Placed[] = [
-  ['pine', 7, 0.15], ['tree', 17, 0.35], ['flowers', 25, 0.85], ['cottage', 33, 0.1], ['lamp', 44, 0.3], ['campfire', 50, 0.75],
-  ['bench', 58, 0.4], ['bush', 66, 0.8], ['well', 74, 0.2], ['mushrooms', 82, 0.9], ['cafe', 90, 0.05],
-].map(([itemId, x, y], i) => ({ uid: `demo-${i}`, itemId: itemId as string, x: x as number, y: y as number }));
-const DEMO_MINUTES = 160;
 
 export default function Village({ buildMode, placing, onPlaced, focusing, raining, showcase = false }: Props) {
   const sky = useSky();
   const S = usePixelScale();
-  const ownPlaced = useWorkspace((s) => s.placed);
-  const ownMinutes = useWorkspace((s) => s.totalFocusMinutes);
-  const demo = showcase && ownPlaced.length === 0 && ownMinutes === 0;
-  const placed = demo ? DEMO_PLACED : ownPlaced;
-  const minutes = demo ? DEMO_MINUTES : ownMinutes;
+  // Always your own village, on every page: nothing you haven't earned yet.
+  const placed = useWorkspace((s) => s.placed);
+  const minutes = useWorkspace((s) => s.totalFocusMinutes);
   const avatar = useWorkspace((s) => s.settings.avatar);
   const place = useWorkspace((s) => s.place);
   const hasInventory = useWorkspace((s) => Object.values(s.inventory).some((n) => n > 0));
   const bandRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  // Decorations already there when the page loads don't replay their pop-in.
+  const [initial] = useState(() => new Set(placed.map((p) => p.uid)));
 
   const actors = useMemo<ActorSpec[]>(
     () => [{ id: 'you', name: 'You', sprite: avatarSprite(avatar) }, ...unlockedResidents(minutes).map((r) => ({ id: r.id, name: r.name, sprite: r.sprite }))],
@@ -142,6 +137,7 @@ export default function Village({ buildMode, placing, onPlaced, focusing, rainin
             night={night}
             buildMode={buildMode}
             selected={selected === p.uid}
+            animate={!initial.has(p.uid)}
             onSelect={() => setSelected(p.uid)}
             toField={pointToField}
           />
@@ -229,6 +225,7 @@ function Decoration({
   night,
   buildMode,
   selected,
+  animate,
   onSelect,
   toField,
 }: {
@@ -237,6 +234,7 @@ function Decoration({
   night: boolean;
   buildMode: boolean;
   selected: boolean;
+  animate: boolean;
   onSelect: () => void;
   toField: (x: number, y: number) => { x: number; y: number };
 }) {
@@ -279,7 +277,7 @@ function Decoration({
         bottom: `${bottomFor(y)}%`,
         zIndex: Math.round(y * 1000) + 10,
         transform: 'translateX(-50%)',
-        animation: 'pop-in .45s cubic-bezier(.2,.8,.2,1)',
+        animation: animate ? 'pop-in .45s cubic-bezier(.2,.8,.2,1)' : undefined,
       }}
     >
       <div
