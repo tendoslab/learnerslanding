@@ -14,12 +14,12 @@ const articles = (await getCollection('articles', ({ data }) => !data.draft))
   .slice(0, 3);
 const featured = VIDEOS.filter((v) => ['library-fireplace-thunderstorm', 'yokohama-harbour-25-5', 'animal-crossing-ambience'].includes(v.slug));
 
-// Real villages built in the workspace (screenshots in public/showcase).
+// Real villages built in the workspace (screenshots in public/showcase, made with tools/showcase.cjs).
 const villages = [
-  { img: 'town', t: 'A busy little town', d: 'Cottage, café and lamp-lit streets at golden hour.' },
-  { img: 'campsite', t: 'A quiet campsite', d: 'A tent by the fire, pines and a pond under the moon.' },
-  { img: 'garden', t: 'A sunny garden', d: 'Apple trees, flower beds and a wishing well.' },
-  { img: 'tower', t: "A wizard's retreat", d: 'The Wizard Tower, the biggest goal in the shop.' },
+  { img: 'town', t: 'A town at golden hour', d: 'Cottages and a café along a lamp-lit street, with the City Lights skyline behind.' },
+  { img: 'campsite', t: 'A lakeside campsite', d: 'A tent and campfire in a ring of pines, by the water under the stars.' },
+  { img: 'garden', t: 'An autumn garden', d: 'An apple orchard, flower beds and a wishing well, with the Autumn Woods behind.' },
+  { img: 'tower', t: "A wizard's retreat", d: 'The Wizard Tower above the sea at dawn: the biggest goal in the shop.' },
 ];
 
 const features = [
@@ -70,7 +70,7 @@ const features = [
       <div class="max-w-2xl">
         <h2 class="font-display text-3xl font-semibold">Build the village you want</h2>
         <p class="mt-3 text-white/75">
-          Every village starts as an empty field. Spend the coins you earn on any of {DECOR.length} decorations and put them wherever you like. {RESIDENTS.length} residents are waiting to move in as your focus time grows. Who they are is a surprise.
+          Every village starts as an empty field. Spend the coins you earn on any of {DECOR.length} decorations and put them wherever you like. {RESIDENTS.length} residents are waiting to move in as your focus time grows (who they are is a surprise), and new scenery unlocks along the way: autumn woods, a lake, the seaside and a city skyline.
         </p>
       </div>
       <ul class="mt-8 grid gap-4 sm:grid-cols-2">
@@ -81,9 +81,9 @@ const features = [
                 src={withBase(`/showcase/${v.img}.jpg`)}
                 alt={`Screenshot of a village: ${v.d}`}
                 width="1200"
-                height="440"
+                height="600"
                 loading="lazy"
-                class="pixelated block aspect-[30/11] w-full object-cover"
+                class="pixelated block aspect-[2/1] w-full object-cover"
               />
               <div class="px-4 py-3">
                 <h3 class="font-semibold">{v.t}</h3>

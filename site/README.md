@@ -97,5 +97,5 @@ mostly interactive tools without content, and they would distract people studyin
 ## Credits
 
 Sprites by GrafxKid (CC0), the Little Animals Pack (commercial use allowed, no resale), and
-the "72 Character Free" pack. **Check that last pack's licence on its download page** before
-launch; it wasn't included in the upload.
+["72 Cute Pixel Character"](https://bdragon1727.itch.io/72-cute-pixel-character) by bdragon1727
+(credited on the About page). Double-check that pack's terms on its itch.io page before launch.

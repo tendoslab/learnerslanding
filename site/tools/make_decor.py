@@ -7,7 +7,7 @@ outline automatically. Output goes to public/sprites/decor/<id>.png.
     python3 tools/make_decor.py --preview  # also write a contact sheet
 
 Feel free to swap any PNG for hand-made art; the workspace only cares about
-the file name (and reads the size from the image itself).
+the file name, plus each item's size (w, h) in src/workspace/rewards.ts.
 """
 
 import math
@@ -31,12 +31,19 @@ PAL = {
 }
 
 
+# Spare pixels around every drawing, so shapes that reach the edge of their grid
+# (or a pixel past it) still get their outline instead of being cut off. The
+# finished image is trimmed to the art.
+MARGIN = 3
+
+
 class Canvas:
     def __init__(self, w, h):
-        self.w, self.h = w, h
-        self.px = [[None] * w for _ in range(h)]
+        self.w, self.h = w + 2 * MARGIN, h + 2 * MARGIN
+        self.px = [[None] * self.w for _ in range(self.h)]
 
     def set(self, x, y, c):
+        x, y = x + MARGIN, y + MARGIN
         if 0 <= x < self.w and 0 <= y < self.h:
             self.px[y][x] = c
 
@@ -81,7 +88,7 @@ class Canvas:
                 c = self.px[y][x]
                 if c:
                     im.putpixel((x, y), PAL[c] + (255,))
-        return im
+        return im.crop(im.getbbox())
 
 
 def flowers():

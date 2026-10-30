@@ -2,14 +2,17 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import {
   COINS_PER_FOCUS_MINUTE,
+  LANDSCAPES,
   RESIDENTS,
   SESSION_BONUS,
   STARTING_COINS,
   TASK_REWARD,
   decorById,
+  type Landscape,
   type Resident,
 } from './rewards';
 import { STORAGE_KEY, workspaceStorage } from './storage';
+import { cleanNotes, plainToNotes } from './notes';
 
 export type Mode = 'focus' | 'short' | 'long';
 export type Priority = 'Low' | 'Medium' | 'High';
@@ -51,6 +54,8 @@ export interface Settings {
   chime: boolean;
   avatar: number;
   sky: SkyMode;
+  /** Scenery behind the village (see LANDSCAPES). */
+  landscape: string;
   /** Desktop notification when a session ends (needs browser permission). */
   notify: boolean;
 }
@@ -60,6 +65,7 @@ export interface CompletionEvent {
   kind: 'focus' | 'break' | 'task';
   coins: number;
   unlocked: Resident[];
+  scenery: Landscape[];
 }
 
 interface TimerState {
@@ -131,6 +137,7 @@ export const DEFAULT_SETTINGS: Settings = {
   chime: true,
   avatar: 1,
   sky: 'auto',
+  landscape: 'mountains',
   notify: false,
 };
 
@@ -230,6 +237,7 @@ export const useWorkspace = create<WorkspaceState>()(
         const patch: Partial<WorkspaceState> = {};
         let coins = 0;
         let unlocked: Resident[] = [];
+        let scenery: Landscape[] = [];
         let next: Mode = 'focus';
         let cycle = timer.cycle;
 
@@ -239,6 +247,7 @@ export const useWorkspace = create<WorkspaceState>()(
           const before = s.totalFocusMinutes;
           const after = before + minutes;
           unlocked = RESIDENTS.filter((r) => r.unlockAt > before && r.unlockAt <= after);
+          scenery = LANDSCAPES.filter((l) => l.unlockAt > before && l.unlockAt <= after);
           const day = todayKey();
           Object.assign(patch, {
             coins: s.coins + coins,
@@ -259,7 +268,7 @@ export const useWorkspace = create<WorkspaceState>()(
           endsAt: settings.autoStart ? Date.now() + remaining : null,
           remaining,
         };
-        patch.lastEvent = { id: Date.now(), kind: timer.mode === 'focus' ? 'focus' : 'break', coins, unlocked };
+        patch.lastEvent = { id: Date.now(), kind: timer.mode === 'focus' ? 'focus' : 'break', coins, unlocked, scenery };
         set(patch);
       },
 
@@ -280,7 +289,7 @@ export const useWorkspace = create<WorkspaceState>()(
             coins: s.coins + (pay ? TASK_REWARD : 0),
             tasksCompleted: s.tasksCompleted + (pay ? 1 : 0),
             activeTaskId: completing && s.activeTaskId === id ? null : s.activeTaskId,
-            lastEvent: pay ? { id: Date.now(), kind: 'task', coins: TASK_REWARD, unlocked: [] } : s.lastEvent,
+            lastEvent: pay ? { id: Date.now(), kind: 'task', coins: TASK_REWARD, unlocked: [], scenery: [] } : s.lastEvent,
           };
         }),
       deleteTask: (id) => set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id), activeTaskId: s.activeTaskId === id ? null : s.activeTaskId })),
@@ -351,6 +360,8 @@ export const useWorkspace = create<WorkspaceState>()(
           const parsed = JSON.parse(json);
           const data = parsed?.state ?? parsed;
           if (typeof data !== 'object' || !Array.isArray(data.tasks)) return false;
+          const notes = typeof data.notes === 'string' ? data.notes : '';
+          data.notes = cleanNotes((parsed?.version ?? 0) < 3 ? plainToNotes(notes) : notes);
           const base = initialData();
           set({
             ...base,
@@ -368,7 +379,7 @@ export const useWorkspace = create<WorkspaceState>()(
     }),
     {
       name: STORAGE_KEY,
-      version: 2,
+      version: 3,
       storage: workspaceStorage,
       migrate: (persisted, version) => {
         const data = persisted as WorkspaceState;
@@ -377,6 +388,8 @@ export const useWorkspace = create<WorkspaceState>()(
         if (version < 2 && Array.isArray(data?.tasks)) {
           data.tasks = [...data.tasks].sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]);
         }
+        // v3 notes support formatting and are stored as (sanitised) HTML.
+        if (version < 3 && typeof data?.notes === 'string') data.notes = data.notes ? plainToNotes(data.notes) : '';
         return data;
       },
       partialize: ({ lastEvent, ...rest }) => rest,

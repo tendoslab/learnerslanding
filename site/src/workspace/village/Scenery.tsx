@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react';
+import { memo, useMemo, type ReactNode } from 'react';
 import { GROUND_HEIGHT, seeded } from './layout';
 import type { Sky } from './sky';
 
@@ -18,7 +18,10 @@ const columns = (cols: [number, number, number][]) => cols.map(([x, y, h]) => `M
 
 const transition = { transition: 'fill 3s, background 3s, opacity 3s' };
 
-function Mountains({ sky }: { sky: Sky }) {
+/** Distance from the bottom of the screen to the horizon, raised by `lift` (e.g. for a lake in front). */
+const horizon = (lift = '0px') => `calc(${GROUND_HEIGHT} - 2px + ${lift})`;
+
+function Mountains({ sky, lift, height = '36vh' }: { sky: Sky; lift?: string; height?: string }) {
   const H = 80;
   const { base, shade, snow } = useMemo(() => {
     const rand = seeded(7);
@@ -42,7 +45,16 @@ function Mountains({ sky }: { sky: Sky }) {
     return { base: skyline(heights, H), shade: columns(shaded), snow: columns(caps) };
   }, []);
   return (
-    <svg className="absolute inset-x-0 w-full" style={{ bottom: `calc(${GROUND_HEIGHT} - 2px)`, height: '36vh' }} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMax slice" shapeRendering="crispEdges" aria-hidden>
+    // The drawing fills the screen width, so it's W:H wide; give it at least that much
+    // height (H/W of the width) or the peaks get sliced off flat on wide screens.
+    <svg
+      className="absolute inset-x-0 w-full"
+      style={{ bottom: horizon(lift), height: `min(max(${height}, ${(H / W) * 100}vw), 50vh)` }}
+      viewBox={`0 0 ${W} ${H}`}
+      preserveAspectRatio="xMidYMax slice"
+      shapeRendering="crispEdges"
+      aria-hidden
+    >
       <path d={base} fill={sky.mountain} style={transition} />
       <path d={shade} fill={sky.mountainShade} style={transition} />
       <path d={snow} fill={sky.snow} style={transition} />
@@ -51,7 +63,7 @@ function Mountains({ sky }: { sky: Sky }) {
 }
 
 /** Rolling hills with an optional row of pixel trees along the top. */
-function Hills({ seed, H, base, amp, color, trees, treeColor, height }: { seed: number; H: number; base: number; amp: number; color: string; trees?: number; treeColor?: string; height: string }) {
+function Hills({ seed, H, base, amp, color, trees, treeColor, height, lift }: { seed: number; H: number; base: number; amp: number; color: string; trees?: number; treeColor?: string; height: string; lift?: string }) {
   const { hill, forest } = useMemo(() => {
     const rand = seeded(seed);
     const phase = rand() * 10;
@@ -80,9 +92,60 @@ function Hills({ seed, H, base, amp, color, trees, treeColor, height }: { seed: 
     return { hill: skyline(heights, H), forest };
   }, [seed, H, base, amp, trees]);
   return (
-    <svg className="absolute inset-x-0 w-full" style={{ bottom: `calc(${GROUND_HEIGHT} - 2px)`, height }} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMax slice" shapeRendering="crispEdges" aria-hidden>
+    <svg className="absolute inset-x-0 w-full" style={{ bottom: horizon(lift), height }} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMax slice" shapeRendering="crispEdges" aria-hidden>
       {forest && <path d={forest} fill={treeColor} style={transition} />}
       <path d={hill} fill={color} style={transition} />
+    </svg>
+  );
+}
+
+/** Blends two #rrggbb colours (t = 0 → a, 1 → b). */
+const mix = (a: string, b: string, t: number) => {
+  const c = (hex: string, i: number) => parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16);
+  return `#${[0, 1, 2].map((i) => Math.round(c(a, i) + (c(b, i) - c(a, i)) * t).toString(16).padStart(2, '0')).join('')}`;
+};
+
+/**
+ * Hills covered in round, leafy tree crowns. Each crown is a pixel disc lit from
+ * the upper left (the sun's side), so the canopy reads as trees, not a flat band.
+ */
+function Grove({ seed, H, base, amp, colors, ground, spacing, height, lift }: { seed: number; H: number; base: number; amp: number; colors: string[]; ground?: string; spacing: number; height: string; lift?: string }) {
+  const { hill, tones } = useMemo(() => {
+    const rand = seeded(seed);
+    const phase = rand() * 10;
+    const heights = Array.from({ length: W }, (_, x) =>
+      Math.round(base + amp * (Math.sin(x / 23 + phase) * 0.55 + Math.sin(x / 9.7 + phase * 2) * 0.2 + Math.sin(x / 61 + phase / 2) * 0.5)),
+    );
+    // tones[colour][0 shade, 1 base, 2 highlight]
+    const tones = colors.map(() => ['', '', '']);
+    const disc = (cx: number, cy: number, r: number, add: (row: string) => void) => {
+      for (let dy = -r; dy <= r; dy++) {
+        const half = Math.floor(Math.sqrt(r * r - dy * dy) + 0.4);
+        add(`M${cx - half} ${cy + dy}h${half * 2 + 1}v1h-${half * 2 + 1}z`);
+      }
+    };
+    for (let x = 0; x < W + 4; x += spacing + Math.floor(rand() * 3)) {
+      const r = 5 + Math.floor(rand() * 3);
+      const cx = x + Math.floor(rand() * 2);
+      const cy = H - heights[Math.min(W - 1, cx)] - r + 3;
+      const t = tones[Math.floor(rand() * colors.length)];
+      disc(cx, cy, r, (row) => (t[0] += row));
+      disc(cx - 1, cy - 1, r - 1, (row) => (t[1] += row));
+      disc(cx - 2, cy - 2, r - 3, (row) => (t[2] += row));
+    }
+    return { hill: skyline(heights, H), tones };
+  }, [seed, H, base, amp, spacing, colors.length]);
+  return (
+    <svg className="absolute inset-x-0 w-full" style={{ bottom: horizon(lift), height }} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMax slice" shapeRendering="crispEdges" aria-hidden>
+      {/* Later crowns overlap earlier ones; draw each colour's layers together so every tree keeps its shading. */}
+      {tones.map(([shade, body, light], i) => (
+        <g key={i} style={transition}>
+          <path d={shade} fill={mix(colors[i], '#1a1030', 0.28)} />
+          <path d={body} fill={colors[i]} />
+          <path d={light} fill={mix(colors[i], '#fff4d6', 0.22)} />
+        </g>
+      ))}
+      <path d={hill} fill={ground ?? mix(colors[0], '#1a1030', 0.35)} style={transition} />
     </svg>
   );
 }
@@ -165,8 +228,152 @@ function Clouds({ sky, raining }: { sky: Sky; raining: boolean }) {
   );
 }
 
-/** Everything behind the ground: sky, sun/moon, stars, clouds, mountains, hills. */
-export function Backdrop({ sky, raining }: { sky: Sky; raining: boolean }) {
+
+/** A band of water between the far shore and the grass, with drifting glints. */
+function Water({ sky, height, children }: { sky: Sky; height: string; children?: ReactNode }) {
+  const glints = useMemo(() => {
+    const rand = seeded(23);
+    return Array.from({ length: 26 }, () => ({ x: rand() * 100, y: 12 + rand() * 80, w: 2 + Math.floor(rand() * 5), d: rand() * 5, dur: 3 + rand() * 4 }));
+  }, []);
+  return (
+    <div
+      className="absolute inset-x-0 overflow-hidden"
+      style={{ bottom: horizon(), height, background: `linear-gradient(to bottom, ${sky.waterLight} 0%, ${sky.water} 22%, ${sky.water} 100%)`, ...transition }}
+      aria-hidden
+    >
+      {children}
+      {glints.map((g, i) => (
+        <span
+          key={i}
+          className="ll-motion absolute h-[3px]"
+          style={{ left: `${g.x}%`, top: `${g.y}%`, width: g.w * 4, background: sky.waterLight, animation: `glint ${g.dur}s ${-g.d}s ease-in-out infinite`, ...transition }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Pixel sailboat, 12×11 grid. */
+function Boat({ sky }: { sky: Sky }) {
+  return (
+    <svg width={36} height={33} viewBox="0 0 12 11" shapeRendering="crispEdges">
+      <path d="M6 0h1v8H6z" fill={sky.buildingShade} />
+      <path d="M7 1h1v1h1v1h1v1h1v3H7z" fill={sky.cloud} style={transition} />
+      <path d="M5 2h1v5H2V6h1V5h1V4h1z" fill={sky.cloudShade} style={transition} />
+      <path d="M0 8h12v1h-1v1H2V9H1z" fill={sky.autumnNear} style={transition} />
+    </svg>
+  );
+}
+
+function Seaside({ sky }: { sky: Sky }) {
+  const night = sky.phase === 'night' || sky.phase === 'dusk';
+  return (
+    <>
+      {/* A little island with a lighthouse on the horizon */}
+      <svg className="absolute left-[12%] h-[9vh] overflow-visible" style={{ bottom: `calc(${horizon()} + 15vh - 2px)`, aspectRatio: '40 / 26' }} viewBox="0 0 40 26" shapeRendering="crispEdges" aria-hidden>
+        <path d="M0 26V24h4v-2h6v-1h14v1h8v2h8v2z" fill={sky.hillNear} style={transition} />
+        <path d="M14 21V9h1V6h4v3h1v12z" fill={sky.cloud} style={transition} />
+        <path d="M14 18h6v2h-6zM14 12h6v2h-6z" fill={sky.autumnNear} style={transition} />
+        <path d="M15 3h4v3h-4z" fill={night ? '#ffe39a' : sky.glass} style={transition} />
+        <path d="M14 2h6v1h-6zM16 1h2v1h-2z" fill={sky.autumnNear} style={transition} />
+        {night && <circle cx="17" cy="4.5" r="7" fill="rgba(255,230,150,0.35)" className="ll-motion" style={{ animation: 'beacon 4s ease-in-out infinite' }} />}
+      </svg>
+      <Water sky={sky} height="15vh">
+        <div className="ll-motion absolute left-0 top-[18%]" style={{ animation: 'drift 240s linear -60s infinite' }}>
+          <Boat sky={sky} />
+        </div>
+        <div className="ll-motion absolute left-0 top-[46%] opacity-80" style={{ animation: 'drift 320s linear -230s infinite' }}>
+          <div className="scale-75">
+            <Boat sky={sky} />
+          </div>
+        </div>
+      </Water>
+      {/* Beach between the sea and the grass */}
+      <div className="absolute inset-x-0" style={{ bottom: horizon(), height: '1.6vh', minHeight: 8, background: sky.sand, ...transition }} aria-hidden />
+    </>
+  );
+}
+
+/** A pixel skyline whose windows light up after dark. */
+function City({ sky }: { sky: Sky }) {
+  const H = 60;
+  const { body, shade, windows } = useMemo(() => {
+    const rand = seeded(31);
+    const heights: number[] = [];
+    const shaded: [number, number, number][] = [];
+    const windows: { x: number; y: number; r: number }[] = [];
+    let x = 0;
+    while (x < W) {
+      const w = 7 + Math.floor(rand() * 12);
+      const h = 14 + Math.floor(rand() * (rand() < 0.2 ? 44 : 26));
+      for (let i = 0; i < w && x + i < W; i++) heights.push(i === 0 || i === w - 1 ? h - 1 : h);
+      // Roof detail: an antenna on the tall ones
+      if (h > 42) heights[x + Math.floor(w / 2)] = h + 5;
+      shaded.push([x + w - 2, H - h, h], [x + w - 1, H - h + 1, h - 1]);
+      for (let wy = H - h + 3; wy < H - 3; wy += 3) for (let wx = x + 2; wx < x + w - 2; wx += 2) windows.push({ x: wx, y: wy, r: rand() });
+      x += w + (rand() < 0.3 ? 1 : 0);
+      if (x < W && heights.length < x) heights.push(0);
+    }
+    return { body: skyline(heights.slice(0, W), H), shade: columns(shaded), windows };
+  }, []);
+  const lit = windows.filter((w) => w.r < sky.lit);
+  const dark = windows.filter((w) => w.r >= sky.lit);
+  const path = (list: { x: number; y: number }[]) => list.map((w) => `M${w.x} ${w.y}h1v1h-1z`).join('');
+  return (
+    <svg className="absolute inset-x-0 w-full" style={{ bottom: horizon(), height: '24vh' }} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMax slice" shapeRendering="crispEdges" aria-hidden>
+      <path d={body} fill={sky.building} style={transition} />
+      <path d={shade} fill={sky.buildingShade} style={transition} />
+      <path d={path(dark)} fill={sky.glass} style={transition} />
+      <path d={path(lit)} fill="#ffd77e" />
+    </svg>
+  );
+}
+
+/** The scenery between the sky and the grass. */
+function Landscape({ id, sky }: { id: string; sky: Sky }) {
+  switch (id) {
+    case 'autumn':
+      return (
+        <>
+          <Mountains sky={sky} height="30vh" />
+          <Grove seed={5} H={56} base={22} amp={8} colors={[mix(sky.autumnFar, sky.hillFar, 0.55), mix(sky.autumnGold, sky.hillFar, 0.55)]} spacing={7} height="25vh" />
+          <Grove seed={3} H={46} base={13} amp={6} colors={[sky.autumnGold, mix(sky.autumnGold, sky.autumnFar, 0.5)]} spacing={6} height="19vh" />
+          <Grove seed={11} H={36} base={5} amp={3} colors={[sky.autumnNear, sky.autumnFar, mix(sky.autumnNear, sky.autumnGold, 0.5)]} ground={sky.hillNear} spacing={6} height="13vh" />
+        </>
+      );
+    case 'lake':
+      return (
+        <>
+          <Mountains sky={sky} lift="7vh" height="32vh" />
+          <Hills seed={3} H={50} base={18} amp={8} color={sky.hillFar} trees={9} treeColor={sky.hillFar} height="20vh" lift="7vh" />
+          <Hills seed={11} H={36} base={6} amp={4} color={sky.hillNear} trees={3} treeColor={sky.treeline} height="11vh" lift="7vh" />
+          <Water sky={sky} height="7vh" />
+        </>
+      );
+    case 'seaside':
+      return <Seaside sky={sky} />;
+    case 'city':
+      return (
+        <>
+          <Hills seed={3} H={50} base={16} amp={6} color={sky.hillFar} height="20vh" />
+          <City sky={sky} />
+          {sky.lit > 0 && <div className="absolute inset-x-0 h-[14vh]" style={{ bottom: horizon(), background: 'linear-gradient(to top, rgba(255,200,120,0.18), transparent)' }} />}
+          <Hills seed={11} H={36} base={4} amp={3} color={sky.hillNear} trees={3} treeColor={sky.treeline} height="9vh" />
+        </>
+      );
+    default:
+      return (
+        <>
+          <Mountains sky={sky} />
+          <Hills seed={3} H={50} base={20} amp={8} color={sky.hillFar} trees={9} treeColor={sky.hillFar} height="22vh" />
+          <Hills seed={11} H={36} base={8} amp={5} color={sky.hillNear} trees={4} treeColor={sky.treeline} height="15vh" />
+        </>
+      );
+  }
+}
+
+/** Everything behind the ground: sky, sun/moon, stars, clouds and the chosen landscape. */
+export function Backdrop({ sky, raining, landscape }: { sky: Sky; raining: boolean; landscape: string }) {
   return (
     <>
       <div
@@ -177,9 +384,7 @@ export function Backdrop({ sky, raining }: { sky: Sky; raining: boolean }) {
       <Stars opacity={raining ? 0 : sky.stars} />
       {!raining && <Body sky={sky} />}
       <Clouds sky={sky} raining={raining} />
-      <Mountains sky={sky} />
-      <Hills seed={3} H={50} base={20} amp={8} color={sky.hillFar} trees={9} treeColor={sky.hillFar} height="22vh" />
-      <Hills seed={11} H={36} base={8} amp={5} color={sky.hillNear} trees={4} treeColor={sky.treeline} height="15vh" />
+      <Landscape id={landscape} sky={sky} />
       {raining && <div className="absolute inset-0 bg-slate-700/25 transition-opacity duration-1000" />}
     </>
   );
@@ -264,5 +469,7 @@ export const SCENERY_KEYFRAMES = `
   @keyframes shooting { 0%,90% { transform: translate(0,0) rotate(20deg); opacity: 0; } 92% { opacity: 1; } 100% { transform: translate(40vw,14vh) rotate(20deg); opacity: 0; } }
   @keyframes flap { 50% { transform: scaleY(-1); } }
   @keyframes firefly { 0%,100% { transform: translate(0,0); opacity: .2; } 25% { opacity: 1; } 50% { transform: translate(18px,-22px); opacity: .5; } 75% { transform: translate(-12px,-8px); opacity: 1; } }
+  @keyframes glint { 0%,100% { opacity: 0; transform: translateX(0); } 50% { opacity: .8; transform: translateX(6px); } }
+  @keyframes beacon { 0%,100% { opacity: .3; } 50% { opacity: 1; } }
   @keyframes rain { from { transform: translate(0,-30px) rotate(12deg); } to { transform: translate(-14vh,105vh) rotate(12deg); } }
 `;

@@ -12,13 +12,15 @@ export const formatTime = (ms: number) => {
 
 export const useRemaining = () => {
   const timer = useWorkspace((s) => s.timer);
-  const [now, setNow] = useState(() => Date.now());
+  const [, setNow] = useState(() => Date.now());
   useEffect(() => {
     if (!timer.running) return;
     const id = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(id);
   }, [timer.running]);
-  return remainingMs(timer, now);
+  // Read the clock at render time: a stored `now` is stale on the first render
+  // after pressing Start and would briefly show more time than the timer has.
+  return remainingMs(timer, Date.now());
 };
 
 const MODES: { id: Mode; label: string }[] = [

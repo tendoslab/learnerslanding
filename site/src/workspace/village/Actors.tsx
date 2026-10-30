@@ -157,9 +157,24 @@ export default function Actors({ actors, S, focusing, placed, interactive }: Pro
         if (!you) return rest(st);
         Object.assign(st, { task: 'cheer', timer: 16, tx: clamp(you.x + (Math.random() < 0.5 ? -4 : 4), 3, 97), ty: clamp(you.y + 0.05, 0, 1) });
       } else {
-        const sp = specs.get(id)!.sprite;
-        Object.assign(st, { task: 'wander', tx: clamp(st.x + rand(-25, 25), 4, 96), ty: clamp(st.y + rand(-0.25, 0.25), sp.flying ? 0 : 0.15, 1) });
+        wander(id, st);
       }
+    };
+
+    // Head for open space: of a few spots, the one furthest from everyone else.
+    // Meeting up pulls friends together, so this keeps the village from bunching up.
+    const wander = (id: string, st: ActorState, away = 0) => {
+      const minY = specs.get(id)?.sprite.flying ? 0 : 0.15;
+      const others = [...states.current.entries()].filter(([oid]) => oid !== id).map(([, o]) => o);
+      let best = { x: st.x, y: st.y };
+      let bestRoom = -1;
+      for (let i = 0; i < 5; i++) {
+        const x = away ? clamp(st.x + away * rand(10, 30), 4, 96) : i < 2 ? clamp(st.x + rand(-25, 25), 4, 96) : rand(5, 95);
+        const spot = { x, y: clamp(st.y + rand(-0.3, 0.3), minY, 1) };
+        const room = Math.min(100, ...others.map((o) => Math.min(dist(spot, o), dist(spot, { x: o.tx, y: o.ty }))));
+        if (room > bestRoom) [best, bestRoom] = [spot, room];
+      }
+      Object.assign(st, { task: 'wander', tx: best.x, ty: best.y, partner: null, decor: null, ready: false });
     };
 
     const loop = (now: number) => {
@@ -174,7 +189,9 @@ export default function Actors({ actors, S, focusing, placed, interactive }: Pro
         let st = states.current.get(spec.id);
         if (!st) {
           const spot = spots.current![spec.id];
-          const x = spot?.x ?? 10 + Math.random() * 80;
+          // Newcomers get their own stretch of the field rather than a random spot.
+          const slot = actors.indexOf(spec);
+          const x = spot?.x ?? 8 + ((slot + 0.2 + Math.random() * 0.6) * 84) / actors.length;
           const y = spot?.y ?? 0.25 + Math.random() * 0.7;
           st = { x, y, tx: x, ty: y, dir: spot?.dir ?? 1, moving: false, task: 'idle', timer: rand(0.5, 4), partner: null, ready: false, next: 0, tags: 0, decor: null, emote: null, emoteUntil: 0, hopUntil: 0, t: Math.random() * 10, anim: null };
           states.current.set(spec.id, st);
@@ -254,11 +271,12 @@ export default function Actors({ actors, S, focusing, placed, interactive }: Pro
                 say(st, '😆', 1.2);
                 say(partner, '❗', 1.2);
               } else {
-                const bye = pick(BYE);
-                say(st, bye);
+                say(st, pick(BYE));
                 say(partner, pick(BYE));
-                rest(st, 3, 7);
-                rest(partner, 3, 7);
+                // Part ways in opposite directions.
+                const side = st.x <= partner.x ? -1 : 1;
+                wander(st.partner!, partner, -side);
+                wander(spec.id, st, side);
               }
             }
             break;
