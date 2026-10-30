@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
 import type { Placed } from '../store';
 import { decorById, type SheetAnim, type SpriteDef } from '../rewards';
 import { bottomFor, clamp, depthScale } from './layout';
@@ -54,6 +54,27 @@ const rand = (lo: number, hi: number) => lo + Math.random() * (hi - lo);
 const DEPTH = 40;
 const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(a.x - b.x, (a.y - b.y) * DEPTH);
 
+// Where everyone was standing, so moving between pages doesn't scatter the
+// village (each page load is a fresh scene). Per tab, like the rest of a visit.
+const SPOTS_KEY = 'learners-landing:spots';
+type Spots = Record<string, { x: number; y: number; dir: 1 | -1 }>;
+const loadSpots = (): Spots => {
+  try {
+    return JSON.parse(sessionStorage.getItem(SPOTS_KEY) ?? '{}');
+  } catch {
+    return {};
+  }
+};
+const saveSpots = (states: Map<string, ActorState>) => {
+  try {
+    const spots: Spots = {};
+    states.forEach((st, id) => (spots[id] = { x: st.x, y: st.y, dir: st.dir }));
+    sessionStorage.setItem(SPOTS_KEY, JSON.stringify(spots));
+  } catch {
+    // Storage blocked: everyone just starts somewhere new.
+  }
+};
+
 const sheetSize = (a: SheetAnim) => (a.src.includes('/characters/') ? [384, 128] : [a.frames * a.w, a.h]);
 
 interface Props {
@@ -72,6 +93,11 @@ export default function Actors({ actors, S, focusing, placed, interactive }: Pro
   live.current.placed = placed;
 
   const specs = useMemo(() => new Map(actors.map((a) => [a.id, a])), [actors]);
+  const spots = useRef<Spots | null>(null);
+  spots.current ??= loadSpots();
+  // Only residents who move in while you're watching get the pop-in entrance.
+  const firstIds = useRef<Set<string> | null>(null);
+  firstIds.current ??= new Set(actors.map((a) => a.id));
 
   const say = (st: ActorState, emote: string, dur = 1.8, hop = true) => {
     st.emote = emote;
@@ -93,7 +119,8 @@ export default function Actors({ actors, S, focusing, placed, interactive }: Pro
     if (st.task === 'idle' || st.task === 'wander') rest(st, 1.5, 3);
   };
 
-  useEffect(() => {
+  // Layout effect + an immediate first frame, so nobody flashes in the corner before they're placed.
+  useLayoutEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let raf = 0;
     let last = performance.now();
@@ -146,9 +173,10 @@ export default function Actors({ actors, S, focusing, placed, interactive }: Pro
         const sp = spec.sprite;
         let st = states.current.get(spec.id);
         if (!st) {
-          const x = 10 + Math.random() * 80;
-          const y = 0.25 + Math.random() * 0.7;
-          st = { x, y, tx: x, ty: y, dir: 1, moving: false, task: 'idle', timer: rand(0.5, 4), partner: null, ready: false, next: 0, tags: 0, decor: null, emote: null, emoteUntil: 0, hopUntil: 0, t: Math.random() * 10, anim: null };
+          const spot = spots.current![spec.id];
+          const x = spot?.x ?? 10 + Math.random() * 80;
+          const y = spot?.y ?? 0.25 + Math.random() * 0.7;
+          st = { x, y, tx: x, ty: y, dir: spot?.dir ?? 1, moving: false, task: 'idle', timer: rand(0.5, 4), partner: null, ready: false, next: 0, tags: 0, decor: null, emote: null, emoteUntil: 0, hopUntil: 0, t: Math.random() * 10, anim: null };
           states.current.set(spec.id, st);
         }
         st.t += dt;
@@ -373,8 +401,14 @@ export default function Actors({ actors, S, focusing, placed, interactive }: Pro
       }
       raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    loop(last);
+    const save = () => saveSpots(states.current);
+    window.addEventListener('pagehide', save);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('pagehide', save);
+      save();
+    };
   }, [actors, specs, S]);
 
   return (
@@ -392,7 +426,7 @@ export default function Actors({ actors, S, focusing, placed, interactive }: Pro
             });
           }}
           className={`group absolute -translate-x-1/2 ${interactive ? 'pointer-events-auto cursor-pointer' : 'pointer-events-none'}`}
-          style={{ animation: 'pop-in .6s cubic-bezier(.2,.8,.2,1)' }}
+          style={firstIds.current!.has(a.id) ? undefined : { animation: 'pop-in .6s cubic-bezier(.2,.8,.2,1)' }}
           onPointerDown={interactive ? () => pet(a.id) : undefined}
           title={interactive ? (a.id === YOU ? 'You' : `${a.name}: click to say hi`) : undefined}
         >

@@ -6,6 +6,8 @@ import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { SITE, ADSENSE_CLIENT } from '../data/site';
+import { paintFavicon, timerFavicon } from '../workspace/ticker';
+import { STORAGE_KEY } from '../workspace/storage';
 
 interface Props {
   title?: string;
@@ -22,6 +24,18 @@ const { title, description = SITE.description, image, type = 'website', bare = f
 const fullTitle = title ? `${title} | ${SITE.name}` : `${SITE.name}: cozy study workspace & pomodoro timer`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = image ? new URL(image, Astro.site) : undefined;
+
+// Runs before anything renders: if a session is ticking, show the progress ring
+// straight away instead of flashing the plain icon until the page's scripts load.
+// The key matches setFaviconProgress so it doesn't redraw the same picture.
+const earlyFavicon = `try {
+  var ring = (${timerFavicon.toString()})((JSON.parse(localStorage.getItem(${JSON.stringify(STORAGE_KEY)}) || 'null') || {}).state);
+  if (ring) {
+    var icon = document.querySelector('link[rel="icon"]');
+    icon.href = (${paintFavicon.toString()})(ring.progress, ring.color);
+    icon.dataset.key = Math.round(ring.progress * 60) + '-' + ring.color;
+  }
+} catch (e) {}`;
 ---
 
 <!doctype html>
@@ -32,7 +46,8 @@ const ogImage = image ? new URL(image, Astro.site) : undefined;
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <link rel="icon" href={withBase('/favicon.svg')} data-key="default" />
+    <script is:inline set:html={earlyFavicon} />
     <link rel="sitemap" href={withBase('/sitemap-index.xml')} />
     <meta property="og:site_name" content={SITE.name} />
     <meta property="og:title" content={fullTitle} />
@@ -54,7 +69,7 @@ const ogImage = image ? new URL(image, Astro.site) : undefined;
     }
     <slot name="head" />
   </head>
-  <body class={bare ? 'overflow-hidden' : 'min-h-screen flex flex-col'}>
+  <body class={bare ? 'overflow-hidden !bg-[#2a1b3d]' : 'min-h-screen flex flex-col'}>
     {bare ? <slot /> : (
       <>
         <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 bg-paper px-3 py-2 rounded">Skip to content</a>
