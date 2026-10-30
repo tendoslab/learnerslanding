@@ -90,17 +90,20 @@ export default function Progress() {
           {RESIDENTS.map((r) => {
             const unlocked = minutes >= r.unlockAt;
             const a = r.sprite.idle;
-            const k = 48 / Math.max(a.w, a.h);
+            // Zoom in on the art itself (frames have empty space around it) so every icon is a similar size.
+            const [bx, by, bw, bh] = r.sprite.box ?? [0, 0, a.w, a.h];
+            const k = 40 / Math.max(bw, bh);
             return (
               <li key={r.id} className={`flex flex-col items-center rounded-lg border p-2 text-center ${unlocked ? 'border-white/15 bg-white/10' : 'border-white/5 bg-black/20'}`}>
                 <div className="relative flex h-12 w-12 items-center justify-center">
                   <div
                     className="pixelated"
                     style={{
-                      width: a.w * k,
-                      height: a.h * k,
+                      width: bw * k,
+                      height: bh * k,
                       backgroundImage: `url(${a.src})`,
                       backgroundSize: `${a.frames * a.w * k}px ${a.h * k}px`,
+                      backgroundPosition: `${-bx * k}px ${-by * k}px`,
                       imageRendering: 'pixelated',
                       filter: unlocked ? undefined : 'brightness(0) opacity(0.35)',
                     }}
