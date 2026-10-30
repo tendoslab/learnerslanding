@@ -3,11 +3,12 @@ import { persist } from 'zustand/middleware';
 import {
   COINS_PER_FOCUS_MINUTE,
   LANDSCAPES,
-  RESIDENTS,
   SESSION_BONUS,
   STARTING_COINS,
   TASK_REWARD,
   decorById,
+  newResidentOrder,
+  residentsInOrder,
   type Landscape,
   type Resident,
 } from './rewards';
@@ -91,6 +92,8 @@ export interface WorkspaceState {
   notes: string;
   inventory: Record<string, number>;
   placed: Placed[];
+  /** The order residents move into this person's village (ids, random per person). */
+  residentOrder: string[];
   settings: Settings;
   timer: TimerState;
   lastEvent: CompletionEvent | null;
@@ -148,8 +151,8 @@ const minutesFor = (s: Settings, m: Mode) => (m === 'focus' ? s.focus : m === 's
 export const todayKey = (d = new Date()) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-export const unlockedResidents = (minutes: number) => RESIDENTS.filter((r) => minutes >= r.unlockAt);
-export const nextResident = (minutes: number) => RESIDENTS.find((r) => minutes < r.unlockAt) ?? null;
+export const unlockedResidents = (minutes: number, order: string[]) => residentsInOrder(order).filter((r) => minutes >= r.unlockAt);
+export const nextResident = (minutes: number, order: string[]) => residentsInOrder(order).find((r) => minutes < r.unlockAt) ?? null;
 
 export const remainingMs = (t: TimerState, now = Date.now()) =>
   t.running && t.endsAt ? Math.max(0, t.endsAt - now) : t.remaining;
@@ -190,6 +193,7 @@ const initialData = () => ({
   notes: '',
   inventory: { flowers: 1 } as Record<string, number>,
   placed: [] as Placed[],
+  residentOrder: newResidentOrder(),
   settings: DEFAULT_SETTINGS,
   timer: { mode: 'focus' as Mode, running: false, endsAt: null, remaining: DEFAULT_SETTINGS.focus * 60_000, cycle: 0 },
   lastEvent: null as CompletionEvent | null,
@@ -246,7 +250,7 @@ export const useWorkspace = create<WorkspaceState>()(
           coins = minutes * COINS_PER_FOCUS_MINUTE + SESSION_BONUS;
           const before = s.totalFocusMinutes;
           const after = before + minutes;
-          unlocked = RESIDENTS.filter((r) => r.unlockAt > before && r.unlockAt <= after);
+          unlocked = residentsInOrder(s.residentOrder).filter((r) => r.unlockAt > before && r.unlockAt <= after);
           scenery = LANDSCAPES.filter((l) => l.unlockAt > before && l.unlockAt <= after);
           const day = todayKey();
           Object.assign(patch, {
@@ -363,6 +367,7 @@ export const useWorkspace = create<WorkspaceState>()(
           const notes = typeof data.notes === 'string' ? data.notes : '';
           data.notes = cleanNotes((parsed?.version ?? 0) < 3 ? plainToNotes(notes) : notes);
           const base = initialData();
+          if (!Array.isArray(data.residentOrder)) data.residentOrder = newResidentOrder(data.totalFocusMinutes ?? 0);
           set({
             ...base,
             ...data,
@@ -379,7 +384,7 @@ export const useWorkspace = create<WorkspaceState>()(
     }),
     {
       name: STORAGE_KEY,
-      version: 3,
+      version: 4,
       storage: workspaceStorage,
       migrate: (persisted, version) => {
         const data = persisted as WorkspaceState;
@@ -390,12 +395,19 @@ export const useWorkspace = create<WorkspaceState>()(
         }
         // v3 notes support formatting and are stored as (sanitised) HTML.
         if (version < 3 && typeof data?.notes === 'string') data.notes = data.notes ? plainToNotes(data.notes) : '';
+        // v4 residents move in in a random order per person; keep everyone who
+        // already lives in the village and shuffle who's still to come.
+        if (version < 4 && data && !Array.isArray(data.residentOrder)) data.residentOrder = newResidentOrder(data.totalFocusMinutes ?? 0);
         return data;
       },
       partialize: ({ lastEvent, ...rest }) => rest,
     },
   ),
 );
+
+// A first visit picks a random resident order; save it straight away so every
+// page (and tab) shows the same village rather than each rolling its own.
+if (typeof window !== 'undefined' && workspaceStorage?.getItem(STORAGE_KEY) == null) useWorkspace.setState({});
 
 // Keep every open tab in sync (e.g. the workspace in one tab, an article in another).
 if (typeof window !== 'undefined') {

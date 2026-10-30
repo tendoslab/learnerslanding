@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Check, Flame, Lock } from 'lucide-react';
 import { nextResident, streak, todayKey, useWorkspace } from '../store';
-import { LANDSCAPES, RESIDENTS, landscapeFor } from '../rewards';
+import { LANDSCAPES, landscapeFor, residentsInOrder } from '../rewards';
 
 export const fmtMinutes = (m: number) => (m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`);
 
@@ -12,8 +12,10 @@ export default function Progress() {
   const history = useWorkspace((s) => s.history);
   const landscape = useWorkspace((s) => landscapeFor(s.settings.landscape, s.totalFocusMinutes));
   const update = useWorkspace((s) => s.updateSettings);
-  const next = nextResident(minutes);
-  const prevAt = [...RESIDENTS].reverse().find((r) => r.unlockAt <= minutes)?.unlockAt ?? 0;
+  const order = useWorkspace((s) => s.residentOrder);
+  const residents = residentsInOrder(order);
+  const next = nextResident(minutes, order);
+  const prevAt = [...residents].reverse().find((r) => r.unlockAt <= minutes)?.unlockAt ?? 0;
   const pct = next ? ((minutes - prevAt) / (next.unlockAt - prevAt)) * 100 : 100;
 
   const week = Array.from({ length: 7 }, (_, i) => {
@@ -87,7 +89,7 @@ export default function Progress() {
       <div>
         <p className="mb-2 text-xs uppercase tracking-wider text-white/40">Village residents</p>
         <ul className="grid grid-cols-3 gap-2">
-          {RESIDENTS.map((r) => {
+          {residents.map((r) => {
             const unlocked = minutes >= r.unlockAt;
             const a = r.sprite.idle;
             // Zoom in on the art itself (frames have empty space around it) so every icon is a similar size.
