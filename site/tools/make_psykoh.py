@@ -1,13 +1,20 @@
-"""Animate Psy-Koh the chameleon from his single 32x32 drawing (tools/psykoh.png).
+"""Animate Psy-Koh the chameleon from two 40x32 drawings: tools/psykoh.png
+(him) and tools/psykoh-brush.png (his paintbrush, drawn behind him).
 
-Psy-Koh is a painter: red beret, a big paintbrush standing up behind him, a neckerchief and
-paint splatters on his back. He faces right. Parts are split by position: his
-two legs (the stubby columns under his belly), his curly tail (bottom left)
-and the rest. Each frame nudges those parts a pixel:
+Psy-Koh is a painter: red beret, a neckerchief, paint splatters on his back
+and a big paintbrush leaning over his back, its handle gripped in his curly
+tail. He faces right. The drawing only has his near-side legs; the far-side
+pair is made here by darkening those and tucking them in behind. Parts are
+split by position:
 
-  walk (6 frames): legs stride and lift in turn, body bobs
-  idle (6 frames): the paint spots on his back shift colour (he is a
-                   chameleon, after all), a little breath and a blink
+  tail    the band gripping the brush handle, and the spiral below it
+  legs    near back / near front (and their far-side copies)
+  body    everything else
+
+  walk (6 frames): four-legged gait (near back with far front, then the
+                   other pair), body bob, brush rocking on his back
+  idle (8 frames): eye swivels around (chameleon eyes do), a dab of the
+                   brush, a breath, paint spots shifting colour, a blink
 
 Output goes to public/sprites/critters/psykoh-{walk,idle}.png.
 
@@ -22,50 +29,73 @@ from PIL import Image
 
 HERE = os.path.dirname(__file__)
 OUT = os.path.join(HERE, '..', 'public', 'sprites', 'critters')
-S = 32
+W, H = 40, 32
 
 OUTLINE = (27, 20, 30, 255)
-WHITE = (253, 245, 241)
+WHITE = (253, 245, 241, 255)
 GREEN = (104, 178, 41, 255)
 CLEAR = (0, 0, 0, 0)
-# Legs: everything from this row down, right of the tail.
+# Far-side legs: each near-leg colour swapped for a darker one.
+FAR = {(104, 178, 41): (37, 125, 44, 255), (37, 125, 44): (22, 82, 36, 255)}
+# They sit a little forward and higher, as if further away.
+FAR_DX, FAR_DY = 3, -1
+# Tail: left of this column, from TAIL_TOP down; the spiral rests on the ground.
+TAIL_RIGHT = 10
+TAIL_TOP = 19
+SPIRAL_TOP = 25
+# Legs: everything from this row down, right of the tail; back leg left of LEG_SPLIT.
 LEG_TOP = 25
-TAIL_RIGHT = 8
-# The back leg is left of this column, the front leg right of it.
-LEG_SPLIT = 13
-# Eye: the pupil pixels, the row the lid closes along, and the column it
-# starts at (the brush's white bristles are further left).
-PUPIL = [(22, 12), (23, 12), (22, 13), (23, 13)]
+LEG_SPLIT = 22
+# Eye: pupil spots (top-left of its 2x2), the lid row, and where the eye starts.
+LOOK = {'ahead': (30, 12), 'back': (27, 12), 'up': (28, 11), 'down': (30, 14)}
 LID_ROW = 14
-EYE_LEFT = 16
+EYE_LEFT = 24
 # Paint splatters on his back, and the colours they cycle through.
-SPOTS = [(7, 17), (11, 18), (7, 20)]
+SPOTS = [(15, 17), (19, 18), (15, 20)]
 PAINT = [(255, 201, 92, 255), (38, 98, 171, 255), (235, 113, 113, 255), (253, 245, 241, 255)]
 
 
-def load():
-    im = Image.open(os.path.join(HERE, 'psykoh.png')).convert('RGBA')
-    return {(x, y): im.getpixel((x, y)) for x in range(S) for y in range(S) if im.getpixel((x, y))[3] > 0}
+def load(name):
+    im = Image.open(os.path.join(HERE, name)).convert('RGBA')
+    return {(x, y): im.getpixel((x, y)) for x in range(W) for y in range(H) if im.getpixel((x, y))[3] > 0}
 
 
 def split(px):
-    """Return (back leg, front leg, tail, body) pixel dicts."""
-    back, front, tail, body = {}, {}, {}, {}
+    parts = {k: {} for k in ('tail', 'spiral', 'back', 'front', 'body')}
     for (x, y), c in px.items():
-        if x <= TAIL_RIGHT and y >= LEG_TOP - 1:
-            tail[(x, y)] = c
+        if x <= TAIL_RIGHT and y >= SPIRAL_TOP:
+            part = 'spiral'
+        elif x <= TAIL_RIGHT and y >= TAIL_TOP:
+            part = 'tail'
         elif y >= LEG_TOP:
-            (back if x < LEG_SPLIT else front)[(x, y)] = c
+            part = 'back' if x < LEG_SPLIT else 'front'
         else:
-            body[(x, y)] = c
-    return back, front, tail, body
+            part = 'body'
+        parts[part][(x, y)] = c
+    return parts
+
+
+def far(leg):
+    return {(x + FAR_DX, y + FAR_DY): FAR.get(c[:3], c) for (x, y), c in leg.items()}
+
+
+def look(body, where):
+    out = dict(body)
+    ax, ay = LOOK['ahead']
+    for k in ((ax, ay), (ax + 1, ay), (ax, ay + 1), (ax + 1, ay + 1)):
+        out[k] = WHITE
+    x, y = LOOK[where]
+    for k in ((x, y), (x + 1, y), (x, y + 1), (x + 1, y + 1)):
+        out[k] = OUTLINE
+    return out
 
 
 def blink(body):
-    """Closed eye: whites and pupil fill with skin, a lid line curves across."""
+    """Closed eye: whites and pupil fill with skin, a lid line runs across."""
     out = dict(body)
-    whites = [k for k, c in body.items() if c[:3] == WHITE and k[0] >= EYE_LEFT and k[1] < LID_ROW + 3]
-    for k in whites + PUPIL:
+    whites = [k for k, c in body.items() if c == WHITE and k[0] >= EYE_LEFT and k[1] < LID_ROW + 3]
+    ax, ay = LOOK['ahead']
+    for k in whites + [(ax, ay), (ax + 1, ay), (ax, ay + 1), (ax + 1, ay + 1)]:
         out[k] = GREEN
     xs = [x for x, y in whites if y == LID_ROW]
     lo, hi = min(xs), max(xs)
@@ -83,58 +113,66 @@ def paint(body, shift):
     return out
 
 
-def frame(parts, body_dy=0, back=(0, 0), front=(0, 0), closed=False, shift=0):
-    """back/front are (dx, dy) nudges for each leg (dy -1 lifts it)."""
-    back_leg, front_leg, tail, body = parts
-    img = Image.new('RGBA', (S, S), CLEAR)
+def frame(parts, body_dy=0, a=(0, 0), b=(0, 0), wobble=0, dab=0, eye='ahead', closed=False, shift=0):
+    """a moves the near back leg and far front leg, b the other pair ((dx, dy), dy -1 lifts).
+    wobble rocks the brush sideways, dab lifts it."""
+    img = Image.new('RGBA', (W, H), CLEAR)
 
     def put(layer, dx, dy):
         for (x, y), c in layer.items():
-            if 0 <= x + dx < S and 0 <= y + dy < S:
+            if 0 <= x + dx < W and 0 <= y + dy < H:
                 img.putpixel((x + dx, y + dy), c)
 
-    # Legs and tail first so the body sits over their tops when it bobs down.
-    put(back_leg, *back)
-    put(front_leg, *front)
-    put(tail, 0, 0)
-    body = paint(body, shift)
+    # Far legs, near legs and the spiral first, so the body sits over their tops when it bobs.
+    put(far(parts['back']), *b)
+    put(far(parts['front']), *a)
+    put(parts['back'], *a)
+    put(parts['front'], *b)
+    put(parts['spiral'], 0, 0)
+    # The brush leans behind him; the tail wraps over the end of its handle.
+    put(parts['brush'], wobble, body_dy - dab)
+    body = paint(look(parts['body'], eye), shift)
     put(blink(body) if closed else body, 0, body_dy)
+    put(parts['tail'], 0, body_dy)
     return img
 
 
 def strip(frames):
-    sheet = Image.new('RGBA', (S * len(frames), S), CLEAR)
+    sheet = Image.new('RGBA', (W * len(frames), H), CLEAR)
     for i, f in enumerate(frames):
-        sheet.paste(f, (i * S, 0))
+        sheet.paste(f, (i * W, 0))
     return sheet
 
 
 def main():
-    parts = split(load())
+    parts = split(load('psykoh.png'))
+    parts['brush'] = load('psykoh-brush.png')
     walk = [
-        frame(parts, back=(-1, 0), front=(1, 0)),
-        frame(parts, back=(0, -1), front=(0, 0)),
-        frame(parts, body_dy=1),
-        frame(parts, back=(1, 0), front=(-1, 0)),
-        frame(parts, back=(0, 0), front=(0, -1)),
-        frame(parts, body_dy=1),
+        frame(parts, a=(1, 0), b=(-1, 0)),
+        frame(parts, a=(0, -1), wobble=-1),
+        frame(parts, body_dy=1, wobble=-1),
+        frame(parts, a=(-1, 0), b=(1, 0)),
+        frame(parts, b=(0, -1), wobble=1),
+        frame(parts, body_dy=1, wobble=1),
     ]
     idle = [
         frame(parts),
-        frame(parts, shift=1),
-        frame(parts, shift=1, body_dy=1),
-        frame(parts, shift=2),
-        frame(parts, shift=3),
+        frame(parts, eye='back'),
+        frame(parts, eye='back', shift=1),
+        frame(parts, eye='up', shift=1, dab=1),
+        frame(parts, shift=2, body_dy=1),
+        frame(parts, eye='down', shift=2),
         frame(parts, shift=3, closed=True),
+        frame(parts, shift=3),
     ]
     os.makedirs(OUT, exist_ok=True)
     strip(walk).save(os.path.join(OUT, 'psykoh-walk.png'))
     strip(idle).save(os.path.join(OUT, 'psykoh-idle.png'))
     if '--preview' in sys.argv:
-        sheet = Image.new('RGBA', (S * 6, S * 2), (240, 236, 220, 255))
+        sheet = Image.new('RGBA', (W * 8, H * 2), (240, 236, 220, 255))
         sheet.alpha_composite(strip(walk), (0, 0))
-        sheet.alpha_composite(strip(idle), (0, S))
-        sheet.resize((S * 6 * 8, S * 2 * 8), Image.NEAREST).save(os.path.join(HERE, 'psykoh-preview.png'))
+        sheet.alpha_composite(strip(idle), (0, H))
+        sheet.resize((W * 8 * 6, H * 2 * 6), Image.NEAREST).save(os.path.join(HERE, 'psykoh-preview.png'))
 
 
 if __name__ == '__main__':

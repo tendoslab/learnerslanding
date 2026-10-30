@@ -65,7 +65,12 @@ export const RESIDENTS: Resident[] = [
   // Temporarily unlocked from the start for a preview; was unlockAt: 4300 (between Geralt and Sir Bones).
   { id: 'bobby', name: 'Bobby', species: 'Alien', unlockAt: 0, sprite: critter('bobby', 6, 6, 32, { facing: 'front', speed: 2.2, foot: 2, body: 18, box: [1, 3, 30, 27] }) },
   // Also unlocked from the start for a preview; meant to be unlockAt: 6000 (adds a milestone; who arrives there is random per person).
-  { id: 'psykoh', name: 'Psy-Koh', species: 'Chameleon', unlockAt: 0, sprite: critter('psykoh', 6, 6, 32, { speed: 1.8, body: 16, box: [0, 1, 31, 31] }) },
+  { id: 'psykoh', name: 'Psy-Koh', species: 'Chameleon', unlockAt: 0, sprite: critter('psykoh', 6, 8, 32, {
+    // 40px wide frames: the brush and tail need room behind him.
+    walk: { src: withBase('/sprites/critters/psykoh-walk.png'), frames: 6, w: 40, h: 32, fps: 8 },
+    idle: { src: withBase('/sprites/critters/psykoh-idle.png'), frames: 8, w: 40, h: 32, fps: 4 },
+    speed: 1.8, body: 20, box: [0, 0, 39, 32],
+  }) },
   { id: 'cat', name: 'Mochi', species: 'Cat', unlockAt: 25, sprite: animal('cat') },
   { id: 'bunny', name: 'Clover', species: 'Bunny', unlockAt: 75, sprite: animal('bunny') },
   { id: 'penguin', name: 'Pip', species: 'Penguin', unlockAt: 150, sprite: critter('penguin', 6, 5, 18, { scale: 1.1, speed: 1.8, body: 14, foot: 1, box: [1, 1, 16, 16] }) },
