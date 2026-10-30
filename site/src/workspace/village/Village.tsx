@@ -7,6 +7,7 @@ import { FIELD_DEPTH, FIELD_FRONT, GROUND_HEIGHT, bottomFor, clamp, depthScale }
 import { Ambient, Backdrop, GroundDetail, SCENERY_KEYFRAMES } from './Scenery';
 import Actors, { ACTOR_STYLES, type ActorSpec } from './Actors';
 import { withBase } from '../../lib/base';
+import { VILLAGE_ATTR } from '../share';
 
 const scaleFor = () => (window.innerWidth < 640 ? 2 : window.innerHeight < 760 ? 2.5 : window.innerWidth >= 1280 && window.innerHeight >= 820 ? 3.5 : 3);
 
@@ -48,6 +49,7 @@ export default function Village({ buildMode, placing, onPlaced, focusing, rainin
   const placed = useWorkspace((s) => s.placed);
   const minutes = useWorkspace((s) => s.totalFocusMinutes);
   const avatar = useWorkspace((s) => s.settings.avatar);
+  const order = useWorkspace((s) => s.residentOrder);
   const landscape = useWorkspace((s) => landscapeFor(s.settings.landscape, s.totalFocusMinutes));
   const place = useWorkspace((s) => s.place);
   const bandRef = useRef<HTMLDivElement>(null);
@@ -58,8 +60,8 @@ export default function Village({ buildMode, placing, onPlaced, focusing, rainin
   const [initial] = useState(() => new Set(placed.map((p) => p.uid)));
 
   const actors = useMemo<ActorSpec[]>(
-    () => [{ id: 'you', name: 'You', sprite: avatarSprite(avatar) }, ...unlockedResidents(minutes).map((r) => ({ id: r.id, name: r.name, sprite: r.sprite }))],
-    [minutes, avatar],
+    () => [{ id: 'you', name: 'You', sprite: avatarSprite(avatar) }, ...unlockedResidents(minutes, order).map((r) => ({ id: r.id, name: r.name, sprite: r.sprite }))],
+    [minutes, avatar, order],
   );
   const night = sky.phase === 'night' || sky.phase === 'dusk';
 
@@ -103,6 +105,7 @@ export default function Village({ buildMode, placing, onPlaced, focusing, rainin
         } as CSSProperties
       }
       aria-hidden={!buildMode}
+      {...{ [VILLAGE_ATTR]: '' }}
     >
       <Backdrop sky={sky} raining={raining} landscape={landscape} />
 

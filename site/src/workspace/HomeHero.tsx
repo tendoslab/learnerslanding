@@ -23,8 +23,9 @@ export default function HomeHero({ children }: { children?: ReactNode }) {
   const total = (timer.mode === 'focus' ? settings.focus : timer.mode === 'short' ? settings.short : settings.long) * 60_000;
   const inSession = timer.running || left < total;
   const returning = inSession || sessions > 0 || minutes > 0 || placed > 0;
-  const next = nextResident(minutes);
-  const residents = unlockedResidents(minutes).length;
+  const order = useWorkspace((s) => s.residentOrder);
+  const next = nextResident(minutes, order);
+  const residents = unlockedResidents(minutes, order).length;
 
   return (
     <section className="relative isolate h-[calc(100svh-3.75rem)] min-h-[34rem] overflow-hidden bg-[#2a1b3d] text-white">

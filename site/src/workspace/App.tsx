@@ -11,6 +11,7 @@ import {
   Maximize,
   Music,
   Settings,
+  Share2,
   ShoppingBag,
 } from 'lucide-react';
 import { remainingMs, useWorkspace } from './store';
@@ -25,6 +26,7 @@ import Shop from './ui/Shop';
 import Progress from './ui/Progress';
 import VideoPlayer from './ui/VideoPlayer';
 import SettingsModal from './ui/SettingsModal';
+import ShareModal from './ui/ShareModal';
 import Portrait from './ui/Portrait';
 import { withBase } from '../lib/base';
 
@@ -47,6 +49,7 @@ export default function App() {
   // Open by default on wide screens, decided up front so it doesn't slide in on every load.
   const [sidebar, setSidebar] = useState(() => window.innerWidth >= 1024);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [playerOpen, setPlayerOpen] = useState(false);
   const [rain, setRainOn] = useState(false);
   const [build, setBuild] = useState(false);
@@ -123,6 +126,7 @@ export default function App() {
       else if (e.key === 'f') toggleFullscreen();
       else if (e.key === 'Escape') {
         setSettingsOpen(false);
+        setShareOpen(false);
         toggleBuild(false);
       }
     };
@@ -167,6 +171,9 @@ export default function App() {
           </IconButton>
           <IconButton label="Build mode (B)" active={build} onClick={() => toggleBuild()}>
             <Hammer size={18} />
+          </IconButton>
+          <IconButton label="Share your village" onClick={() => setShareOpen(true)}>
+            <Share2 size={18} />
           </IconButton>
           <IconButton label="Settings" onClick={() => setSettingsOpen(true)}>
             <Settings size={18} />
@@ -301,6 +308,7 @@ export default function App() {
       </div>
 
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
+      {shareOpen && <ShareModal onClose={() => setShareOpen(false)} />}
     </div>
   );
 }

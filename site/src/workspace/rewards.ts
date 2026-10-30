@@ -80,6 +80,41 @@ export const RESIDENTS: Resident[] = [
   { id: 'skeleton', name: 'Sir Bones', species: 'Skeleton', unlockAt: 5000, sprite: critter('skeleton', 6, 9, 32, { speed: 1.6, body: 16, box: [3, 4, 27, 28] }) },
 ];
 
+/** Residents everyone starts with; the rest arrive in each person's own order. */
+const STARTERS = RESIDENTS.filter((r) => r.unlockAt === 0);
+const SHUFFLED = RESIDENTS.filter((r) => r.unlockAt > 0);
+/** The focus milestones at which a new resident moves in. */
+const MILESTONES = SHUFFLED.map((r) => r.unlockAt).sort((a, b) => a - b);
+
+const shuffle = <T>(xs: T[]) => {
+  const a = [...xs];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+
+/**
+ * A fresh arrival order (resident ids). Anyone already unlocked at `minutes`
+ * under the old fixed order keeps their place, so nobody moves out.
+ */
+export const newResidentOrder = (minutes = 0) => {
+  const kept = SHUFFLED.filter((r) => minutes >= r.unlockAt);
+  return [...kept, ...shuffle(SHUFFLED.filter((r) => minutes < r.unlockAt))].map((r) => r.id);
+};
+
+/**
+ * Residents in the order they move in for this person, each given the
+ * milestone of their slot. Unknown ids are dropped and residents missing from
+ * the saved order (added after it was made) join at the end.
+ */
+export const residentsInOrder = (order: string[] | undefined): Resident[] => {
+  const ids = (order ?? []).filter((id) => SHUFFLED.some((r) => r.id === id));
+  const all = [...new Set([...ids, ...SHUFFLED.map((r) => r.id)])];
+  return [...STARTERS, ...all.map((id, i) => ({ ...SHUFFLED.find((r) => r.id === id)!, unlockAt: MILESTONES[i] }))];
+};
+
 export interface Landscape {
   id: string;
   name: string;
