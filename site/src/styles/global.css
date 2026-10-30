@@ -36,6 +36,12 @@
   }
 }
 
+/* Home hero placeholder: returning visitors wait for their "welcome back" card
+   instead of seeing the newcomer intro for a split second (see index.astro). */
+.returning .hero-intro {
+  visibility: hidden;
+}
+
 @utility pixelated {
   image-rendering: pixelated;
   image-rendering: crisp-edges;

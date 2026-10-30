@@ -8,6 +8,7 @@ import HomeHero from '../workspace/HomeHero';
 import { VIDEOS } from '../data/videos';
 import { DECOR, RESIDENTS } from '../workspace/rewards';
 import { SITE } from '../data/site';
+import { STORAGE_KEY } from '../workspace/storage';
 
 const articles = (await getCollection('articles', ({ data }) => !data.draft))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
@@ -22,6 +23,13 @@ const villages = [
   { img: 'tower', t: "A wizard's retreat", d: 'The Wizard Tower above the sea at dawn: the biggest goal in the shop.' },
 ];
 
+const returningCheck = `try {
+  var s = (JSON.parse(localStorage.getItem(${JSON.stringify(STORAGE_KEY)}) || 'null') || {}).state || {};
+  var t = s.timer || {}, set = s.settings || {};
+  if (t.running || s.sessionsCompleted > 0 || s.totalFocusMinutes > 0 || (s.placed || []).length > 0 || (set[t.mode] && t.remaining < set[t.mode] * 60000))
+    document.documentElement.classList.add('returning');
+} catch (e) {}`;
+
 const features = [
   { icon: '⏱️', t: 'A timer that keeps going', d: 'Focus, short and long breaks with your own lengths. It keeps counting in a background tab and while you read the guides here, and the tab icon fills up as you go.' },
   { icon: '✅', t: 'Tasks you can shape', d: 'Prioritise, drag to reorder, break work into small steps and track how many focus minutes went into each one.' },
@@ -33,11 +41,14 @@ const features = [
 ---
 
 <BaseLayout>
+  <!-- Returning visitors get a "welcome back" card once the hero loads, so don't
+       flash the newcomer intro at them first. Mirrors `returning` in HomeHero. -->
+  <script is:inline slot="head" set:html={returningCheck} />
   <HomeHero client:only="react">
     <HeroIntro />
     <section slot="fallback" class="relative h-[calc(100svh-3.75rem)] min-h-[34rem] bg-gradient-to-b from-[#1d1430] via-[#3b2a5c] to-[#2f4a3a] text-white">
       <div class="flex justify-center px-4 pt-[6vh] sm:pt-[9vh]">
-        <div class="w-full max-w-xl rounded-[2rem] border border-white/15 bg-black/35 p-6 text-center sm:p-8">
+        <div class="hero-intro w-full max-w-xl rounded-[2rem] border border-white/15 bg-black/35 p-6 text-center shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl sm:p-8">
           <HeroIntro />
         </div>
       </div>
