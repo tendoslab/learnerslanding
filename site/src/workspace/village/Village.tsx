@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as RPointerEvent } from 'react';
+import { useEffect, useImperativeHandle, useMemo, useRef, useState, type CSSProperties, type PointerEvent as RPointerEvent, type Ref } from 'react';
 import { FlipHorizontal2, PackageOpen } from 'lucide-react';
 import { useWorkspace, unlockedResidents, type Placed } from '../store';
 import { avatarSprite, decorById, landscapeFor } from '../rewards';
@@ -33,7 +33,16 @@ const useSky = () => {
   return sky;
 };
 
+/** Lets the build tray drag an item straight onto the grass. Points are in client (screen) coordinates. */
+export interface VillageHandle {
+  /** Show where the item being placed would land, or hide the preview when off the grass. */
+  hover: (clientX: number, clientY: number) => void;
+  /** Place the item being placed here. False when the point isn't on the grass. */
+  drop: (clientX: number, clientY: number) => boolean;
+}
+
 interface Props {
+  ref?: Ref<VillageHandle>;
   buildMode: boolean;
   /** Inventory item waiting to be placed (build mode). */
   placing: string | null;
@@ -42,7 +51,7 @@ interface Props {
   raining: boolean;
 }
 
-export default function Village({ buildMode, placing, onPlaced, focusing, raining }: Props) {
+export default function Village({ ref, buildMode, placing, onPlaced, focusing, raining }: Props) {
   const sky = useSky();
   const S = usePixelScale();
   // Always your own village, on every page: nothing you haven't earned yet.
@@ -78,17 +87,45 @@ export default function Village({ buildMode, placing, onPlaced, focusing, rainin
     return { x, y };
   };
 
-  const onFieldClick = (e: RPointerEvent<HTMLDivElement>) => {
+  const onGrass = (clientX: number, clientY: number) => {
+    const r = bandRef.current?.getBoundingClientRect();
+    return !!r && clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
+  };
+
+  const placeAt = (clientX: number, clientY: number) => {
+    if (!placing) return;
+    const { x, y } = pointToField(clientX, clientY);
+    place(placing, x, y);
+    setGhost(null);
+    onPlaced();
+  };
+
+  useImperativeHandle(ref, () => ({
+    hover: (cx, cy) => setGhost(onGrass(cx, cy) ? pointToField(cx, cy) : null),
+    drop: (cx, cy) => {
+      if (!placing || !onGrass(cx, cy)) return false;
+      placeAt(cx, cy);
+      return true;
+    },
+  }));
+
+  // Press on the grass to preview, slide to adjust, lift to place (a quick tap places right away).
+  const pressing = useRef(false);
+  const onFieldDown = (e: RPointerEvent<HTMLDivElement>) => {
     if (!buildMode) return;
     if (e.target !== e.currentTarget) return;
     if (placing) {
-      const { x, y } = pointToField(e.clientX, e.clientY);
-      place(placing, x, y);
-      setGhost(null);
-      onPlaced();
+      pressing.current = true;
+      e.currentTarget.setPointerCapture(e.pointerId);
+      setGhost(pointToField(e.clientX, e.clientY));
     } else {
       setSelected(null);
     }
+  };
+  const onFieldUp = (e: RPointerEvent<HTMLDivElement>) => {
+    if (!pressing.current) return;
+    pressing.current = false;
+    placeAt(e.clientX, e.clientY);
   };
 
   return (
@@ -112,9 +149,14 @@ export default function Village({ buildMode, placing, onPlaced, focusing, rainin
       {/* Ground band: decorations + residents */}
       <div
         ref={bandRef}
-        onPointerDown={onFieldClick}
-        onPointerMove={(e) => placing && e.pointerType === 'mouse' && setGhost(pointToField(e.clientX, e.clientY))}
-        onPointerLeave={() => setGhost(null)}
+        onPointerDown={onFieldDown}
+        onPointerMove={(e) => placing && (pressing.current || e.pointerType === 'mouse') && setGhost(pointToField(e.clientX, e.clientY))}
+        onPointerUp={onFieldUp}
+        onPointerCancel={() => {
+          pressing.current = false;
+          setGhost(null);
+        }}
+        onPointerLeave={() => !pressing.current && setGhost(null)}
         className="absolute inset-x-0 bottom-0"
         style={{
           height: GROUND_HEIGHT,
@@ -304,7 +346,7 @@ function Decoration({
 
   return (
     <div
-      className="absolute"
+      className="pointer-events-none absolute"
       style={{
         left: `${x}%`,
         bottom: `${bottomFor(y)}%`,
@@ -341,7 +383,7 @@ function Decoration({
         )}
       </div>
       {buildMode && selected && !drag && (
-        <div className="absolute bottom-full left-1/2 mb-2 flex -translate-x-1/2 gap-1 rounded-lg bg-black/75 p-1 shadow-lg" style={{ zIndex: 5000 }}>
+        <div className="pointer-events-auto absolute bottom-full left-1/2 mb-2 flex -translate-x-1/2 gap-1 rounded-lg bg-black/75 p-1 shadow-lg" style={{ zIndex: 5000 }}>
           <button type="button" onPointerDown={(e) => e.stopPropagation()} onClick={() => flip(item.uid)} className="rounded p-1.5 text-white hover:bg-white/20" title="Flip">
             <FlipHorizontal2 size={16} />
           </button>
