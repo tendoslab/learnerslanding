@@ -5,7 +5,7 @@
 //   npm run dev                      # in another terminal (port 4321)
 //   node tools/showcase.cjs          # needs Playwright: npx playwright install chromium
 //
-// Writes shots/show-<name>.png; convert to public/showcase/<name>.jpg (1200×500).
+// Writes shots/show-<name>.png; convert to public/showcase/<name>.jpg (1200×600).
 const { chromium } = require('playwright');
 const P = (itemId, x, y, flip) => ({ uid: itemId + x + y, itemId, x, y, flip: !!flip });
 const scenes = {
@@ -60,7 +60,7 @@ fs.mkdirSync('shots', { recursive: true });
       [...root.children].slice(1).forEach((c) => c.remove());
       document.querySelectorAll('astro-dev-toolbar, .ll-bubble').forEach((e) => e.remove());
     });
-    await p.screenshot({ path: `shots/show-${name}.png`, clip: { x: 0, y: 140, width: 1200, height: 500 } });
+    await p.screenshot({ path: `shots/show-${name}.png`, clip: { x: 0, y: 40, width: 1200, height: 600 } });
     await p.close();
   }
   await b.close();

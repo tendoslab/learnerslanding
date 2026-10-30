@@ -45,7 +45,16 @@ function Mountains({ sky, lift, height = '36vh' }: { sky: Sky; lift?: string; he
     return { base: skyline(heights, H), shade: columns(shaded), snow: columns(caps) };
   }, []);
   return (
-    <svg className="absolute inset-x-0 w-full" style={{ bottom: horizon(lift), height }} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMax slice" shapeRendering="crispEdges" aria-hidden>
+    // The drawing fills the screen width, so it's W:H wide; give it at least that much
+    // height (H/W of the width) or the peaks get sliced off flat on wide screens.
+    <svg
+      className="absolute inset-x-0 w-full"
+      style={{ bottom: horizon(lift), height: `min(max(${height}, ${(H / W) * 100}vw), 50vh)` }}
+      viewBox={`0 0 ${W} ${H}`}
+      preserveAspectRatio="xMidYMax slice"
+      shapeRendering="crispEdges"
+      aria-hidden
+    >
       <path d={base} fill={sky.mountain} style={transition} />
       <path d={shade} fill={sky.mountainShade} style={transition} />
       <path d={snow} fill={sky.snow} style={transition} />
