@@ -100,7 +100,7 @@ const mix = (a: string, b: string, t: number) => {
  * Hills covered in round, leafy tree crowns. Each crown is a pixel disc lit from
  * the upper left (the sun's side), so the canopy reads as trees, not a flat band.
  */
-function Grove({ seed, H, base, amp, colors, spacing, height, lift }: { seed: number; H: number; base: number; amp: number; colors: string[]; spacing: number; height: string; lift?: string }) {
+function Grove({ seed, H, base, amp, colors, ground, spacing, height, lift }: { seed: number; H: number; base: number; amp: number; colors: string[]; ground?: string; spacing: number; height: string; lift?: string }) {
   const { hill, tones } = useMemo(() => {
     const rand = seeded(seed);
     const phase = rand() * 10;
@@ -136,7 +136,7 @@ function Grove({ seed, H, base, amp, colors, spacing, height, lift }: { seed: nu
           <path d={light} fill={mix(colors[i], '#fff4d6', 0.22)} />
         </g>
       ))}
-      <path d={hill} fill={mix(colors[0], '#1a1030', 0.35)} style={transition} />
+      <path d={hill} fill={ground ?? mix(colors[0], '#1a1030', 0.35)} style={transition} />
     </svg>
   );
 }
@@ -329,7 +329,7 @@ function Landscape({ id, sky }: { id: string; sky: Sky }) {
           <Mountains sky={sky} height="30vh" />
           <Grove seed={5} H={56} base={22} amp={8} colors={[mix(sky.autumnFar, sky.hillFar, 0.55), mix(sky.autumnGold, sky.hillFar, 0.55)]} spacing={7} height="25vh" />
           <Grove seed={3} H={46} base={13} amp={6} colors={[sky.autumnGold, mix(sky.autumnGold, sky.autumnFar, 0.5)]} spacing={6} height="19vh" />
-          <Grove seed={11} H={36} base={5} amp={3} colors={[sky.autumnNear, sky.autumnFar, mix(sky.autumnNear, sky.autumnGold, 0.5)]} spacing={6} height="13vh" />
+          <Grove seed={11} H={36} base={5} amp={3} colors={[sky.autumnNear, sky.autumnFar, mix(sky.autumnNear, sky.autumnGold, 0.5)]} ground={sky.hillNear} spacing={6} height="13vh" />
         </>
       );
     case 'lake':
