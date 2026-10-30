@@ -61,7 +61,7 @@ export default function Timer({ compact = false }: { compact?: boolean }) {
 
       <p className="h-5 text-sm italic text-honey">{timer.mode === 'focus' ? quote : 'Stretch, sip some water, look out a window.'}</p>
 
-      <div className="relative my-2 font-display text-[5rem] font-semibold leading-none tabular-nums drop-shadow-[0_4px_0_rgba(0,0,0,0.35)] sm:text-[6.5rem]" aria-live="off">
+      <div className="relative my-2 font-sans text-[5rem] font-medium leading-none tracking-tight tabular-nums drop-shadow-[0_4px_0_rgba(0,0,0,0.35)] sm:text-[6.5rem]" aria-live="off">
         {formatTime(remaining)}
       </div>
 
@@ -76,7 +76,7 @@ export default function Timer({ compact = false }: { compact?: boolean }) {
             if (timer.running) pause();
             else start();
           }}
-          className="flex items-center gap-2 rounded-full bg-white px-9 py-3 text-lg font-extrabold text-ink shadow-[0_4px_0_rgba(0,0,0,0.3)] transition active:translate-y-0.5 active:shadow-none"
+          className="flex items-center gap-2 rounded-full bg-white px-9 py-3 text-lg font-bold text-ink shadow-[0_4px_0_rgba(0,0,0,0.3)] transition active:translate-y-0.5 active:shadow-none"
         >
           {timer.running ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}
           {timer.running ? 'Pause' : 'Start'}

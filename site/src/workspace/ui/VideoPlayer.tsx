@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, X } from 'lucide-react';
-import { CATEGORIES, embedUrl, playerVideos, thumb } from '../../data/videos';
+import { ChevronDown, ChevronUp, ExternalLink, X } from 'lucide-react';
+import { CATEGORIES, embedUrl, playerVideos, thumb, watchUrl } from '../../data/videos';
 
-// A small floating YouTube player using the privacy-enhanced (nocookie) embed.
+// A small floating YouTube player.
 export default function VideoPlayer({ onClose }: { onClose: () => void }) {
   const [videoId, setVideoId] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
@@ -11,7 +11,7 @@ export default function VideoPlayer({ onClose }: { onClose: () => void }) {
   return (
     <div className="pointer-events-auto w-[min(92vw,22rem)] overflow-hidden rounded-2xl border border-white/15 bg-black/70 text-white shadow-2xl backdrop-blur-xl">
       <div className="flex items-center justify-between gap-2 border-b border-white/10 px-3 py-2">
-        <p className="truncate font-display text-sm">{current ? current.title : 'Study soundtrack'}</p>
+        <p className="truncate text-sm font-semibold">{current ? current.title : 'Study soundtrack'}</p>
         <div className="flex shrink-0 gap-1">
           <button onClick={() => setCollapsed(!collapsed)} className="rounded p-1 hover:bg-white/15" aria-label={collapsed ? 'Expand player' : 'Collapse player'}>
             {collapsed ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -36,6 +36,14 @@ export default function VideoPlayer({ onClose }: { onClose: () => void }) {
               allowFullScreen
             />
           </div>
+        ) : null}
+        {videoId ? (
+          <p className="flex items-center justify-between gap-2 px-3 pt-2 text-[11px] text-white/50">
+            <span>Not playing? Some blockers stop embeds.</span>
+            <a href={watchUrl(videoId)} target="_blank" rel="noopener" className="flex shrink-0 items-center gap-1 underline hover:text-white">
+              Open on YouTube <ExternalLink size={11} />
+            </a>
+          </p>
         ) : (
           <p className="px-3 pt-3 text-xs text-white/60">Pick something to play while you study. Videos play from YouTube.</p>
         )}

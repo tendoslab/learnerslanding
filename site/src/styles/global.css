@@ -2,8 +2,8 @@
 @plugin '@tailwindcss/typography';
 
 @theme {
-  --font-sans: 'Nunito Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Fredoka Variable', 'Nunito Variable', ui-rounded, system-ui, sans-serif;
+  --font-sans: 'DM Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Fraunces Variable', ui-serif, Georgia, serif;
 
   --color-cream: #fbf6ee;
   --color-paper: #fffdf8;
@@ -35,7 +35,7 @@
 
 /* Chunky "game UI" button used across content pages */
 @utility btn-pixel {
-  @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 font-display text-lg transition-transform;
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 font-sans text-base font-semibold transition-transform;
   box-shadow: 0 4px 0 0 rgb(0 0 0 / 0.25);
   &:hover {
     transform: translateY(-1px);

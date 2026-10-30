@@ -423,5 +423,5 @@ export const ACTOR_STYLES = `
   }
   .ll-bubble[data-show='1'] { opacity: 1; transform: translate(-50%, 0) scale(1); }
   .ll-bubble[data-kind='emoji'] { font-size: 16px; }
-  .ll-bubble[data-kind='text'] { font-size: 11px; font-weight: 700; font-family: var(--font-display); }
+  .ll-bubble[data-kind='text'] { font-size: 11px; font-weight: 600; font-family: var(--font-sans); }
 `;

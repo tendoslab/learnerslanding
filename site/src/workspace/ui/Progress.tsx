@@ -3,7 +3,7 @@ import { Flame, Lock } from 'lucide-react';
 import { nextResident, streak, todayKey, useWorkspace } from '../store';
 import { RESIDENTS } from '../rewards';
 
-const fmtMinutes = (m: number) => (m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`);
+export const fmtMinutes = (m: number) => (m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`);
 
 export default function Progress() {
   const minutes = useWorkspace((s) => s.totalFocusMinutes);
@@ -90,7 +90,7 @@ export default function Progress() {
 function Stat({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 p-2.5">
-      <p className="font-display text-lg font-bold">{value}</p>
+      <p className="font-display text-lg font-semibold">{value}</p>
       <p className="text-[10px] uppercase tracking-wider text-white/40">{label}</p>
     </div>
   );
