@@ -381,19 +381,24 @@ export default function Actors({ actors, S, focusing, placed, interactive }: Pro
         // --- render ---
         const anim = st.moving ? sp.walk : sp.idle;
         const k = S * (sp.scale ?? 1) * depthScale(st.y);
-        const [sw, sh] = sheetSize(anim);
         const foot = (sp.foot ?? 0) * k;
         const fpsMul = st.task === 'chase' || st.task === 'flee' ? 1.6 : 1;
         const frame = Math.floor(st.t * (anim.fps ?? 6) * fpsMul) % anim.frames;
         const el = node.sprite;
-        if (st.anim !== anim) {
-          el.style.backgroundImage = `url(${anim.src})`;
+        // Both sheets stay on the element as two background layers and the
+        // unused one is parked out of view. Swapping background-image when
+        // someone starts or stops walking left them blank for a frame while
+        // the other sheet loaded/decoded.
+        if (!st.anim) {
+          el.style.backgroundImage = `url(${sp.walk.src}), url(${sp.idle.src})`;
           st.anim = anim;
         }
         el.style.width = `${anim.w * k}px`;
         el.style.height = `${anim.h * k}px`;
-        el.style.backgroundSize = `${sw * k}px ${sh * k}px`;
-        el.style.backgroundPosition = `${-frame * anim.w * k}px ${-(anim.y ?? 0) * k}px`;
+        el.style.backgroundSize = [sp.walk, sp.idle].map((a) => sheetSize(a).map((n) => `${n * k}px`).join(' ')).join(', ');
+        el.style.backgroundPosition = [sp.walk, sp.idle]
+          .map((a) => (a === anim ? `${-frame * a.w * k}px ${-(a.y ?? 0) * k}px` : '-99999px 0'))
+          .join(', ');
         el.style.transform = sp.facing === 'side' && st.dir === -1 ? 'scaleX(-1)' : '';
 
         const hop = st.hopUntil > clock ? Math.abs(Math.sin((st.hopUntil - clock) * 15)) * 3 * S : 0;

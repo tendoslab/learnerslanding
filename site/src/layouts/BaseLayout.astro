@@ -2,6 +2,10 @@
 import { withBase } from '../lib/base';
 import '@fontsource-variable/dm-sans';
 import '@fontsource-variable/fraunces';
+// Same files the font CSS points at, so the preloads below fetch them up front
+// instead of the page painting in a fallback font and then swapping.
+import dmSansUrl from '@fontsource-variable/dm-sans/files/dm-sans-latin-wght-normal.woff2?url';
+import frauncesUrl from '@fontsource-variable/fraunces/files/fraunces-latin-wght-normal.woff2?url';
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -43,6 +47,8 @@ const earlyFavicon = `try {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preload" href={dmSansUrl} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={frauncesUrl} as="font" type="font/woff2" crossorigin />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
