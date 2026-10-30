@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type PointerEvent as RPointerEvent, type ReactNode } from 'react';
 import {
   BarChart3,
   CheckSquare,
@@ -18,7 +18,7 @@ import { remainingMs, useWorkspace } from './store';
 import { decorById } from './rewards';
 import { chime, primeAudio, setRain } from './audio';
 import { setFaviconProgress, startTicker } from './ticker';
-import Village from './village/Village';
+import Village, { type VillageHandle } from './village/Village';
 import Timer, { formatTime } from './ui/Timer';
 import Tasks from './ui/Tasks';
 import Notes from './ui/Notes';
@@ -148,9 +148,36 @@ export default function App() {
   const touch = matchMedia('(pointer: coarse)').matches;
   const inventoryItems = Object.entries(inventory).filter(([, n]) => n > 0);
 
+  // Tray items can be tapped (then tap the grass) or dragged straight onto the grass.
+  const village = useRef<VillageHandle>(null);
+  const trayDrag = useRef<{ id: string; x: number; y: number; moved: boolean } | null>(null);
+  const justDragged = useRef(false);
+  const onTrayDown = (id: string, e: RPointerEvent<HTMLButtonElement>) => {
+    trayDrag.current = { id, x: e.clientX, y: e.clientY, moved: false };
+    justDragged.current = false;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onTrayMove = (e: RPointerEvent<HTMLButtonElement>) => {
+    const d = trayDrag.current;
+    if (!d) return;
+    if (!d.moved) {
+      if (Math.hypot(e.clientX - d.x, e.clientY - d.y) < 8) return;
+      d.moved = true;
+      setPlacing(d.id);
+    }
+    village.current?.hover(e.clientX, e.clientY);
+  };
+  const onTrayUp = (e: RPointerEvent<HTMLButtonElement>) => {
+    const d = trayDrag.current;
+    trayDrag.current = null;
+    justDragged.current = !!d?.moved;
+    // Let go off the grass: keep the item picked, so a tap on the grass still places it.
+    if (d?.moved && !village.current?.drop(e.clientX, e.clientY)) village.current?.hover(-1, -1);
+  };
+
   return (
     <div className="relative h-dvh w-screen overflow-hidden bg-[#2a1b3d] font-sans text-white">
-      <Village buildMode={build} placing={placing} onPlaced={() => setPlacing(null)} focusing={focusing} raining={rain} />
+      <Village ref={village} buildMode={build} placing={placing} onPlaced={() => setPlacing(null)} focusing={focusing} raining={rain} />
 
       {/* Top bar */}
       <header className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-2 p-3 sm:p-4">
@@ -243,13 +270,16 @@ export default function App() {
         <div className="absolute inset-x-0 top-[4.5rem] z-40 flex justify-center px-3">
           <div className="w-full max-w-3xl rounded-2xl border border-white/15 bg-black/60 p-3 shadow-2xl backdrop-blur-xl">
             <div className="mb-2 flex items-center justify-between gap-3">
-              <p className="text-sm">
-                <strong className="font-semibold">Build mode.</strong>{' '}
-                <span className="text-white/70">
-                  {placing
-                    ? `${touch ? 'Tap' : 'Click'} the grass to place your ${decorById[placing]?.name.toLowerCase()}.`
-                    : `Pick an item, then ${touch ? 'tap' : 'click'} the grass. Drag items to move them; ${touch ? 'tap' : 'click'} one for more options.`}
-                </span>
+              {/* Both hints share one grid cell, so the tray stays the height of the longer one and doesn't jump when you pick an item. */}
+              <p className="grid text-sm">
+                {[
+                  `Pick an item and ${touch ? 'tap' : 'click'} the grass, or drag it there. Drag placed items to move them; ${touch ? 'tap' : 'click'} one for more options.`,
+                  `${touch ? 'Tap' : 'Click'} the grass to place your ${decorById[placing ?? '']?.name.toLowerCase() ?? 'item'}.`,
+                ].map((hint, i) => (
+                  <span key={i} className={`col-start-1 row-start-1 ${(i === 1) === !!placing ? '' : 'invisible'}`} aria-hidden={(i === 1) !== !!placing}>
+                    <strong className="font-semibold">Build mode.</strong> <span className="text-white/70">{hint}</span>
+                  </span>
+                ))}
               </p>
               <button onClick={() => toggleBuild(false)} className="shrink-0 rounded-lg bg-white px-3 py-1.5 text-sm font-bold text-ink">
                 Done
@@ -260,12 +290,22 @@ export default function App() {
                 {inventoryItems.map(([id, n]) => (
                   <li key={id}>
                     <button
-                      onClick={() => setPlacing(placing === id ? null : id)}
+                      onPointerDown={(e) => onTrayDown(id, e)}
+                      onPointerMove={onTrayMove}
+                      onPointerUp={onTrayUp}
+                      onPointerCancel={() => (trayDrag.current = null)}
+                      onClick={() => {
+                        if (justDragged.current) return void (justDragged.current = false);
+                        setPlacing(placing === id ? null : id);
+                      }}
+                      // Sideways swipes still scroll the tray; any other drag pulls the item out.
+                      style={{ touchAction: 'pan-x' }}
                       className={`relative flex h-16 w-16 items-end justify-center rounded-xl border p-1.5 ${placing === id ? 'border-honey bg-honey/20' : 'border-white/10 bg-white/5 hover:bg-white/10'}`}
                       title={decorById[id]?.name}
                     >
                       <img
                         src={withBase(`/sprites/decor/${id}.png`)}
+                        draggable={false}
                         alt={decorById[id]?.name}
                         className="pixelated max-h-full max-w-full object-contain"
                         style={{ imageRendering: 'pixelated', height: Math.min(48, (decorById[id]?.h ?? 16) * 2) }}
