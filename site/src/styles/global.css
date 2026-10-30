@@ -1,6 +1,9 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
+/* Short screens, e.g. a phone turned sideways. */
+@custom-variant short (@media (max-height: 32rem));
+
 @theme {
   --font-sans: 'DM Sans Variable', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Fraunces Variable', ui-serif, Georgia, serif;
@@ -34,6 +37,12 @@
     outline: 3px solid var(--color-plum);
     outline-offset: 2px;
   }
+}
+
+/* Home hero placeholder: returning visitors wait for their "welcome back" card
+   instead of seeing the newcomer intro for a split second (see index.astro). */
+.returning .hero-intro {
+  visibility: hidden;
 }
 
 @utility pixelated {

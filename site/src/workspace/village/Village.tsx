@@ -93,7 +93,7 @@ export default function Village({ buildMode, placing, onPlaced, focusing, rainin
 
   return (
     <div
-      className="absolute inset-0 isolate overflow-hidden select-none"
+      className="absolute inset-0 isolate overflow-hidden select-none [-webkit-touch-callout:none]"
       style={
         {
           background: sky.skyBottom,
@@ -121,6 +121,8 @@ export default function Village({ buildMode, placing, onPlaced, focusing, rainin
           background: `linear-gradient(to bottom, ${sky.grassDark}, ${sky.grassTop} 12%, ${sky.grassBottom})`,
           transition: 'background 3s',
           pointerEvents: buildMode ? 'auto' : 'none',
+          // Phones: no double-tap zoom or panning while you place and drag things.
+          touchAction: buildMode ? 'none' : undefined,
           cursor: ghost ? 'none' : buildMode && placing ? 'crosshair' : 'default',
         }}
       >
