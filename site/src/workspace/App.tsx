@@ -25,6 +25,7 @@ import Shop from './ui/Shop';
 import Progress from './ui/Progress';
 import VideoPlayer from './ui/VideoPlayer';
 import SettingsModal from './ui/SettingsModal';
+import Portrait from './ui/Portrait';
 import { withBase } from '../lib/base';
 
 type Tab = 'tasks' | 'shop' | 'village' | 'notes';
@@ -36,6 +37,7 @@ interface Toast {
 
 export default function App() {
   const coins = useWorkspace((s) => s.coins);
+  const avatar = useWorkspace((s) => s.settings.avatar);
   const timer = useWorkspace((s) => s.timer);
   const lastEvent = useWorkspace((s) => s.lastEvent);
   const chimeOn = useWorkspace((s) => s.settings.chime);
@@ -151,6 +153,9 @@ export default function App() {
           <span className="hidden text-sm font-semibold sm:inline">Learner's Landing</span>
         </a>
         <div className="pointer-events-auto flex items-center gap-1.5 rounded-xl border border-white/10 bg-black/35 p-1.5 backdrop-blur-md">
+          <button onClick={() => setSettingsOpen(true)} title="Your character" aria-label="Your character" className="rounded-full transition hover:brightness-110">
+            <Portrait avatar={avatar} size={34} />
+          </button>
           <span className="flex items-center gap-1 rounded-lg bg-white/10 px-2.5 py-1.5 text-sm font-semibold tabular-nums text-yellow-200" title="Coins">
             🪙 {coins}
           </span>

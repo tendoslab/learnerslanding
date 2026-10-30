@@ -62,6 +62,8 @@ const critter = (n: string, walkFrames: number, idleFrames: number, size = 32, e
 });
 
 export const RESIDENTS: Resident[] = [
+  // Temporarily unlocked from the start for a preview; was unlockAt: 4300 (between Geralt and Sir Bones).
+  { id: 'bobby', name: 'Bobby', species: 'Alien', unlockAt: 0, sprite: critter('bobby', 6, 6, 32, { facing: 'front', speed: 2.2, foot: 2, body: 18, box: [1, 3, 30, 27] }) },
   { id: 'cat', name: 'Mochi', species: 'Cat', unlockAt: 25, sprite: animal('cat') },
   { id: 'bunny', name: 'Clover', species: 'Bunny', unlockAt: 75, sprite: animal('bunny') },
   { id: 'penguin', name: 'Pip', species: 'Penguin', unlockAt: 150, sprite: critter('penguin', 6, 5, 18, { scale: 1.1, speed: 1.8, body: 14, foot: 1, box: [1, 1, 16, 16] }) },
@@ -103,6 +105,9 @@ export const landscapeFor = (id: string | undefined, minutes: number) => {
 };
 
 export const AVATAR_COUNT = 18;
+
+/** Top row of each character's head in its first idle frame (for the round profile picture). */
+export const AVATAR_HEAD_TOP = [13, 14, 17, 14, 18, 18, 17, 18, 15, 14, 17, 14, 19, 16, 19, 19, 17, 14];
 
 export const avatarSprite = (n: number): SpriteDef => ({
   idle: { src: withBase(`/sprites/characters/char-${n}.png`), frames: 4, w: 64, h: 64, y: 0, fps: 4 },

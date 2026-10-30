@@ -86,7 +86,7 @@ interface Props {
 }
 
 export default function Actors({ actors, S, focusing, placed, interactive }: Props) {
-  const nodes = useRef(new Map<string, { wrap: HTMLDivElement; sprite: HTMLDivElement; bubble: HTMLDivElement; shadow: HTMLSpanElement }>());
+  const nodes = useRef(new Map<string, { wrap: HTMLDivElement; sprite: HTMLDivElement; bubble: HTMLDivElement; label: HTMLSpanElement; shadow: HTMLSpanElement }>());
   const states = useRef(new Map<string, ActorState>());
   const live = useRef({ focusing, placed, clock: 0 });
   live.current.focusing = focusing;
@@ -408,6 +408,8 @@ export default function Actors({ actors, S, focusing, placed, interactive }: Pro
         shadow.height = `${Math.max(5, shw * 0.3)}px`;
         shadow.bottom = `${foot - fly - hop}px`;
         shadow.opacity = String(1 - lift);
+        // Name tag sits just under the feet, not under the empty space below them in the frame.
+        node.label.style.top = `calc(100% - ${foot - fly - hop - 2}px)`;
         node.wrap.style.zIndex = String(Math.round(st.y * 1000) + 11);
 
         const studying = st.task === 'study' && !st.moving;
@@ -440,6 +442,7 @@ export default function Actors({ actors, S, focusing, placed, interactive }: Pro
               wrap,
               sprite: wrap.querySelector('[data-sprite]') as HTMLDivElement,
               bubble: wrap.querySelector('[data-bubble]') as HTMLDivElement,
+              label: wrap.querySelector('[data-label]') as HTMLSpanElement,
               shadow: wrap.querySelector('.ll-shadow') as HTMLSpanElement,
             });
           }}
@@ -449,7 +452,7 @@ export default function Actors({ actors, S, focusing, placed, interactive }: Pro
           title={interactive ? (a.id === YOU ? 'You' : `${a.name}: click to say hi`) : undefined}
         >
           <div data-bubble className="ll-bubble" />
-          <span className="pointer-events-none absolute left-1/2 top-full -translate-x-1/2 whitespace-nowrap rounded bg-black/60 px-1.5 text-[10px] font-bold text-white opacity-0 transition-opacity group-hover:opacity-100">
+          <span data-label className="pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-black/60 px-1.5 text-[10px] font-bold text-white opacity-0 transition-opacity group-hover:opacity-100">
             {a.id === YOU ? 'You' : a.name}
           </span>
           <span className="ll-shadow" style={{ left: '50%', zIndex: -1 }} />
