@@ -1,0 +1,118 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import VideoCard from '../../components/VideoCard.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { CATEGORIES, VIDEOS, embedUrl, thumb, type Video } from '../../data/videos';
+
+export function getStaticPaths() {
+  return VIDEOS.map((video) => ({ params: { slug: video.slug }, props: { video } }));
+}
+
+const { video } = Astro.props as { video: Video };
+const cat = CATEGORIES[video.category];
+const related = VIDEOS.filter((v) => v.category === video.category && v.slug !== video.slug).slice(0, 3);
+
+const tips: Record<Video['category'], string[]> = {
+  pomodoro: [
+    'Write down the one task you will work on before you press play.',
+    'Keep working until the video tells you to break, even if you feel stuck. Stuck is part of learning.',
+    'During breaks, stand up and look at something far away instead of your phone.',
+  ],
+  ambience: [
+    'Keep the volume low: just loud enough to cover background chatter.',
+    'Pair it with the workspace timer so you still take regular breaks.',
+    'Use the same ambience for the same subject; over time it becomes a cue to focus.',
+  ],
+  frequencies: [
+    'Binaural beats need headphones, because each ear has to hear a slightly different tone.',
+    'Research on focus frequencies is mixed, so treat them as an experiment: try a few sessions and notice how you feel.',
+    'If a track gives you a headache or feels distracting, stop; plain rain or silence works just as well for many people.',
+  ],
+  meditation: [
+    'Try it during a long break, or before a session when you feel anxious about starting.',
+    "Sit somewhere you won't be interrupted and put your phone on do not disturb.",
+    "Don't judge yourself for a wandering mind. Noticing it and coming back is the exercise.",
+  ],
+  adhd: [
+    'Decide the very first tiny step before you start ("open the doc", not "write the essay").',
+    'Keep a notepad next to you to dump distracting thoughts instead of acting on them.',
+    'Reward yourself after each cycle, even in small ways. It helps build momentum.',
+  ],
+};
+---
+
+<BaseLayout title={`${video.title} | ${cat.label} study video`} description={video.summary} image={thumb(video.youtubeId)}>
+  <article class="mx-auto max-w-4xl px-4 pt-10 sm:px-6">
+    <nav class="text-sm text-ink/60" aria-label="Breadcrumb">
+      <a href="/videos" class="hover:text-plum">Study videos</a> › <a href={`/videos?category=${video.category}`} class="hover:text-plum">{cat.label}</a>
+    </nav>
+    <h1 class="mt-3 font-pixel text-3xl font-bold sm:text-4xl">{video.title}</h1>
+    <p class="mt-2 text-sm font-bold uppercase tracking-wide text-plum">
+      {cat.emoji} {cat.label} · {video.length}
+    </p>
+
+    <div class="mt-6 overflow-hidden rounded-2xl bg-ink shadow-lg">
+      <div class="lite-yt relative aspect-video" data-id={video.youtubeId} data-src={embedUrl(video.youtubeId, true)}>
+        <img src={thumb(video.youtubeId)} alt="" class="h-full w-full object-cover opacity-90" />
+        <button class="absolute inset-0 flex items-center justify-center" aria-label={`Play ${video.title}`}>
+          <span class="flex h-16 w-24 items-center justify-center rounded-2xl bg-red-600 text-3xl text-white shadow-xl">▶</span>
+        </button>
+      </div>
+    </div>
+    <p class="mt-2 text-xs text-ink/50">
+      Video hosted on YouTube. All rights belong to its creator. <a class="underline" href={`https://www.youtube.com/watch?v=${video.youtubeId}`} rel="noopener" target="_blank">Watch on YouTube</a> to support them.
+    </p>
+
+    <div class="prose prose-lg mt-8 max-w-none prose-headings:font-pixel">
+      <p>{video.summary}</p>
+      {video.pattern && (
+        <p>
+          It follows a <strong>{video.pattern[0]}/{video.pattern[1]}</strong> rhythm: {video.pattern[0]} minutes of focus, then a {video.pattern[1]}-minute break. You can match
+          it in our <a href="/workspace">workspace</a> by setting the focus timer to {video.pattern[0]} and the short break to {video.pattern[1]}.
+        </p>
+      )}
+      {video.review && (
+        <>
+          <h2>Why it's in our library</h2>
+          <p>{video.review}</p>
+        </>
+      )}
+      <h2>How to get the most out of it</h2>
+      <ul>
+        {tips[video.category].map((t) => <li>{t}</li>)}
+      </ul>
+      <p>
+        New to timed study sessions? Read our <a href="/articles/pomodoro-technique-guide">beginner's guide to the pomodoro technique</a>.
+      </p>
+    </div>
+
+    <AdSlot />
+
+    {
+      related.length > 0 && (
+        <section class="mt-12">
+          <h2 class="font-pixel text-2xl font-bold">More {cat.label.toLowerCase()} videos</h2>
+          <div class="mt-6 grid gap-6 sm:grid-cols-3">
+            {related.map((v) => <VideoCard video={v} />)}
+          </div>
+        </section>
+      )
+    }
+  </article>
+
+  <script>
+    // Load the YouTube iframe only when someone presses play (faster pages, fewer cookies).
+    document.querySelectorAll<HTMLElement>('.lite-yt').forEach((el) => {
+      el.querySelector('button')?.addEventListener('click', () => {
+        const iframe = document.createElement('iframe');
+        iframe.src = el.dataset.src!;
+        iframe.title = 'YouTube video player';
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+        iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+        iframe.allowFullscreen = true;
+        iframe.className = 'absolute inset-0 h-full w-full';
+        el.replaceChildren(iframe);
+      });
+    });
+  </script>
+</BaseLayout>

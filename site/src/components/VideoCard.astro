@@ -1,0 +1,32 @@
+---
+import { CATEGORIES, thumb, type Video } from '../data/videos';
+interface Props {
+  video: Video;
+}
+const { video } = Astro.props;
+const cat = CATEGORIES[video.category];
+---
+
+<a
+  href={`/videos/${video.slug}`}
+  class="group block overflow-hidden rounded-2xl border border-line bg-paper shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+>
+  <div class="relative aspect-video overflow-hidden bg-ink">
+    <img
+      src={thumb(video.youtubeId)}
+      alt=""
+      loading="lazy"
+      width="480"
+      height="360"
+      class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+    />
+    <span class="absolute left-3 top-3 rounded-md bg-black/70 px-2 py-1 text-xs font-bold uppercase tracking-wide text-white">
+      {cat.emoji} {cat.label}
+    </span>
+    <span class="absolute bottom-3 right-3 rounded-md bg-black/70 px-2 py-1 text-xs font-semibold text-white">{video.length}</span>
+  </div>
+  <div class="p-4">
+    <h3 class="font-bold leading-snug group-hover:text-plum">{video.title}</h3>
+    <p class="mt-1 line-clamp-2 text-sm text-ink/70">{video.summary}</p>
+  </div>
+</a>

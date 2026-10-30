@@ -1,0 +1,69 @@
+---
+import '@fontsource-variable/nunito';
+import '@fontsource/pixelify-sans/500.css';
+import '@fontsource/pixelify-sans/700.css';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE, ADSENSE_CLIENT } from '../data/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  /** Hide header/footer (used by the full-screen workspace). */
+  bare?: boolean;
+  /** Content pages may show ads; tool pages like the workspace should not. */
+  ads?: boolean;
+}
+
+const { title, description = SITE.description, image, type = 'website', bare = false, ads = true } = Astro.props;
+const fullTitle = title ? `${title} | ${SITE.name}` : `${SITE.name}: cozy study workspace & pomodoro timer`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = image ? new URL(image, Astro.site) : undefined;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonical} />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#2a1b3d" />
+    {
+      ads && ADSENSE_CLIENT && (
+        <script
+          is:inline
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
+          crossorigin="anonymous"
+        />
+      )
+    }
+    <slot name="head" />
+  </head>
+  <body class={bare ? 'overflow-hidden' : 'min-h-screen flex flex-col'}>
+    {bare ? <slot /> : (
+      <>
+        <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 bg-paper px-3 py-2 rounded">Skip to content</a>
+        <Header />
+        <main id="main" class="flex-1">
+          <slot />
+        </main>
+        <Footer />
+      </>
+    )}
+  </body>
+</html>

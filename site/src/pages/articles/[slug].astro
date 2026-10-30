@@ -1,0 +1,76 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { readingTime } from '../../data/reading-time';
+
+export async function getStaticPaths() {
+  const articles = await getCollection('articles', ({ data }) => !data.draft);
+  return articles.map((article) => ({ params: { slug: article.id }, props: { article } }));
+}
+
+const { article } = Astro.props as { article: CollectionEntry<'articles'> };
+const { Content } = await render(article);
+const { title, description, pubDate, updatedDate, category, emoji, sources } = article.data;
+const others = (await getCollection('articles', ({ data, id }) => !data.draft && id !== article.id)).slice(0, 2);
+const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+
+<BaseLayout title={title} description={description} type="article">
+  <article class="mx-auto max-w-3xl px-4 pt-10 sm:px-6">
+    <nav class="text-sm text-ink/60" aria-label="Breadcrumb"><a href="/articles" class="hover:text-plum">Study guides</a> › {category}</nav>
+    <p class="mt-6 text-5xl">{emoji}</p>
+    <h1 class="mt-4 font-pixel text-3xl font-bold leading-tight sm:text-4xl">{title}</h1>
+    <p class="mt-3 text-lg text-ink/70">{description}</p>
+    <p class="mt-4 text-sm text-ink/50">
+      <time datetime={pubDate.toISOString()}>{fmt(pubDate)}</time>
+      {updatedDate && <> · updated <time datetime={updatedDate.toISOString()}>{fmt(updatedDate)}</time></>}
+      {' · '}{readingTime(article.body ?? '')} min read
+    </p>
+
+    <div class="prose prose-lg mt-8 max-w-none prose-headings:font-pixel prose-a:text-plum prose-blockquote:border-plum prose-blockquote:font-normal">
+      <Content />
+    </div>
+
+    <aside class="mt-10 rounded-2xl border border-line bg-paper p-6">
+      <p class="font-pixel text-xl">Put it into practice</p>
+      <p class="mt-2 text-ink/75">Open the workspace, write down one task, and do a single focus session. Your village will thank you.</p>
+      <a href="/workspace" class="btn-pixel mt-4 bg-plum text-white">Start a session</a>
+    </aside>
+
+    <AdSlot />
+
+    {
+      sources.length > 0 && (
+        <section class="mt-10 border-t border-line pt-6 text-sm text-ink/70">
+          <h2 class="font-bold text-ink">Further reading &amp; watching</h2>
+          <p class="mt-1">Ideas in this guide were inspired by:</p>
+          <ul class="mt-2 list-disc space-y-1 pl-5">
+            {sources.map((s) => (
+              <li>
+                {s.author}: <em>{s.title}</em>
+              </li>
+            ))}
+          </ul>
+          <p class="mt-3 text-xs">This guide is general information, not medical or psychological advice.</p>
+        </section>
+      )
+    }
+
+    {
+      others.length > 0 && (
+        <section class="mt-12">
+          <h2 class="font-pixel text-2xl font-bold">Keep reading</h2>
+          <div class="mt-4 grid gap-4 sm:grid-cols-2">
+            {others.map((o) => (
+              <a href={`/articles/${o.id}`} class="rounded-2xl border border-line bg-paper p-5 hover:shadow-md">
+                <span class="text-2xl">{o.data.emoji}</span>
+                <p class="mt-2 font-bold">{o.data.title}</p>
+              </a>
+            ))}
+          </div>
+        </section>
+      )
+    }
+  </article>
+</BaseLayout>

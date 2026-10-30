@@ -1,0 +1,27 @@
+---
+// A single responsive AdSense unit. Renders nothing until PUBLIC_ADSENSE_CLIENT
+// and a slot id are set, so the site looks clean while you wait for approval.
+// (You can also just turn on "Auto ads" in AdSense and never use this component.)
+import { ADSENSE_CLIENT } from '../data/site';
+
+interface Props {
+  slot?: string;
+  class?: string;
+}
+const { slot = import.meta.env.PUBLIC_ADSENSE_SLOT ?? '', class: className } = Astro.props;
+---
+
+{
+  ADSENSE_CLIENT && slot && (
+    <div class:list={['my-8', className]}>
+      <ins
+        class="adsbygoogle block"
+        data-ad-client={ADSENSE_CLIENT}
+        data-ad-slot={slot}
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      />
+      <script is:inline>(window.adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+  )
+}

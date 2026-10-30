@@ -1,0 +1,36 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../data/site';
+---
+
+<BaseLayout title="About" description={`Why ${SITE.name} exists, how the study workspace works, and credits for the pixel art.`}>
+  <article class="prose prose-lg mx-auto max-w-3xl px-4 pt-12 prose-headings:font-pixel prose-a:text-plum sm:px-6">
+    <h1>About {SITE.name}</h1>
+    <!-- Tip: this page matters to readers and to AdSense reviewers. Rewrite it in your own words and add your own story. -->
+    <p>
+      {SITE.name} started as a small collection of study videos that helped me through long revision days: pomodoro timers with pretty scenery, rain and library ambience,
+      and short meditations for exam nerves. Over time it grew into what it is now: a free, cozy place to sit down and actually get the work done.
+    </p>
+    <h2>What you'll find here</h2>
+    <ul>
+      <li><a href="/workspace">The study workspace</a>: a pomodoro timer, task list and notepad, set in a pixel-art village that grows as you focus. Finished sessions earn coins for decorations, and new residents move in as your focus time adds up.</li>
+      <li><a href="/videos">The video library</a>: a hand-picked set of study-with-me, ambience, focus-frequency and meditation videos.</li>
+      <li><a href="/articles">Study guides</a>: practical write-ups on procrastination, planning, habits and deep focus, based on the books, talks and research that changed how I study.</li>
+    </ul>
+    <h2>Why a village?</h2>
+    <p>
+      Studying is mostly invisible progress. You can work hard for weeks before a grade or a skill shows it. The village makes the effort visible today: every session leaves
+      something behind. It is a small reward tied to <em>showing up</em> rather than to results, which is exactly the habit worth building.
+    </p>
+    <h2>Your privacy</h2>
+    <p>The workspace needs no account. Your tasks, notes and village are stored in your own browser. See the <a href="/privacy">privacy policy</a> for details.</p>
+    <h2 id="credits">Credits</h2>
+    <ul>
+      <li>Character and creature sprites by <strong>GrafxKid</strong> (Sprite Pack 3 &amp; 6), released under CC0.</li>
+      <li>"Little Animals Pack" sprites, used under the pack's licence (commercial use allowed, no resale).</li>
+      <li>Villager characters from the "72 Character Free" pack.</li>
+      <li>Videos in the library belong to their creators and are embedded from YouTube.</li>
+    </ul>
+    <p>Got a suggestion or a video that helped you? <a href="/contact">Get in touch</a>.</p>
+  </article>
+</BaseLayout>

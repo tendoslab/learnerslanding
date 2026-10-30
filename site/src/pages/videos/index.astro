@@ -1,0 +1,99 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import VideoCard from '../../components/VideoCard.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { CATEGORIES, VIDEOS, type VideoCategory } from '../../data/videos';
+
+const cats = Object.entries(CATEGORIES) as [VideoCategory, (typeof CATEGORIES)[VideoCategory]][];
+---
+
+<BaseLayout
+  title="Study Videos: Pomodoro, Ambience, Binaural Beats & Meditation"
+  description="A hand-picked library of study-with-me pomodoro videos, rain and library ambience, 40 Hz binaural beats and short meditations for focus and calm."
+>
+  <section class="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
+    <h1 class="font-pixel text-4xl font-bold">Study video library</h1>
+    <p class="mt-4 max-w-3xl text-lg text-ink/75">
+      These are the videos that have actually helped us get through long study days: pomodoro timers with scenery, cozy ambience that drowns out noise, focus frequencies,
+      and short meditations for when stress gets in the way. Every one can be played right here, and most are available in the
+      <a href="/workspace" class="font-bold text-plum underline">workspace music player</a> too.
+    </p>
+
+    <div class="mt-8 flex flex-wrap gap-2" id="filters" role="group" aria-label="Filter by category">
+      <button data-filter="all" class="filter-btn rounded-full border border-ink bg-ink px-4 py-1.5 text-sm font-bold text-cream">All</button>
+      {
+        cats.map(([id, c]) => (
+          <button data-filter={id} class="filter-btn rounded-full border border-line bg-paper px-4 py-1.5 text-sm font-bold hover:border-ink">
+            {c.emoji} {c.label}
+          </button>
+        ))
+      }
+      <input
+        id="video-search"
+        type="search"
+        placeholder="Search videos…"
+        aria-label="Search videos"
+        class="ml-auto w-full rounded-full border border-line bg-paper px-4 py-1.5 text-sm sm:w-64"
+      />
+    </div>
+  </section>
+
+  {
+    cats.map(([id, c], i) => {
+      const list = VIDEOS.filter((v) => v.category === id);
+      return (
+        <section class="video-section mx-auto max-w-6xl px-4 pt-12 sm:px-6" data-category={id}>
+          <h2 class="font-pixel text-2xl font-bold">
+            {c.emoji} {c.label}
+          </h2>
+          <p class="mt-1 max-w-3xl text-ink/70">{c.blurb}</p>
+          <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {list.map((v) => (
+              <div class="video-item" data-title={`${v.title} ${v.summary}`.toLowerCase()}>
+                <VideoCard video={v} />
+              </div>
+            ))}
+          </div>
+          {i === 1 && <AdSlot />}
+        </section>
+      );
+    })
+  }
+  <p id="no-results" class="mx-auto hidden max-w-6xl px-4 pt-10 text-ink/60 sm:px-6">No videos match that search.</p>
+
+  <script>
+    const buttons = document.querySelectorAll<HTMLButtonElement>('.filter-btn');
+    const sections = document.querySelectorAll<HTMLElement>('.video-section');
+    const search = document.getElementById('video-search') as HTMLInputElement;
+    let filter = 'all';
+
+    const apply = () => {
+      const q = search.value.trim().toLowerCase();
+      let shown = 0;
+      sections.forEach((s) => {
+        let visible = 0;
+        s.querySelectorAll<HTMLElement>('.video-item').forEach((item) => {
+          const ok = (filter === 'all' || s.dataset.category === filter) && (!q || item.dataset.title!.includes(q));
+          item.hidden = !ok;
+          if (ok) visible++;
+        });
+        s.hidden = visible === 0;
+        shown += visible;
+      });
+      document.getElementById('no-results')!.hidden = shown > 0;
+      buttons.forEach((b) => {
+        const on = b.dataset.filter === filter;
+        b.classList.toggle('bg-ink', on);
+        b.classList.toggle('text-cream', on);
+        b.classList.toggle('border-ink', on);
+        b.classList.toggle('bg-paper', !on);
+      });
+    };
+    buttons.forEach((b) => b.addEventListener('click', () => ((filter = b.dataset.filter!), apply())));
+    search.addEventListener('input', apply);
+    const fromUrl = new URLSearchParams(location.search);
+    if (fromUrl.get('q')) search.value = fromUrl.get('q')!;
+    if (fromUrl.get('category')) filter = fromUrl.get('category')!;
+    apply();
+  </script>
+</BaseLayout>
