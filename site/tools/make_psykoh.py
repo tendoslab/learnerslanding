@@ -46,7 +46,7 @@ SPIRAL_TOP = 25
 # Legs: from this row down; the back leg sits under his hips, the front one under his chest.
 LEG_TOP = 25
 BACK_LEG = range(12, 17)
-FRONT_LEG = range(22, 28)
+FRONT_LEG = range(19, 24)
 # Eye: pupil spots (top-left of its 2x2), the lid row, and where the eye starts.
 LOOK = {'ahead': (30, 12), 'back': (27, 12), 'up': (28, 11), 'down': (30, 14)}
 LID_ROW = 14
