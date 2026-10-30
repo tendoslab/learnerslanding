@@ -141,7 +141,7 @@ export default function Village({ buildMode, placing, onPlaced, focusing }: Prop
         <Actors residents={residents.map((r) => ({ id: r.id, sprite: r.sprite }))} avatar={avatarSprite(avatar)} S={S} focusing={focusing} />
 
         {placed.length === 0 && !buildMode && (
-          <p className="absolute inset-x-0 top-[38%] text-center font-pixel text-sm text-white/60">
+          <p className="absolute inset-x-0 top-[38%] text-center font-display text-sm text-white/60">
             {hasInventory
               ? 'You have decorations to place! Press the hammer (top right) to start building.'
               : 'Your village is waiting. Finish focus sessions to earn coins and decorate it!'}
@@ -408,7 +408,7 @@ function Actors({ residents, avatar, S, focusing }: { residents: ActorSpec[]; av
           style={{ animation: 'pop-in .6s cubic-bezier(.2,.8,.2,1)' }}
         >
           {a.id === 'you' && focusing && (
-            <span className="absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-white px-1.5 py-0.5 font-pixel text-[11px] text-ink shadow">
+            <span className="absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-white px-1.5 py-0.5 font-display text-[11px] text-ink shadow">
               studying…
             </span>
           )}

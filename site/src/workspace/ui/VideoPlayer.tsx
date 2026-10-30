@@ -11,7 +11,7 @@ export default function VideoPlayer({ onClose }: { onClose: () => void }) {
   return (
     <div className="pointer-events-auto w-[min(92vw,22rem)] overflow-hidden rounded-2xl border border-white/15 bg-black/70 text-white shadow-2xl backdrop-blur-xl">
       <div className="flex items-center justify-between gap-2 border-b border-white/10 px-3 py-2">
-        <p className="truncate font-pixel text-sm">{current ? current.title : 'Study soundtrack'}</p>
+        <p className="truncate font-display text-sm">{current ? current.title : 'Study soundtrack'}</p>
         <div className="flex shrink-0 gap-1">
           <button onClick={() => setCollapsed(!collapsed)} className="rounded p-1 hover:bg-white/15" aria-label={collapsed ? 'Expand player' : 'Collapse player'}>
             {collapsed ? <ChevronUp size={16} /> : <ChevronDown size={16} />}

@@ -90,7 +90,7 @@ export default function Progress() {
 function Stat({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 p-2.5">
-      <p className="font-pixel text-lg font-bold">{value}</p>
+      <p className="font-display text-lg font-bold">{value}</p>
       <p className="text-[10px] uppercase tracking-wider text-white/40">{label}</p>
     </div>
   );

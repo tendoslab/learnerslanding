@@ -28,8 +28,8 @@ const critters = [
   <!-- Hero -->
   <section class="relative overflow-hidden bg-gradient-to-b from-[#2a1b3d] via-[#5a3f7d] to-[#e88f6f] text-white">
     <div class="mx-auto max-w-6xl px-4 pb-0 pt-14 text-center sm:px-6 sm:pt-20">
-      <p class="font-pixel text-honey">free · no sign-up · works in your browser</p>
-      <h1 class="mx-auto mt-3 max-w-3xl font-pixel text-4xl font-bold leading-tight sm:text-6xl">Study a little. Grow a village.</h1>
+      <p class="font-display text-honey">free · no sign-up · works in your browser</p>
+      <h1 class="mx-auto mt-3 max-w-3xl font-display text-4xl font-bold leading-tight sm:text-6xl">Study a little. Grow a village.</h1>
       <p class="mx-auto mt-5 max-w-2xl text-lg text-white/85">
         {SITE.name} is a cozy study workspace. Every pomodoro you finish earns coins for decorating your own pixel-art village, and new animal friends move in the more you focus.
       </p>
@@ -46,8 +46,8 @@ const critters = [
           <img
             src={`/sprites/decor/${id}.png`}
             alt=""
-            class="pixelated absolute"
-            style={`left:${left}%;bottom:${bottom}px;transform:translateX(-50%) scale(${scale});transform-origin:bottom center;`}
+            class="hero-decor pixelated absolute"
+            style={`left:${left}%;bottom:${bottom}px;--s:${scale};`}
           />
         ))
       }
@@ -64,7 +64,7 @@ const critters = [
 
   <!-- How it works -->
   <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-    <h2 class="text-center font-pixel text-3xl font-bold">How it works</h2>
+    <h2 class="text-center font-display text-3xl font-bold">How it works</h2>
     <div class="mt-10 grid gap-6 sm:grid-cols-3">
       {
         [
@@ -73,7 +73,7 @@ const critters = [
           { n: '3', t: 'Watch your village grow', d: 'Finished sessions and tasks earn coins. Spend them on trees, lamps, cottages and more, and unlock new residents as your total focus time grows.' },
         ].map((s) => (
           <div class="rounded-2xl border border-line bg-paper p-6 shadow-sm">
-            <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-plum font-pixel text-xl text-white">{s.n}</span>
+            <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-plum font-display text-xl text-white">{s.n}</span>
             <h3 class="mt-4 text-lg font-bold">{s.t}</h3>
             <p class="mt-2 text-ink/75">{s.d}</p>
           </div>
@@ -86,7 +86,7 @@ const critters = [
   <section class="bg-paper py-16">
     <div class="mx-auto grid max-w-6xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-2">
       <div>
-        <h2 class="font-pixel text-3xl font-bold">Everything you need for a study session, in one tab</h2>
+        <h2 class="font-display text-3xl font-bold">Everything you need for a study session, in one tab</h2>
         <ul class="mt-6 space-y-4 text-ink/80">
           <li><strong class="text-ink">Pomodoro timer</strong>: focus, short and long breaks, with custom lengths and an optional auto-start.</li>
           <li><strong class="text-ink">Tasks with steps</strong>: prioritise, break work into sub-steps, and see how many minutes you spent on each task.</li>
@@ -98,7 +98,7 @@ const critters = [
         <a href="/workspace" class="btn-pixel mt-8 bg-plum text-white">Open the workspace</a>
       </div>
       <div class="rounded-3xl border border-line bg-cream p-6">
-        <p class="font-pixel text-lg">Today's tiny study plan</p>
+        <p class="font-display text-lg">Today's tiny study plan</p>
         <ol class="mt-4 space-y-3">
           {
             ['Pick 3 tasks that matter most', 'Do one 25-minute session on the hardest one', 'Take a real 5-minute break (no phone!)', 'Repeat, then buy yourself a lamp post 🏮'].map((t, i) => (
@@ -118,7 +118,7 @@ const critters = [
     articles.length > 0 && (
       <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div class="flex items-end justify-between gap-4">
-          <h2 class="font-pixel text-3xl font-bold">Latest study guides</h2>
+          <h2 class="font-display text-3xl font-bold">Latest study guides</h2>
           <a href="/articles" class="font-bold text-plum hover:underline">All guides →</a>
         </div>
         <div class="mt-8 grid gap-6 md:grid-cols-3">
@@ -139,7 +139,7 @@ const critters = [
   <section class="bg-paper py-16">
     <div class="mx-auto max-w-6xl px-4 sm:px-6">
       <div class="flex items-end justify-between gap-4">
-        <h2 class="font-pixel text-3xl font-bold">Study videos we love</h2>
+        <h2 class="font-display text-3xl font-bold">Study videos we love</h2>
         <a href="/videos" class="font-bold text-plum hover:underline">Browse the library →</a>
       </div>
       <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -150,7 +150,7 @@ const critters = [
 
   <!-- FAQ -->
   <section class="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-    <h2 class="text-center font-pixel text-3xl font-bold">Questions</h2>
+    <h2 class="text-center font-display text-3xl font-bold">Questions</h2>
     <div class="mt-8 space-y-3">
       {
         [
@@ -172,6 +172,19 @@ const critters = [
   </section>
 
   <style>
+    .hero-decor {
+      transform: translateX(-50%) scale(var(--s));
+      transform-origin: bottom center;
+    }
+    @media (max-width: 640px) {
+      .hero-decor {
+        transform: translateX(-50%) scale(calc(var(--s) * 0.5));
+      }
+      .hero-sprite {
+        scale: 0.6;
+        transform-origin: bottom center;
+      }
+    }
     .hero-sprite {
       image-rendering: pixelated;
       animation-name: hero-walk;

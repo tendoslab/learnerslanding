@@ -129,10 +129,10 @@ export default function App() {
       <header className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-2 p-3 sm:p-4">
         <a href="/" className="pointer-events-auto flex items-center gap-2 rounded-xl border border-white/10 bg-black/35 px-3 py-2 backdrop-blur-md hover:bg-black/50" title="Back to Learner's Landing">
           <Home size={16} />
-          <span className="hidden font-pixel text-sm sm:inline">Learner's Landing</span>
+          <span className="hidden font-display text-sm sm:inline">Learner's Landing</span>
         </a>
         <div className="pointer-events-auto flex items-center gap-1.5 rounded-xl border border-white/10 bg-black/35 p-1.5 backdrop-blur-md">
-          <span className="flex items-center gap-1 rounded-lg bg-white/10 px-2.5 py-1.5 font-pixel text-sm text-yellow-200" title="Coins">
+          <span className="flex items-center gap-1 rounded-lg bg-white/10 px-2.5 py-1.5 font-display text-sm text-yellow-200" title="Coins">
             🪙 {coins}
           </span>
           <IconButton label="Study music player" active={playerOpen} onClick={() => setPlayerOpen(!playerOpen)}>
@@ -218,7 +218,7 @@ export default function App() {
           <div className="w-full max-w-3xl rounded-2xl border border-white/15 bg-black/60 p-3 shadow-2xl backdrop-blur-xl">
             <div className="mb-2 flex items-center justify-between gap-3">
               <p className="text-sm">
-                <strong className="font-pixel">Build mode.</strong>{' '}
+                <strong className="font-display">Build mode.</strong>{' '}
                 <span className="text-white/70">
                   {placing ? `Click the grass to place your ${decorById[placing]?.name.toLowerCase()}.` : 'Pick an item, then click the grass. Drag items to move them; click one for more options.'}
                 </span>
@@ -277,7 +277,7 @@ export default function App() {
       {/* Toasts */}
       <div className="pointer-events-none absolute inset-x-0 top-20 z-50 flex flex-col items-center gap-2 px-4" aria-live="polite">
         {toasts.map((t) => (
-          <div key={t.id} className="rounded-xl border border-honey/40 bg-[#2a1b3d]/90 px-4 py-2.5 font-pixel text-sm shadow-xl backdrop-blur" style={{ animation: 'toast-in .35s ease-out' }}>
+          <div key={t.id} className="rounded-xl border border-honey/40 bg-[#2a1b3d]/90 px-4 py-2.5 font-display text-sm shadow-xl backdrop-blur" style={{ animation: 'toast-in .35s ease-out' }}>
             {t.text}
           </div>
         ))}

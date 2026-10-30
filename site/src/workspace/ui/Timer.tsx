@@ -60,7 +60,7 @@ export default function Timer({ compact = false }: { compact?: boolean }) {
 
       <p className="h-5 text-sm italic text-honey">{timer.mode === 'focus' ? quote : 'Stretch, sip some water, look out a window.'}</p>
 
-      <div className="relative my-2 font-pixel text-[5rem] font-bold leading-none tracking-tight tabular-nums drop-shadow-[0_4px_0_rgba(0,0,0,0.35)] sm:text-[6.5rem]" aria-live="off">
+      <div className="relative my-2 font-display text-[5rem] font-semibold leading-none tabular-nums drop-shadow-[0_4px_0_rgba(0,0,0,0.35)] sm:text-[6.5rem]" aria-live="off">
         {formatTime(remaining)}
       </div>
 
