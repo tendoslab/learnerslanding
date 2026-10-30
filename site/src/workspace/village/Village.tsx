@@ -3,9 +3,9 @@ import { FlipHorizontal2, PackageOpen } from 'lucide-react';
 import { useWorkspace, unlockedResidents, type Placed } from '../store';
 import { avatarSprite, decorById, landscapeFor } from '../rewards';
 import { skyFor, type Sky } from './sky';
-import { FIELD_DEPTH, FIELD_FRONT, GROUND_HEIGHT, bottomFor, clamp, depthScale } from './layout';
+import { FIELD_DEPTH, FIELD_FRONT, GROUND_HEIGHT, bottomFor, clamp, depthScale, tapsHandled } from './layout';
 import { Ambient, Backdrop, GroundDetail, SCENERY_KEYFRAMES } from './Scenery';
-import Actors, { ACTOR_STYLES, type ActorSpec } from './Actors';
+import Actors, { ACTOR_STYLES, type ActorSpec, type ActorsHandle } from './Actors';
 import { withBase } from '../../lib/base';
 import { VILLAGE_ATTR } from '../share';
 
@@ -62,6 +62,7 @@ export default function Village({ ref, buildMode, placing, onPlaced, focusing, r
   const landscape = useWorkspace((s) => landscapeFor(s.settings.landscape, s.totalFocusMinutes));
   const place = useWorkspace((s) => s.place);
   const bandRef = useRef<HTMLDivElement>(null);
+  const actorsRef = useRef<ActorsHandle>(null);
   const [selected, setSelected] = useState<string | null>(null);
   /** Where the item being placed would land: a see-through preview that follows the pointer. */
   const [ghost, setGhost] = useState<{ x: number; y: number } | null>(null);
@@ -114,6 +115,7 @@ export default function Village({ ref, buildMode, placing, onPlaced, focusing, r
   const onFieldDown = (e: RPointerEvent<HTMLDivElement>) => {
     if (!buildMode) return;
     if (e.target !== e.currentTarget) return;
+    tapsHandled.add(e.nativeEvent);
     if (placing) {
       pressing.current = true;
       e.currentTarget.setPointerCapture(e.pointerId);
@@ -127,6 +129,22 @@ export default function Village({ ref, buildMode, placing, onPlaced, focusing, r
     pressing.current = false;
     placeAt(e.clientX, e.clientY);
   };
+
+  // Backstop for taps on the grass that never reached the handlers above. Some phone browsers hand the
+  // tap to whatever else is at that spot (a see-through layer, the sky behind a resident who just
+  // walked on), so this works from where the finger landed rather than which element got the tap.
+  useEffect(() => {
+    const onTap = (e: PointerEvent) => {
+      if (tapsHandled.has(e) || !e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      // The workspace's own panels and buttons keep their taps.
+      if ((e.target as Element | null)?.closest?.('button, a, input, textarea, select, [data-ui]')) return;
+      if (!onGrass(e.clientX, e.clientY)) return;
+      if (!buildMode) actorsRef.current?.petAt(e.clientX, e.clientY);
+      else if (placing) placeAt(e.clientX, e.clientY);
+    };
+    window.addEventListener('pointerdown', onTap);
+    return () => window.removeEventListener('pointerdown', onTap);
+  });
 
   return (
     <div
@@ -197,7 +215,7 @@ export default function Village({ ref, buildMode, placing, onPlaced, focusing, r
 
         {placing && ghost && <Ghost itemId={placing} at={ghost} S={S} />}
 
-        <Actors actors={actors} S={S} focusing={focusing} placed={placed} interactive={!buildMode} />
+        <Actors ref={actorsRef} actors={actors} S={S} focusing={focusing} placed={placed} interactive={!buildMode} />
 
       </div>
 
