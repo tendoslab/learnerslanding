@@ -122,6 +122,7 @@ export interface WorkspaceState {
   setActiveTask: (id: string | null) => void;
   addSubtask: (taskId: string, title: string) => void;
   toggleSubtask: (taskId: string, subId: string) => void;
+  renameSubtask: (taskId: string, subId: string, title: string) => void;
   deleteSubtask: (taskId: string, subId: string) => void;
   clearCompleted: () => void;
   /** Moves a task so it sits just before `beforeId` (or last when null). */
@@ -332,6 +333,14 @@ export const useWorkspace = create<WorkspaceState>()(
           tasks: mapTask(s.tasks, taskId, (t) => ({
             ...t,
             subtasks: t.subtasks.map((st) => (st.id === subId ? { ...st, completed: !st.completed } : st)),
+          })),
+        })),
+      renameSubtask: (taskId, subId, title) =>
+        title.trim() &&
+        set((s) => ({
+          tasks: mapTask(s.tasks, taskId, (t) => ({
+            ...t,
+            subtasks: t.subtasks.map((st) => (st.id === subId ? { ...st, title: title.trim() } : st)),
           })),
         })),
       deleteSubtask: (taskId, subId) =>
