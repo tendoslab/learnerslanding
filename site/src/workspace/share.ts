@@ -8,11 +8,15 @@ const roundRect = (ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.roundRect(x, y, w, h, r);
 };
 
+/** The site's home page, e.g. https://learnerslanding.com/ (keeps a GitHub Pages sub-path). */
+export const siteLink = () => new URL(import.meta.env.BASE_URL, location.origin).href;
+
 /**
  * A still picture of the village as it looks right now (without the timer,
- * sidebar and other panels on top), with a small caption in the corner.
+ * sidebar and other panels on top), with a small caption in the corner and the site's address in the
+ * opposite one, so a downloaded or copied picture still says where it's from.
  */
-export async function captureVillage(caption: { title: string; detail: string }): Promise<Blob> {
+export async function captureVillage(caption: { title: string; detail: string; link: string }): Promise<Blob> {
   const node = document.querySelector<HTMLElement>(`[${VILLAGE_ATTR}]`);
   if (!node) throw new Error('Village not found');
   const ratio = Math.min(window.devicePixelRatio || 1, 2);
@@ -48,6 +52,20 @@ export async function captureVillage(caption: { title: string; detail: string })
   ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
   ctx.font = `500 ${13 * u}px 'DM Sans Variable', system-ui, sans-serif`;
   ctx.fillText(caption.detail, x + pad, y + 49 * u);
+
+  // Site address, bottom right.
+  ctx.font = `600 ${13 * u}px 'DM Sans Variable', system-ui, sans-serif`;
+  const linkW = ctx.measureText(caption.link).width;
+  const lh = 28 * u;
+  const lx = canvas.width - linkW - pad * 2 - x;
+  const ly = canvas.height - lh - y;
+  ctx.fillStyle = 'rgba(20, 14, 34, 0.72)';
+  roundRect(ctx, lx, ly, linkW + pad * 2, lh, lh / 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(caption.link, lx + pad, ly + lh / 2);
 
   return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Could not create image'))), 'image/png'));
 }

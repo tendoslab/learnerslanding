@@ -203,5 +203,13 @@ export const COINS_PER_FOCUS_MINUTE = 1;
 export const SESSION_BONUS = 5;
 /** Coins for checking off a task (once per task). */
 export const TASK_REWARD = 10;
+/**
+ * Anti-farming: a task only pays once it has been on the list this long, so
+ * adding a pile of tasks and ticking them off straight away earns nothing.
+ * (Ticking it off early still works; it just pays if you re-tick it later.)
+ */
+export const TASK_MIN_AGE_MINUTES = 10;
+/** Most task rewards paid per day. Focus sessions are uncapped. */
+export const TASK_DAILY_CAP = 10;
 /** Starting coins so new visitors can place something straight away. */
 export const STARTING_COINS = 40;

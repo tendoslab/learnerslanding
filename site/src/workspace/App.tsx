@@ -92,7 +92,7 @@ export default function App() {
     const messages = {
       focus: `Session complete! +${lastEvent.coins} coins. Time for a break.`,
       break: 'Break over. Ready for another round?',
-      task: `Task done! +${lastEvent.coins} coins`,
+      task: lastEvent.note ?? `Task done! +${lastEvent.coins} coins`,
     };
     toast(messages[lastEvent.kind]);
     const { notify } = useWorkspace.getState().settings;

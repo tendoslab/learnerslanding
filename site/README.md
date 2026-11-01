@@ -96,6 +96,15 @@ mostly interactive tools without content, and they would distract people studyin
 
 ## Credits
 
-Sprites by GrafxKid (CC0), the Little Animals Pack (commercial use allowed, no resale), and
-["72 Cute Pixel Character"](https://bdragon1727.itch.io/72-cute-pixel-character) by bdragon1727
-(credited on the About page). Double-check that pack's terms on its itch.io page before launch.
+Full credits are on the About page (`src/pages/about.astro`, `#credits`).
+
+- **Original:** Bobby and Psy-Koh (`tools/make_bobby.py`, `tools/make_psykoh.py`), all decorations
+  (`tools/make_decor.py`) and the village scenery.
+- [Sprite Pack 3](https://grafxkid.itch.io/sprite-pack-3) and [Sprite Pack 6](https://grafxkid.itch.io/sprite-pack-6)
+  by GrafxKid (CC0): the other `public/sprites/critters/` residents.
+- [Little Animals Pack](https://notmatter.itch.io/2) by notmatter (commercial use allowed, no resale):
+  `public/sprites/animals/`.
+- [72 Cute Pixel Character](https://bdragon1727.itch.io/72-cute-pixel-character) by bdragon1727:
+  `public/sprites/characters/` (player avatars). The free version of this pack is for
+  **non-commercial use only** and may not be redistributed. A site with ads counts as commercial, so
+  contribute on the itch.io page (any amount) before turning AdSense on.

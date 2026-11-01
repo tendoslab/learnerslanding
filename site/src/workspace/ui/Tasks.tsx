@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowDownWideNarrow, CheckCircle2, ChevronDown, ChevronUp, Circle, GripVertical, Plus, Target, Trash2, X } from 'lucide-react';
 import { useWorkspace, type Priority, type Task } from '../store';
-import { TASK_REWARD } from '../rewards';
+import { TASK_DAILY_CAP, TASK_MIN_AGE_MINUTES, TASK_REWARD } from '../rewards';
 
 const PRIORITIES: Priority[] = ['Low', 'Medium', 'High'];
 
@@ -73,11 +73,11 @@ export default function Tasks() {
           ))}
         </div>
       </form>
-      <p className="text-[11px] text-white/50">Checking off a task earns {TASK_REWARD} coins. Press the target icon to track focus time on it. Use the arrows or drag the handle on the left to reorder.</p>
+      <p className="text-[11px] text-white/50">Checking off a task earns {TASK_REWARD} coins once it's been on your list for {TASK_MIN_AGE_MINUTES} minutes (up to {TASK_DAILY_CAP} tasks a day). Press the target icon to track focus time on it. Use the arrows or drag the handle on the left to reorder.</p>
 
       {open.length > 1 && (
         <div className="flex justify-end">
-          <button onClick={sortTasksByPriority} className="flex items-center gap-1 text-[11px] text-white/50 hover:text-white" title="Put high-priority tasks first">
+          <button onClick={sortTasksByPriority} className="flex items-center gap-1 text-[11px] text-white/50 hover:text-white" title="Reorders the list once, high priority first. Your own order is kept after that, and new tasks go to the bottom.">
             <ArrowDownWideNarrow size={13} /> Sort by priority
           </button>
         </div>
