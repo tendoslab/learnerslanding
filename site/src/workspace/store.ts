@@ -5,6 +5,8 @@ import {
   LANDSCAPES,
   SESSION_BONUS,
   STARTING_COINS,
+  TASK_DAILY_CAP,
+  TASK_MIN_AGE_MINUTES,
   TASK_REWARD,
   decorById,
   newResidentOrder,
@@ -32,6 +34,8 @@ export interface Task {
   completed: boolean;
   /** Coins are only paid out the first time a task is checked off. */
   rewarded: boolean;
+  /** Epoch ms when the task was added (missing on tasks from older saves). */
+  createdAt?: number;
   focusMinutes: number;
   subtasks: Subtask[];
 }
@@ -67,6 +71,8 @@ export interface CompletionEvent {
   coins: number;
   unlocked: Resident[];
   scenery: Landscape[];
+  /** Why a completed task paid nothing (shown instead of the coin message). */
+  note?: string;
 }
 
 interface TimerState {
@@ -85,6 +91,8 @@ export interface WorkspaceState {
   totalFocusMinutes: number;
   sessionsCompleted: number;
   tasksCompleted: number;
+  /** Task rewards paid today (see TASK_DAILY_CAP). */
+  taskPayouts: { day: string; count: number };
   /** Focus minutes per local day, keyed YYYY-MM-DD. */
   history: Record<string, number>;
   tasks: Task[];
@@ -174,6 +182,7 @@ const initialData = () => ({
   totalFocusMinutes: 0,
   sessionsCompleted: 0,
   tasksCompleted: 0,
+  taskPayouts: { day: '', count: 0 },
   history: {} as Record<string, number>,
   tasks: [
     {
@@ -279,7 +288,7 @@ export const useWorkspace = create<WorkspaceState>()(
       addTask: (title, priority = 'Medium') => {
         if (!title.trim()) return;
         set((s) => ({
-          tasks: [...s.tasks, { id: uid(), title: title.trim(), priority, completed: false, rewarded: false, focusMinutes: 0, subtasks: [] }],
+          tasks: [...s.tasks, { id: uid(), title: title.trim(), priority, completed: false, rewarded: false, createdAt: Date.now(), focusMinutes: 0, subtasks: [] }],
         }));
       },
       toggleTask: (id) =>
@@ -287,13 +296,26 @@ export const useWorkspace = create<WorkspaceState>()(
           const task = s.tasks.find((t) => t.id === id);
           if (!task) return {};
           const completing = !task.completed;
-          const pay = completing && !task.rewarded;
+          const now = Date.now();
+          const day = todayKey();
+          const paidToday = s.taskPayouts?.day === day ? s.taskPayouts.count : 0;
+          const waitMs = (task.createdAt ?? 0) + TASK_MIN_AGE_MINUTES * 60_000 - now;
+          const due = completing && !task.rewarded;
+          const pay = due && waitMs <= 0 && paidToday < TASK_DAILY_CAP;
+          let note: string | undefined;
+          if (due && !pay) {
+            note =
+              paidToday >= TASK_DAILY_CAP
+                ? `Task done! You've collected today's ${TASK_DAILY_CAP} task rewards; focus sessions still earn coins.`
+                : `Task done! New tasks pay coins after ${TASK_MIN_AGE_MINUTES} minutes on your list (${Math.ceil(waitMs / 60_000)} min to go).`;
+          }
           return {
             tasks: mapTask(s.tasks, id, (t) => ({ ...t, completed: completing, rewarded: t.rewarded || pay })),
             coins: s.coins + (pay ? TASK_REWARD : 0),
             tasksCompleted: s.tasksCompleted + (pay ? 1 : 0),
+            taskPayouts: pay ? { day, count: paidToday + 1 } : s.taskPayouts,
             activeTaskId: completing && s.activeTaskId === id ? null : s.activeTaskId,
-            lastEvent: pay ? { id: Date.now(), kind: 'task', coins: TASK_REWARD, unlocked: [], scenery: [] } : s.lastEvent,
+            lastEvent: due ? { id: now, kind: 'task', coins: pay ? TASK_REWARD : 0, unlocked: [], scenery: [], note } : s.lastEvent,
           };
         }),
       deleteTask: (id) => set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id), activeTaskId: s.activeTaskId === id ? null : s.activeTaskId })),

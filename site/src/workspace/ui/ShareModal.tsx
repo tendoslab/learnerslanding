@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Copy, Download, Loader2, Share2, X } from 'lucide-react';
+import { Copy, Download, Link2, Loader2, Share2, X } from 'lucide-react';
 import { unlockedResidents, useWorkspace } from '../store';
-import { captureVillage } from '../share';
+import { captureVillage, siteLink } from '../share';
 import { fmtMinutes } from './Progress';
 
 const FILE_NAME = 'my-learners-landing-village.png';
@@ -18,7 +18,8 @@ export default function ShareModal({ onClose }: { onClose: () => void }) {
     const detail = `${residents} resident${residents === 1 ? '' : 's'} · ${fmtMinutes(s.totalFocusMinutes)} of focus · Learner's Landing`;
     let live = true;
     let made: string | null = null;
-    captureVillage({ title: 'My village', detail })
+    const link = siteLink().replace(/^https?:\/\//, '').replace(/\/$/, '');
+    captureVillage({ title: 'My village', detail, link })
       .then((b) => {
         if (!live) return;
         made = URL.createObjectURL(b);
@@ -38,7 +39,7 @@ export default function ShareModal({ onClose }: { onClose: () => void }) {
 
   const share = async () => {
     try {
-      await navigator.share({ files: [file!], title: 'My village', text: `Look at the village I've grown while studying on Learner's Landing! ${location.origin}` });
+      await navigator.share({ files: [file!], title: 'My village', text: `Look at the village I've grown while studying on Learner's Landing! ${siteLink()}`, url: siteLink() });
     } catch {
       // Closing the share sheet throws too; nothing to report.
     }
@@ -55,6 +56,14 @@ export default function ShareModal({ onClose }: { onClose: () => void }) {
       setMessage('Copied! Paste it into a chat to share.');
     } catch {
       setMessage("Couldn't copy here. Try downloading instead.");
+    }
+  };
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(siteLink());
+      setMessage('Link copied! Send it along with your picture.');
+    } catch {
+      setMessage(`Our address is ${siteLink()}`);
     }
   };
 
@@ -105,6 +114,9 @@ export default function ShareModal({ onClose }: { onClose: () => void }) {
                 <Copy size={16} /> Copy image
               </button>
             )}
+            <button onClick={copyLink} className="flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-sm font-bold hover:bg-white/15">
+              <Link2 size={16} /> Copy link
+            </button>
           </div>
           {message && <p className="text-sm text-white/70">{message}</p>}
         </div>
