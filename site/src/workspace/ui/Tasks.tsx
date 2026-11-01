@@ -137,10 +137,11 @@ interface ItemProps {
 }
 
 function TaskItem({ task, active, dragging, dropEdge, onDragStart, onDragOverItem, onDropItem, onMoveUp, onMoveDown }: ItemProps) {
-  const { toggleTask, deleteTask, setPriority, setActiveTask, addSubtask, toggleSubtask, deleteSubtask, renameTask } = useWorkspace.getState();
+  const { toggleTask, deleteTask, setPriority, setActiveTask, addSubtask, toggleSubtask, renameSubtask, deleteSubtask, renameTask } = useWorkspace.getState();
   const [expanded, setExpanded] = useState(false);
   const [sub, setSub] = useState('');
   const [editing, setEditing] = useState(false);
+  const [editingSub, setEditingSub] = useState<string | null>(null);
   // Only the grip handle starts a drag, so selecting text / clicking buttons still works.
   const [grabbed, setGrabbed] = useState(false);
   const reorderable = !!onDragStart;
@@ -261,7 +262,29 @@ function TaskItem({ task, active, dragging, dropEdge, onDragStart, onDragOverIte
                 <button onClick={() => toggleSubtask(task.id, st.id)} aria-label="Toggle step">
                   {st.completed ? <CheckCircle2 size={14} className="text-green-300/80" /> : <Circle size={14} className="text-white/40" />}
                 </button>
-                <span className={`flex-1 text-xs ${st.completed ? 'text-white/40 line-through' : 'text-white/80'}`}>{st.title}</span>
+                {editingSub === st.id ? (
+                  <input
+                    autoFocus
+                    defaultValue={st.title}
+                    onBlur={(e) => {
+                      renameSubtask(task.id, st.id, e.target.value);
+                      setEditingSub(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                      if (e.key === 'Escape') setEditingSub(null);
+                    }}
+                    className="min-w-0 flex-1 rounded bg-black/30 px-1 text-xs text-white focus:outline-none"
+                  />
+                ) : (
+                  <span
+                    onDoubleClick={() => setEditingSub(st.id)}
+                    title="Double-click to rename"
+                    className={`flex-1 break-words text-xs ${st.completed ? 'text-white/40 line-through' : 'text-white/80'}`}
+                  >
+                    {st.title}
+                  </span>
+                )}
                 <button onClick={() => deleteSubtask(task.id, st.id)} className="text-white/30 opacity-0 hover:text-white group-hover:opacity-100" aria-label="Delete step">
                   <X size={12} />
                 </button>
@@ -279,7 +302,7 @@ function TaskItem({ task, active, dragging, dropEdge, onDragStart, onDragOverIte
             <Plus size={12} className="mr-2 text-white/40" />
             <input value={sub} onChange={(e) => setSub(e.target.value)} placeholder="Break it into a smaller step…" className="w-full bg-transparent text-xs text-white focus:outline-none" />
           </form>
-          <p className="text-[10px] text-white/30">Tip: double-click a task's title to rename it.</p>
+          <p className="text-[10px] text-white/30">Tip: double-click a task's title or a step to rename it.</p>
         </div>
       )}
     </li>
