@@ -294,6 +294,22 @@ def quarter_layers():
     return torso, arm
 
 
+def seal(img):
+    """Outline any colour left touching empty space, e.g. the bottom of his
+    shorts where the legs part, so gaps get an edge like the rest of him."""
+    px = img.load()
+    edge = []
+    for y in range(S):
+        for x in range(S):
+            c = px[x, y]
+            if c[3] and c != O:
+                for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                    if 0 <= nx < S and 0 <= ny < S and not px[nx, ny][3]:
+                        edge.append((nx, ny))
+    for k in edge:
+        px[k] = O
+
+
 # The number on his jersey: mirrored frames stamp it back the right way round.
 NUMBER_ROWS, NUMBER_COLS = range(18, 22), range(13, 22)
 
@@ -336,6 +352,7 @@ def walk_frame(layers, i, ball='tuck', mirror=False, **face):
     if ball in ('tuck', 'hitch'):
         put(grid(BALL_UP), TUCK_AT[0], TUCK_AT[1] + dy - (ball == 'hitch'))
     put(head_quarter(**face), 0, dy)
+    seal(img)
     if mirror:
         img = img.transpose(Image.FLIP_LEFT_RIGHT)
         glyph = [(x, y) for (x, y), c in torso.items()
