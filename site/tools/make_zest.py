@@ -254,12 +254,12 @@ SHORTS_TOP = 23
 # The next step swaps the legs, so a full stride is twelve frames and every
 # foot is always travelling.
 Q_STEP = [
-    (0, (3, 0), (-3, 0)),   # contact
-    (1, (2, 0), (-3, 1)),   # low
-    (1, (1, 0), (-2, 1)),
-    (0, (0, 0), (0, 1)),    # passing
-    (-1, (-1, 0), (1, 1)),  # high
-    (0, (-2, 0), (3, 1)),   # reach
+    (0, (3, 0), (-3, 0)),   # contact: both feet down, widest
+    (1, (2, 0), (-3, 1)),   # low: weight onto the front foot, back heel peels
+    (0, (1, 0), (-1, 1)),   #   rising, back foot leaves the ground
+    (-1, (0, 0), (-1, 2)),  # passing: support leg straight under him, swing foot highest
+    (-1, (-1, 0), (2, 2)),  # high: pushing off, swing leg reaching forward
+    (0, (-2, 0), (3, 1)),   # reach: coming down onto the heel
 ]
 # A stride of three pixels either way: wider and his short legs splay out at
 # an angle under that wide head, which reads as a trotting horse.
