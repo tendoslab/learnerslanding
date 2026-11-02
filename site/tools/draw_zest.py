@@ -4,7 +4,7 @@ shared dark outline, chunky 1px shading, facing the viewer like Bobby and
 Patchy.
 
 He's a lemon with a smug face (one brow cocked, heavy-lidded side-eye and a
-lopsided smirk) wearing a navy jersey with white shoulder panels and a
+small smile) wearing a navy jersey with white shoulder panels and a
 white-and-red number 10, white knee-length football pants with a red side
 stripe, white socks and black cleats, a ball tucked in one hand.
 
@@ -48,14 +48,14 @@ BALL_SHADE = (118, 56, 34, 255)
 #   Y peel (hands)  y peel shade  K boot  B ball  b ball shade
 BODY = [
     "........OOOOOWWWWWWOOOOO........",  # 16 shoulders, collar
-    ".......OWWNNNNNWWNNNNNWWO.......",  # 17 white shoulder panels, V-neck
-    ".......OWWNNWWNWWWNNNNWWO.......",  # 18 number 10: a white 1 and 0
-    "...OOOOONNNNNWNWNWNNNNNNO.......",  # 19
-    "..OBBWBOWWONNWNWNWNNNOWWO.......",  # 20 white cuffs, ball (white laces)
-    "..OBWBbOYYONNWNWWWNNNOYYO.......",  # 21 hands
-    "..OBBbbOYyORRRRRRRRRROYyO.......",  # 22 red hem
-    "...OOOO.OOOWWWWWWWWWWOOO........",  # 23 pants
-    "..........ORWWWWWWWwRO..........",  # 24 red side stripe
+    ".......OWWNNNNNNNNNNNMWWO.......",  # 17 white shoulder panels
+    ".......OWWNNNNWNWWWNNMWWO.......",  # 18 number 10, white
+    "...OO..ONNNNNWWNWNWNNMNMO.......",  # 19 navy sleeves, the ball's tip
+    "..OBBOOOWWONNNWNWNWNMOWWO.......",  # 20 white cuffs
+    ".OBWBOYYYYONNNWNWWWNMOYYO.......",  # 21 fingers spread over the ball, laces
+    ".OBbbOYYyyORRRRRRRRRROYyO.......",  # 22 red hem
+    "..ObbbbbOOOWWWWWWWWWWOOOO.......",  # 23 ball showing under his hand, pants
+    "...OOOOO..ORWWWWWWWwRO..........",  # 24 red side stripe
     "..........ORWWWOOWWwRO..........",  # 25
     "..........ORWWO..OWwRO..........",  # 26
     "..........OwwwO..OwwwO..........",  # 27 socks
@@ -99,7 +99,7 @@ def lemon():
 
 def face(px):
     """Smug: left brow cocked high, right brow flat, heavy lids with the
-    pupils slid to one side, and a lopsided smirk."""
+    pupils slid to one side, and a small smile."""
     o = OUTLINE
     # Brows.
     for k in ((7, 6), (8, 5), (9, 4), (10, 4), (11, 4), (12, 4)):
@@ -117,11 +117,10 @@ def face(px):
             px[(x, 8)] = PEEL_SHADE
             px[(x, 9)] = EYE
         px[(ex + 3, 9)] = px[(ex + 4, 9)] = o
-        px[(ex + 4, 8)] = o
     # Blush.
     px[(6, 11)] = px[(25, 10)] = BLUSH
-    # Dimple, then a smirk that dips on the left and rises off to the right.
-    for k in ((11, 11), (12, 12), (13, 13), (14, 13), (15, 13), (16, 13), (17, 12), (18, 12), (19, 11)):
+    # A small, easy smile, its right corner lifted a touch for the smugness.
+    for k in ((13, 12), (14, 13), (15, 13), (16, 13), (17, 13), (18, 12), (19, 11)):
         px[k] = o
     return px
 
