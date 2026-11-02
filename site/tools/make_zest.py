@@ -352,6 +352,13 @@ def walk_frame(layers, i, ball='tuck', mirror=False, **face):
     near, far = Q_LEG[i % 12], Q_LEG[(i + 6) % 12]
     # The free (far) arm swings against the far leg.
     swing = max(-1, min(1, -far[0]))
+    # When the near leg steps forward, seen three-quarters on it comes
+    # toward us rather than across: the feet meet under him but never pass
+    # each other, which would cross his legs into an X.
+    cross = near[0] - far[0] - (Q_LEG_X[1] - Q_LEG_X[0] - 1)
+    if cross > 0:
+        near = (near[0] - (cross + 1) // 2, near[1])
+        far = (far[0] + cross // 2, far[1])
 
     def put(layer, dx, ddy):
         for (x, y), c in layer.items():
