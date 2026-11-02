@@ -1,14 +1,15 @@
 """Draw Zest in profile, facing right, as a 32x32 still (tools/zest-side.png),
-for his walk. Same lemon, kit and palette as the front view (draw_zest.py),
+for anything that needs him fully side-on (his walk uses the three-quarter
+view in make_zest.py instead). Same lemon, kit and palette as the front view (draw_zest.py),
 turned side-on like Twiggy and Orange: the lemon's pointed end leads, the
 green stem nub trails behind, and his smug face (one heavy-lidded eye, the
 cocked brow, a small smile, blush) sits toward the front. The ball is carried
 like a running back's, lying flat under his near arm with its tip poking out
 in front.
 
-Legs are drawn standing; make_zest.py will stride them for the walk.
-
-    python3 tools/draw_zest_side.py            # write tools/zest-side.png
+    python3 tools/draw_zest_side.py            # write tools/zest-side.png and
+                                               # public/sprites/critters/zest-side.png
+                                               # (right, left; not wired in)
     python3 tools/draw_zest_side.py --preview  # also a big preview beside the front view
 """
 
@@ -124,6 +125,12 @@ def draw():
 def main():
     img = draw()
     img.save(os.path.join(HERE, 'zest-side.png'))
+    # A two-frame sheet (facing right, facing left) beside his other sprites,
+    # not used by the site yet.
+    sheet = Image.new('RGBA', (S * 2, S), z.CLEAR)
+    sheet.paste(img, (0, 0))
+    sheet.paste(img.transpose(Image.FLIP_LEFT_RIGHT), (S, 0))
+    sheet.save(os.path.join(HERE, '..', 'public', 'sprites', 'critters', 'zest-side.png'))
     if '--preview' in sys.argv:
         bg = Image.new('RGBA', ((S + 4) * 3, S + 4), (240, 236, 220, 255))
         bg.alpha_composite(z.draw(z.HOLD), (2, 2))
