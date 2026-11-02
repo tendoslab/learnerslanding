@@ -237,6 +237,12 @@ Q_LEG_FAR = [
     "OKKKKKO",
     "OOOOOOO",
 ]
+# A lifted foot tips its toe down instead of staying flat.
+Q_BOOT_LIFTED = [
+    "OKKKKO.",
+    ".OKKKKO",
+    "..OOOO.",
+]
 Q_LEG_X = (11, 16)  # near, far, standing
 SHORTS_TOP = 23
 # One step, six frames, timed like Twiggy's: low with the feet together
@@ -291,7 +297,32 @@ def quarter_layers():
     torso = turn(turn(torso, 1), 1)
     # Close the gap between his legs at the shorts' hem: the legs hang below.
     torso[(15, 25)] = torso[(16, 25)] = z.WHITE
+    # Round off the bottom corners of his shorts.
+    bottom = [x for (x, y) in torso if y == 25]
+    lo, hi = min(bottom), max(bottom)
+    del torso[(lo, 25)], torso[(hi, 25)]
+    torso[(lo + 1, 25)] = torso[(hi - 1, 25)] = O
     return torso, arm
+
+
+def swing_leg(art, x0, fwd, top, bottom, lifted=False):
+    """A leg hung from the hip at column x0, from row top (under the shorts)
+    down to its sole on row bottom, swung fwd pixels at the foot. The sock
+    gets a row longer or shorter to fit (a stretch when he bounces up on a
+    planted foot, a tuck when it lifts), and each row down leans a little
+    further, so the leg angles from the hip like Twiggy's instead of sliding
+    over as a block."""
+    pants, sock, boot = art[0], art[1], (Q_BOOT_LIFTED if lifted else art[3:])
+    rows = [pants] + [sock] * max(0, bottom - top + 1 - 1 - len(boot)) + list(boot)
+    last = len(rows) - 1
+    out = {}
+    for r, row in enumerate(rows):
+        lean = fwd * r / last
+        dx = int(lean + (0.5 if lean > 0 else -0.5))
+        for x, ch in enumerate(row):
+            if ch != '.':
+                out[(x0 + dx + x, top + r)] = z.KEY[ch]
+    return out
 
 
 def seal(img):
@@ -336,12 +367,9 @@ def walk_frame(layers, i, ball='tuck', mirror=False, **face):
                 img.putpixel((x + dx, y + ddy), c)
 
     # Legs hang from the shorts (which ride up with the body) down to the
-    # foot (which stays on the ground unless lifted), stretching a pixel when
-    # he bounces up with a foot planted.
+    # foot (which stays on the ground unless lifted).
     for art, x0, (fwd, lift) in ((Q_LEG_FAR, Q_LEG_X[1], far), (Q_LEG_NEAR, Q_LEG_X[0], near)):
-        leg = grid(art, top=LEG_TOP, left=x0 + fwd)
-        put(leg, 0, dy)
-        put(leg, 0, -lift)
+        put(swing_leg(art, x0, fwd, LEG_TOP + dy, S - 1 - lift, lifted=lift > 0), 0, 0)
     # When he bounces up, the shorts stretch a pixel rather than lifting off
     # his legs, so they stay one solid piece.
     put({k: c for k, c in torso.items() if k[1] >= SHORTS_TOP}, 0, 0)
