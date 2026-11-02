@@ -238,6 +238,7 @@ Q_LEG_FAR = [
     "OOOOOOO",
 ]
 Q_LEG_X = (11, 16)  # near, far, standing
+SHORTS_TOP = 23
 # One step, six frames, timed like Twiggy's: low with the feet together
 # (passing), a little bounce up with both feet tucked, the lead foot
 # touches down, low again with the feet a little apart, up as the stride
@@ -307,6 +308,10 @@ def walk_frame(layers, i, ball='tuck', mirror=False, **face):
     # the free (far) arm swings against the far leg.
     near_leads = i % 12 < 6
     near, far = (lead, trail) if near_leads else (trail, lead)
+    if near_leads:
+        # Turned three-quarters, the near leg stepping forward crosses in
+        # front of the far one: a shorter stride keeps both legs in view.
+        near, far = [(max(-1, min(1, fwd)), lift) for fwd, lift in (near, far)]
     swing = swing if near_leads else -swing
 
     def put(layer, dx, ddy):
@@ -321,8 +326,13 @@ def walk_frame(layers, i, ball='tuck', mirror=False, **face):
         leg = grid(art, top=LEG_TOP, left=x0 + fwd)
         put(leg, 0, dy)
         put(leg, 0, -lift)
+    # When he bounces up, the shorts stretch a pixel rather than lifting off
+    # his legs, so they stay one solid piece.
+    put({k: c for k, c in torso.items() if k[1] >= SHORTS_TOP}, 0, 0)
     put(torso, 0, dy)
-    put(arm, swing, dy - (swing > 0))
+    put(arm, 0, dy)
+    if swing:
+        put(arm, swing, dy - (swing > 0))
     if ball in ('tuck', 'hitch'):
         put(grid(BALL_UP), TUCK_AT[0], TUCK_AT[1] + dy - (ball == 'hitch'))
     put(head_quarter(**face), 0, dy)
