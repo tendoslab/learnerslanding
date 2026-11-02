@@ -222,28 +222,23 @@ def frame(layers, body_dy=0, head_dy=0, legs=(0, 0), swing=0, facing=0, ball='tu
 Q_EYES = ((10, 15), (19, 23))
 Q_PUPILS = {'ahead': ((13, 14), (21, 22)), 'mid': ((12, 13), (20, 21))}
 # Legs from the shorts' hem down, drawn under the torso so a lifted leg
-# tucks up into the shorts. Toes point forward (right).
+# tucks up into the shorts. Cleats have a rounded heel and sole with the
+# toe out in front (right), so they read as shoes, not hooves.
 Q_LEG_NEAR = [
     "ORWWO..",
     "OwwwO..",
     "OwwwO..",
-    "OKKKKO.",
+    ".OKKKO.",
     "OKKKKKO",
-    "OOOOOOO",
+    ".OOOOO.",
 ]
 Q_LEG_FAR = [
     "OwwwO..",
     "OwwwO..",
     "OwwwO..",
-    "OKKKKO.",
+    ".OKKKO.",
     "OKKKKKO",
-    "OOOOOOO",
-]
-# A lifted foot tips its toe down instead of staying flat.
-Q_BOOT_LIFTED = [
-    "OKKKKO.",
-    ".OKKKKO",
-    "..OOOO.",
+    ".OOOOO.",
 ]
 Q_LEG_X = (13, 14)  # near, far: hung from the same spot, so every stride opens wide
 SHORTS_TOP = 23
@@ -309,21 +304,21 @@ def quarter_layers():
     return torso, arm
 
 
-def swing_leg(art, x0, fwd, top, bottom, lifted=False):
+def swing_leg(art, x0, fwd, top, bottom):
     """A leg hung from the hip at column x0, from row top (under the shorts)
     down to its sole on row bottom, swung fwd pixels at the foot. The sock
     gets a row longer or shorter to fit (a stretch when he bounces up on a
-    planted foot, a tuck when it lifts), and each row down leans a little
-    further (the top itself a third as far as the foot), so the leg angles
-    from the hip like Twiggy's instead of sliding
-    over as a block."""
-    pants, sock, boot = art[0], art[1], (Q_BOOT_LIFTED if lifted else art[3:])
-    rows = [pants] + [sock] * max(0, bottom - top + 1 - 1 - len(boot)) + list(boot)
-    last = len(rows) - 1
+    planted foot, a tuck when it lifts) and leans a little further each row
+    down (the top itself a third as far as the foot), so the leg angles from
+    the hip like Twiggy's. The shoe stays level under it: slanting the shoe
+    too turns it into a hoof."""
+    pants, sock, shoe = art[0], art[1], art[3:]
+    rows = [pants] + [sock] * max(0, bottom - top + 1 - 1 - len(shoe))
+    last = len(rows)
     out = {}
-    for r, row in enumerate(rows):
+    for r, row in enumerate(rows + shoe):
         # The thigh swings a third as far as the foot.
-        lean = fwd / 3 + (fwd - fwd / 3) * r / last
+        lean = fwd / 3 + (fwd - fwd / 3) * min(r, last) / last
         dx = int(lean + (0.5 if lean > 0 else -0.5))
         for x, ch in enumerate(row):
             if ch != '.':
@@ -369,7 +364,7 @@ def walk_frame(layers, i, ball='tuck', mirror=False, **face):
     # Legs hang from the shorts (which ride up with the body) down to the
     # foot (which stays on the ground unless lifted).
     for art, x0, (fwd, lift) in ((Q_LEG_FAR, Q_LEG_X[1], far), (Q_LEG_NEAR, Q_LEG_X[0], near)):
-        put(swing_leg(art, x0, fwd, LEG_TOP + dy, S - 1 - lift, lifted=lift > 0), 0, 0)
+        put(swing_leg(art, x0, fwd, LEG_TOP + dy, S - 1 - lift), 0, 0)
     # When he bounces up, the shorts stretch a pixel rather than lifting off
     # his legs, so they stay one solid piece.
     put({k: c for k, c in torso.items() if k[1] >= SHORTS_TOP}, 0, 0)
