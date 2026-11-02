@@ -13,8 +13,8 @@ He's put together from layers so each can move on its own:
   walk (48 frames, two rows: walking left, walking right): a confident walk
         in three-quarter view, like Twiggy and Orange: both eyes still show
         but sit toward where he's going, the number slides forward and his
-        cleats point ahead. His legs hang from almost the same spot, like
-        Twiggy's, and swing from the hip: a planted foot slides back under
+        cleats point ahead. His legs (as chunky as in his front view) hang
+        close together under his shorts and swing from the hip: a planted foot slides back under
         him a pixel or two a frame while the other lifts and swings through,
         so his legs open into a V and close again as they pass (twelve
         frames a stride, a step every six). Body and head bob together, the
@@ -224,35 +224,35 @@ Q_PUPILS = {'ahead': ((13, 14), (21, 22)), 'mid': ((12, 13), (20, 21))}
 # Legs from the shorts' hem down, drawn under the torso so a lifted leg
 # tucks up into the shorts. Toes point forward (right).
 Q_LEG_NEAR = [
-    "ORWO..",
-    "OwwO..",
-    "OwwO..",
-    "OKKKO.",
-    "OKKKKO",
-    "OOOOOO",
+    "ORWWO..",
+    "OwwwO..",
+    "OwwwO..",
+    "OKKKKO.",
+    "OKKKKKO",
+    "OOOOOOO",
 ]
 Q_LEG_FAR = [
-    "OwwO..",
-    "OwwO..",
-    "OwwO..",
-    "OKKKO.",
-    "OKKKKO",
-    "OOOOOO",
+    "OwwwO..",
+    "OwwwO..",
+    "OwwwO..",
+    "OKKKKO.",
+    "OKKKKKO",
+    "OOOOOOO",
 ]
 # A lifted foot tips its toe down instead of staying flat.
 Q_BOOT_LIFTED = [
-    "OKKKO.",
-    ".OKKKO",
-    "..OOO.",
+    "OKKKKO.",
+    ".OKKKKO",
+    "..OOOO.",
 ]
-Q_LEG_X = (13, 14)  # near, far: hung from almost the same spot, like Twiggy's
+Q_LEG_X = (12, 15)  # near, far: close enough under the shorts to open into a V
 SHORTS_TOP = 23
 # One leg's twelve-frame stride as (forward, lift): planted, the foot
 # slides back under him a pixel a frame as he walks over it; then it lifts,
 # swings forward through the air and reaches out to land again. The far leg
 # runs six frames behind the near one, so the feet never stop moving.
-Q_LEG = [(4, 0), (3, 0), (2, 0), (0, 0), (-2, 0), (-3, 0),
-         (-4, 1), (-3, 1), (-1, 1), (1, 1), (3, 1), (4, 1)]
+Q_LEG = [(3, 0), (2, 0), (1, 0), (0, 0), (-1, 0), (-2, 0),
+         (-3, 1), (-2, 1), (-1, 1), (1, 1), (2, 1), (3, 1)]
 # He sits lowest just after each foot lands and rises as he passes over it.
 Q_BOB = [0, 0, -1, -1, -1, 0]
 
