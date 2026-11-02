@@ -2,8 +2,9 @@
 
 Patchy is a panda whose fur is scattered with noughts and crosses, cyan X's
 and coral O's, darker where they cross his black fur. They're part of the
-drawing, so they move with each part. He faces the viewer. Parts are split
-by position:
+drawing, so they move with each part. They frame his eyes too: X sparkles
+off the left eye, an O ring round the right, and one eye of each colour. He
+faces the viewer. Parts are split by position:
 
   ears   the two round ears at the top corners
   arms   left / right, from below the shoulder band down to the paws
