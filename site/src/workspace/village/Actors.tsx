@@ -75,7 +75,7 @@ const saveSpots = (states: Map<string, ActorState>) => {
   }
 };
 
-const sheetSize = (a: SheetAnim) => (a.src.includes('/characters/') ? [384, 128] : [a.frames * a.w, a.h]);
+const sheetSize = (a: SheetAnim) => (a.src.includes('/characters/') ? [384, 128] : [a.frames * a.w, a.h * (a.rows ?? 1)]);
 
 /** Lets the village say hi to whoever is under a tap that didn't land on a resident's own element. */
 export interface ActorsHandle {
@@ -202,7 +202,10 @@ export default function Actors({ ref, actors, S, focusing, placed, interactive }
     };
 
     const loop = (now: number) => {
-      const dt = Math.min(0.1, (now - last) / 1000);
+      // Frame timestamps can arrive slightly out of order; a negative step
+      // used to divide 0 by 0 in step() and park someone at NaN, which then
+      // spread to everyone they met until the whole village stood still.
+      const dt = clamp((now - last) / 1000, 0, 0.1);
       last = now;
       const clock = (live.current.clock += dt);
 
@@ -220,13 +223,22 @@ export default function Actors({ ref, actors, S, focusing, placed, interactive }
           st = { x, y, tx: x, ty: y, dir: spot?.dir ?? 1, moving: false, task: 'idle', timer: rand(0.5, 4), partner: null, ready: false, next: 0, tags: 0, decor: null, emote: null, emoteUntil: 0, hopUntil: 0, t: Math.random() * 10, sheets: '' };
           states.current.set(spec.id, st);
         }
+        // Belt and braces: never let a bad number freeze anyone for good.
+        if (![st.x, st.y, st.tx, st.ty, st.timer].every(Number.isFinite)) {
+          const x = Number.isFinite(st.x) ? clamp(st.x, 4, 96) : rand(10, 90);
+          const y = Number.isFinite(st.y) ? clamp(st.y, 0, 1) : rand(0.25, 0.95);
+          const p = get(st.partner);
+          if (p?.partner === spec.id) rest(p, 1, 3);
+          Object.assign(st, { x, y, tx: x, ty: y, moving: false });
+          rest(st, 0.5, 2);
+        }
         st.t += dt;
         st.timer -= dt;
         const partner = get(st.partner);
         const step = (mult = 1) => {
           const dd = dist(st!, { x: st!.tx, y: st!.ty });
           const s = (sp.speed ?? 2.5) * mult * dt;
-          if (dd <= s || reduced) {
+          if (dd <= s || dd < 1e-6 || reduced) {
             st!.x = st!.tx;
             st!.y = st!.ty;
             st!.moving = false;
@@ -422,8 +434,9 @@ export default function Actors({ ref, actors, S, focusing, placed, interactive }
         el.style.width = `${anim.w * k}px`;
         el.style.height = `${anim.h * k}px`;
         el.style.backgroundSize = [sp.walk, sp.idle].map((a) => sheetSize(a).map((n) => `${n * k}px`).join(' ')).join(', ');
+        const row = sp.turnRows ? (st.dir === 1 ? sp.turnRows.right : sp.turnRows.left) * anim.h : (anim.y ?? 0);
         el.style.backgroundPosition = [sp.walk, sp.idle]
-          .map((a) => (a === anim ? `${-frame * a.w * k}px ${-(a.y ?? 0) * k}px` : '-99999px 0'))
+          .map((a) => (a === anim ? `${-frame * a.w * k}px ${-row * k}px` : '-99999px 0'))
           .join(', ');
         el.style.transform = sp.facing === 'side' && st.dir === -1 ? 'scaleX(-1)' : '';
 
