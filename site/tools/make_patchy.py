@@ -35,8 +35,8 @@ PATCH = (48, 42, 56, 255)
 LID = (96, 88, 110, 255)
 CLEAR = (0, 0, 0, 0)
 # Ears: rows down to EAR_BOTTOM, outside the head's top edge.
-EAR_BOTTOM = 7
-EAR_LEFT, EAR_RIGHT = 9, 22
+EAR_BOTTOM = 6
+EAR_LEFT, EAR_RIGHT = 10, 21
 # Arms: from ARM_TOP (below the shoulder band) to ARM_BOTTOM, outside these columns.
 # The belly's side outline stays with the body so no white edge shows when an arm moves.
 ARM_TOP, ARM_BOTTOM = 21, 25
@@ -81,8 +81,9 @@ def blink(body):
 
 
 def frame(parts, body_dy=0, legs=(0, 0), arms=(0, 0), ears=(0, 0), closed=False):
-    """legs / arms are (left dy, right dy); -1 lifts. ears are (left, right) flags
-    that perk that ear up a pixel."""
+    """legs are (left, right) flags that lift that foot a pixel; arms are
+    (left, right) flags that swing that arm down a pixel; ears are (left,
+    right) flags that perk that ear up a pixel."""
     img = Image.new('RGBA', (S, S), CLEAR)
 
     def put(layer, dx, dy):
@@ -91,8 +92,14 @@ def frame(parts, body_dy=0, legs=(0, 0), arms=(0, 0), ears=(0, 0), closed=False)
                 img.putpixel((x + dx, y + dy), c)
 
     # Legs and ears behind the body, arms in front so they overlap his sides.
-    put(parts['leg_l'], 0, legs[0])
-    put(parts['leg_r'], 0, legs[1])
+    # A lifted foot: the leg stays put and everything below its top row moves up,
+    # so the top stays tucked under his belly and no gap opens between the legs.
+    for leg, lift in (('leg_l', legs[0]), ('leg_r', legs[1])):
+        put(parts[leg], 0, 0)
+        if lift:
+            put({k: v for k, v in parts[leg].items() if k[1] > LEG_TOP}, 0, -1)
+            for (x, y) in [k for k in parts[leg] if k[1] == max(y for _, y in parts[leg])]:
+                img.putpixel((x, y), CLEAR)
     # A perked ear is stamped twice, a pixel apart, so it stretches instead of floating off.
     for ear, perk in (('ear_l', ears[0]), ('ear_r', ears[1])):
         put(parts[ear], 0, body_dy)
@@ -100,11 +107,22 @@ def frame(parts, body_dy=0, legs=(0, 0), arms=(0, 0), ears=(0, 0), closed=False)
             put(parts[ear], 0, body_dy - 1)
     put(blink(parts['body']) if closed else parts['body'], 0, body_dy)
     # An arm swinging down stretches the same way, so no gap opens under the shoulder band.
-    for arm, dy in (('arm_l', arms[0]), ('arm_r', arms[1])):
-        if dy > 0:
-            put(parts[arm], 0, body_dy)
-        put(parts[arm], 0, body_dy + dy)
+    for arm, swing in (('arm_l', arms[0]), ('arm_r', arms[1])):
+        put(parts[arm], 0, body_dy)
+        if swing:
+            put(parts[arm], 0, body_dy + 1)
+    seal(img)
     return img
+
+
+def seal(img):
+    """Outline any light pixel left hanging over empty space (the belly bobbing
+    down into the gap between his legs)."""
+    for y in range(S - 1, 0, -1):
+        for x in range(S):
+            above = img.getpixel((x, y - 1))
+            if img.getpixel((x, y))[3] == 0 and above[3] > 0 and above != OUTLINE and y > LEG_TOP - 2:
+                img.putpixel((x, y), OUTLINE)
 
 
 def strip(frames):
@@ -118,11 +136,11 @@ def main():
     parts = split(load())
     # Step left, settle, step right, settle; arms swing against the stepping leg.
     walk = [
-        frame(parts, legs=(-1, 0), arms=(1, -1)),
-        frame(parts, legs=(-1, 0), arms=(1, -1)),
+        frame(parts, legs=(1, 0), arms=(0, 1)),
+        frame(parts, legs=(1, 0), arms=(0, 1)),
         frame(parts, body_dy=1),
-        frame(parts, legs=(0, -1), arms=(-1, 1)),
-        frame(parts, legs=(0, -1), arms=(-1, 1)),
+        frame(parts, legs=(0, 1), arms=(1, 0)),
+        frame(parts, legs=(0, 1), arms=(1, 0)),
         frame(parts, body_dy=1),
     ]
     idle = [
