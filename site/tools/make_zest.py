@@ -12,9 +12,9 @@ He's put together from layers so each can move on its own:
 
   walk (48 frames, two rows: walking left, walking right): a confident jog.
         The ball arm stays locked, the free arm swings against the stepping
-        leg, the body dips as a foot lands and the big lemon head lands a
-        frame later. Over the six-second loop he glances where he's going,
-        blinks once and hitches the ball up once.
+        leg, and his body and big lemon head dip together as a foot lands.
+        Over the six-second loop he glances where he's going, blinks once
+        and hitches the ball up once.
   idle (32 frames): mostly breaths, with his signature smug brow raise,
         a look left and right (reading the field), a blink, a stem wiggle and,
         once a loop, a little toss and catch of the ball with a big grin.
@@ -222,7 +222,9 @@ def main():
     L = body_layers()
 
     # Sixteen strides (six seconds at 8fps). Each stride: foot up, foot up,
-    # land (body dips, head still up), and the head lands on the next frame.
+    # land (body and head dip together). The head used to land a frame after
+    # the body, but with three-frame strides that just read as the neck
+    # stretching and squashing every step.
     def walk_loop(d):
         look = 'left' if d < 0 else 'right'
 
@@ -230,9 +232,9 @@ def main():
             legs = (1, 0) if lead == 'l' else (0, 1)
             swing = lead == 'l'
             return [
-                frame(L, legs=legs, swing=swing, facing=d, head_dy=1, **extra),
                 frame(L, legs=legs, swing=swing, facing=d, **extra),
-                frame(L, body_dy=1, facing=d, **extra),
+                frame(L, legs=legs, swing=swing, facing=d, **extra),
+                frame(L, body_dy=1, head_dy=1, facing=d, **extra),
             ]
         plain = stride('l') + stride('r')
         return (
