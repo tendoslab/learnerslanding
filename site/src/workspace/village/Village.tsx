@@ -7,7 +7,7 @@ import { FIELD_DEPTH, FIELD_FRONT, GROUND_HEIGHT, bottomFor, clamp, depthScale, 
 import { Ambient, Backdrop, GroundDetail, SCENERY_KEYFRAMES } from './Scenery';
 import Actors, { ACTOR_STYLES, type ActorSpec, type ActorsHandle } from './Actors';
 import { withBase } from '../../lib/base';
-import { VILLAGE_ATTR } from '../share';
+import { CAPTURING_ATTR, VILLAGE_ATTR } from '../share';
 
 const scaleFor = () => (window.innerWidth < 640 ? 2 : window.innerHeight < 760 ? 2.5 : window.innerWidth >= 1280 && window.innerHeight >= 820 ? 3.5 : 3);
 
@@ -280,6 +280,9 @@ export default function Village({ ref, buildMode, placing, onPlaced, focusing, r
           transition: transform 3s;
         }
         @media (prefers-reduced-motion: reduce) { .ll-motion { animation: none !important; } }
+        /* The share picture copies each element's animation and draws its first
+           frame, where a pop-in is still invisible; show the settled pose instead. */
+        [${CAPTURING_ATTR}] .ll-pop { animation: none !important; }
       `}</style>
     </div>
   );
@@ -364,7 +367,7 @@ function Decoration({
 
   return (
     <div
-      className="pointer-events-none absolute"
+      className="ll-pop pointer-events-none absolute"
       style={{
         left: `${x}%`,
         bottom: `${bottomFor(y)}%`,

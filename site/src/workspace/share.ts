@@ -2,6 +2,8 @@ import { toCanvas } from 'html-to-image';
 
 /** Marks the element the village is drawn in, so it can be captured. */
 export const VILLAGE_ATTR = 'data-village';
+/** Set on the village while it's being captured (see the .ll-pop rule in Village). */
+export const CAPTURING_ATTR = 'data-capturing';
 
 const roundRect = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) => {
   ctx.beginPath();
@@ -20,7 +22,16 @@ export async function captureVillage(caption: { title: string; detail: string; l
   const node = document.querySelector<HTMLElement>(`[${VILLAGE_ATTR}]`);
   if (!node) throw new Error('Village not found');
   const ratio = Math.min(window.devicePixelRatio || 1, 2);
-  const scene = await toCanvas(node, { pixelRatio: ratio });
+  // Residents who moved in (and decorations placed) since the page loaded carry a
+  // pop-in animation. The capture copies it and renders its first, invisible
+  // frame, so they'd be missing from the picture; switch it off while we capture.
+  node.setAttribute(CAPTURING_ATTR, '');
+  let scene: HTMLCanvasElement;
+  try {
+    scene = await toCanvas(node, { pixelRatio: ratio });
+  } finally {
+    node.removeAttribute(CAPTURING_ATTR);
+  }
 
   const canvas = document.createElement('canvas');
   canvas.width = scene.width;
