@@ -13,11 +13,13 @@ He's put together from layers so each can move on its own:
   walk (48 frames, two rows: walking left, walking right): a confident walk
         in three-quarter view, like Twiggy and Orange: both eyes still show
         but sit toward where he's going, the number slides forward and his
-        cleats point ahead. Stepped like Twiggy: six frames a step (feet
-        together, a little bounce with both feet tucked, touch down, feet
-        apart, the stride opening wide, landing), legs taking turns to lead,
-        body and head moving together, the free arm swinging against the
-        far leg and the ball arm locked. Once a loop
+        cleats point ahead. His legs hang from almost the same spot, like
+        Twiggy's, and swing from the hip: a planted foot slides back under
+        him a pixel or two a frame while the other lifts and swings through,
+        so his legs open into a V and close again as they pass (twelve
+        frames a stride, a step every six). Body and head bob together, the
+        free arm swings against the far leg and the ball arm stays locked.
+        Once a loop
         he glances at you, hitches the ball up and blinks.
   idle (32 frames): mostly breaths, with his signature smug brow raise,
         a look left and right (reading the field), a blink, a stem wiggle and,
@@ -222,44 +224,38 @@ Q_PUPILS = {'ahead': ((13, 14), (21, 22)), 'mid': ((12, 13), (20, 21))}
 # Legs from the shorts' hem down, drawn under the torso so a lifted leg
 # tucks up into the shorts. Toes point forward (right).
 Q_LEG_NEAR = [
-    "ORWWO..",
-    "OwwwO..",
-    "OwwwO..",
-    "OKKKKO.",
-    "OKKKKKO",
-    "OOOOOOO",
+    "ORWO..",
+    "OwwO..",
+    "OwwO..",
+    "OKKKO.",
+    "OKKKKO",
+    "OOOOOO",
 ]
 Q_LEG_FAR = [
-    "OwwwO..",
-    "OwwwO..",
-    "OwwwO..",
-    "OKKKKO.",
-    "OKKKKKO",
-    "OOOOOOO",
+    "OwwO..",
+    "OwwO..",
+    "OwwO..",
+    "OKKKO.",
+    "OKKKKO",
+    "OOOOOO",
 ]
 # A lifted foot tips its toe down instead of staying flat.
 Q_BOOT_LIFTED = [
-    "OKKKKO.",
-    ".OKKKKO",
-    "..OOOO.",
+    "OKKKO.",
+    ".OKKKO",
+    "..OOO.",
 ]
-Q_LEG_X = (11, 16)  # near, far, standing
+Q_LEG_X = (13, 14)  # near, far: hung from almost the same spot, like Twiggy's
 SHORTS_TOP = 23
-# One step, six frames, timed like Twiggy's: low with the feet together
-# (passing), a little bounce up with both feet tucked, the lead foot
-# touches down, low again with the feet a little apart, up as the stride
-# opens wide, and the lead foot lands with the back foot still lifted.
-# Each entry: (body dy, lead leg (forward, lift), trail leg (forward, lift),
-# free arm swing). The next step swaps which leg leads, so a full stride is
-# twelve frames.
-Q_STEP = [
-    (0, (0, 0), (0, 0), 0),
-    (-1, (0, 1), (0, 1), 0),
-    (-1, (1, 0), (-1, 1), 1),
-    (0, (1, 0), (-1, 0), 1),
-    (-1, (2, 1), (-2, 1), 1),
-    (-1, (2, 0), (-2, 1), 1),
-]
+# One leg's twelve-frame stride as (forward, lift): planted, the foot
+# slides back under him a pixel a frame as he walks over it; then it lifts,
+# swings forward through the air and reaches out to land again. The far leg
+# runs six frames behind the near one, so the feet never stop moving.
+Q_LEG = [(4, 0), (3, 0), (2, 0), (0, 0), (-2, 0), (-3, 0),
+         (-4, 1), (-3, 1), (-1, 1), (1, 1), (3, 1), (4, 1)]
+# He sits lowest just after each foot lands and rises as he passes over it.
+Q_BOB = [0, 0, -1, -1, -1, 0]
+
 
 def head_quarter(eyes='open', look='ahead', tip=0):
     """The lemon turned three-quarters toward the right."""
@@ -310,14 +306,16 @@ def swing_leg(art, x0, fwd, top, bottom, lifted=False):
     down to its sole on row bottom, swung fwd pixels at the foot. The sock
     gets a row longer or shorter to fit (a stretch when he bounces up on a
     planted foot, a tuck when it lifts), and each row down leans a little
-    further, so the leg angles from the hip like Twiggy's instead of sliding
+    further (the top itself a third as far as the foot), so the leg angles
+    from the hip like Twiggy's instead of sliding
     over as a block."""
     pants, sock, boot = art[0], art[1], (Q_BOOT_LIFTED if lifted else art[3:])
     rows = [pants] + [sock] * max(0, bottom - top + 1 - 1 - len(boot)) + list(boot)
     last = len(rows) - 1
     out = {}
     for r, row in enumerate(rows):
-        lean = fwd * r / last
+        # The thigh swings a third as far as the foot.
+        lean = fwd / 3 + (fwd - fwd / 3) * r / last
         dx = int(lean + (0.5 if lean > 0 else -0.5))
         for x, ch in enumerate(row):
             if ch != '.':
@@ -350,16 +348,10 @@ def walk_frame(layers, i, ball='tuck', mirror=False, **face):
     the number still reading 10)."""
     torso, arm = layers
     img = Image.new('RGBA', (S, S), CLEAR)
-    dy, lead, trail, swing = Q_STEP[i % 6]
-    # The near leg leads the first step of each stride, the far leg the next;
-    # the free (far) arm swings against the far leg.
-    near_leads = i % 12 < 6
-    near, far = (lead, trail) if near_leads else (trail, lead)
-    if near_leads:
-        # Turned three-quarters, the near leg stepping forward crosses in
-        # front of the far one: a shorter stride keeps both legs in view.
-        near, far = [(max(-1, min(1, fwd)), lift) for fwd, lift in (near, far)]
-    swing = swing if near_leads else -swing
+    dy = Q_BOB[i % 6]
+    near, far = Q_LEG[i % 12], Q_LEG[(i + 6) % 12]
+    # The free (far) arm swings against the far leg.
+    swing = max(-1, min(1, -far[0]))
 
     def put(layer, dx, ddy):
         for (x, y), c in layer.items():
