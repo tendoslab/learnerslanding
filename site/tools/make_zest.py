@@ -13,12 +13,12 @@ He's put together from layers so each can move on its own:
   walk (48 frames, two rows: walking left, walking right): a confident walk
         in three-quarter view, like Twiggy and Orange: both eyes still show
         but sit toward where he's going, the number slides forward and his
-        cleats point ahead. His legs (as chunky as in his front view) hang
-        close together under his shorts and swing from the hip: a planted foot slides back under
-        him a pixel or two a frame while the other lifts and swings through,
-        so his legs open into a V and close again as they pass (twelve
-        frames a stride, a step every six). Body and head bob together, the
-        free arm swings against the far leg and the ball arm stays locked.
+        cleats point ahead. The legs hang from one spot under his shorts and
+        hit the classic keys each step: contact (feet wide, both down), low
+        (weight on, body lowest), passing (feet together, one lifted),
+        high (push off, body highest), reach. Six frames a step, legs
+        swapping each step, the free arm swinging against the far leg and
+        the ball arm locked.
         Once a loop
         he glances at you, hitches the ball up and blinks.
   idle (32 frames): mostly breaths, with his signature smug brow raise,
@@ -245,17 +245,25 @@ Q_BOOT_LIFTED = [
     ".OKKKKO",
     "..OOOO.",
 ]
-Q_LEG_X = (12, 15)  # near, far: close enough under the shorts to open into a V
+Q_LEG_X = (13, 14)  # near, far: hung from the same spot, so every stride opens wide
 SHORTS_TOP = 23
-# One leg's twelve-frame stride as (forward, lift): planted, the foot
-# slides back under him a pixel a frame as he walks over it; then it lifts,
-# swings forward through the air and reaches out to land again. The far leg
-# runs six frames behind the near one, so the feet never stop moving.
-Q_LEG = [(3, 0), (2, 0), (1, 0), (0, 0), (-1, 0), (-2, 0),
-         (-3, 1), (-2, 1), (-1, 1), (1, 1), (2, 1), (3, 1)]
-# He sits lowest just after each foot lands and rises as he passes over it.
-Q_BOB = [0, 0, -1, -1, -1, 0]
-
+# One step, six frames, on the classic walk keys. Each entry: (body dy,
+# lead leg (forward, lift), trail leg (forward, lift)).
+#   contact  both feet down, the stride at its widest
+#   low      weight onto the front foot, body at its lowest, back heel peels
+#   passing  supporting leg under him, the other lifted and coming through
+#   high     pushing off, body at its highest, swing leg reaching forward
+#   reach    about to land
+# The next step swaps the legs, so a full stride is twelve frames and every
+# foot is always travelling.
+Q_STEP = [
+    (0, (4, 0), (-4, 0)),   # contact
+    (1, (3, 0), (-4, 1)),   # low
+    (1, (1, 0), (-2, 1)),
+    (0, (0, 0), (0, 1)),    # passing
+    (-1, (-1, 0), (2, 1)),  # high
+    (0, (-3, 0), (4, 1)),   # reach
+]
 
 def head_quarter(eyes='open', look='ahead', tip=0):
     """The lemon turned three-quarters toward the right."""
@@ -348,17 +356,10 @@ def walk_frame(layers, i, ball='tuck', mirror=False, **face):
     the number still reading 10)."""
     torso, arm = layers
     img = Image.new('RGBA', (S, S), CLEAR)
-    dy = Q_BOB[i % 6]
-    near, far = Q_LEG[i % 12], Q_LEG[(i + 6) % 12]
+    dy, lead, trail = Q_STEP[i % 6]
+    near, far = (lead, trail) if i % 12 < 6 else (trail, lead)
     # The free (far) arm swings against the far leg.
     swing = max(-1, min(1, -far[0]))
-    # When the near leg steps forward, seen three-quarters on it comes
-    # toward us rather than across: the feet meet under him but never pass
-    # each other, which would cross his legs into an X.
-    cross = near[0] - far[0] - (Q_LEG_X[1] - Q_LEG_X[0] - 1)
-    if cross > 0:
-        near = (near[0] - (cross + 1) // 2, near[1])
-        far = (far[0] + cross // 2, far[1])
 
     def put(layer, dx, ddy):
         for (x, y), c in layer.items():
