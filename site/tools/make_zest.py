@@ -223,24 +223,26 @@ Q_EYES = ((10, 15), (19, 23))
 Q_PUPILS = {'ahead': ((13, 14), (21, 22)), 'mid': ((12, 13), (20, 21))}
 # Legs from the shorts' hem down, drawn under the torso so a lifted leg
 # tucks up into the shorts. Cleats have a rounded heel and sole with the
-# toe out in front (right), so they read as shoes, not hooves.
+# toe a pixel out in front (right): small, so they read as shoes, not hooves.
 Q_LEG_NEAR = [
-    "ORWWO..",
-    "OwwwO..",
-    "OwwwO..",
-    ".OKKKO.",
-    "OKKKKKO",
-    ".OOOOO.",
+    "ORWWO.",
+    "OwwwO.",
+    "OwwwO.",
+    ".OKKO.",
+    "OKKKKO",
+    ".OOOO.",
 ]
 Q_LEG_FAR = [
-    "OwwwO..",
-    "OwwwO..",
-    "OwwwO..",
-    ".OKKKO.",
-    "OKKKKKO",
-    ".OOOOO.",
+    "OwwwO.",
+    "OwwwO.",
+    "OwwwO.",
+    ".OKKO.",
+    "OKKKKO",
+    ".OOOO.",
 ]
-Q_LEG_X = (13, 14)  # near, far: hung from the same spot, so every stride opens wide
+# Near, far: hung from the same spot, a pixel ahead of the shorts' middle so
+# his feet sit under the big lemon rather than trailing behind it.
+Q_LEG_X = (14, 15)
 SHORTS_TOP = 23
 # One step, six frames, on the classic walk keys. Each entry: (body dy,
 # lead leg (forward, lift), trail leg (forward, lift)).
@@ -252,13 +254,15 @@ SHORTS_TOP = 23
 # The next step swaps the legs, so a full stride is twelve frames and every
 # foot is always travelling.
 Q_STEP = [
-    (0, (4, 0), (-4, 0)),   # contact
-    (1, (3, 0), (-4, 1)),   # low
+    (0, (3, 0), (-3, 0)),   # contact
+    (1, (2, 0), (-3, 1)),   # low
     (1, (1, 0), (-2, 1)),
     (0, (0, 0), (0, 1)),    # passing
-    (-1, (-1, 0), (2, 1)),  # high
-    (0, (-3, 0), (4, 1)),   # reach
+    (-1, (-1, 0), (1, 1)),  # high
+    (0, (-2, 0), (3, 1)),   # reach
 ]
+# A stride of three pixels either way: wider and his short legs splay out at
+# an angle under that wide head, which reads as a trotting horse.
 
 def head_quarter(eyes='open', look='ahead', tip=0):
     """The lemon turned three-quarters toward the right."""
