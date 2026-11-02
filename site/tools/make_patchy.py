@@ -11,8 +11,9 @@ faces the viewer. Parts are split by position:
   legs   left / right, everything from LEG_TOP down
   body   everything else (head, belly)
 
-  walk (6 frames): legs step in turn, arms swing against them, body bobs,
-                  he puffs mid-stride and his ears lag as he lands
+  walk (24 frames): legs step in turn, arms swing against them, body bobs
+                   and his ears lag as he lands; across the loop he
+                   glances left and right, blinks and puffs just once
   idle (16 frames): breaths, glances left and right (ears perking to
                     listen), a blink and a big happy ^ ^ grin
 
@@ -167,17 +168,23 @@ def strip(frames):
 
 def main():
     parts = split(load())
-    # Step left, settle, step right, settle; arms swing against the stepping leg.
-    # He puffs mid-stride, and as he drops onto a foot his ears lag behind,
-    # staying up while his head comes down.
-    walk = [
-        frame(parts, legs=(1, 0), arms=(0, 1)),
-        frame(parts, legs=(1, 0), arms=(0, 1), mouth=True),
-        frame(parts, body_dy=1, ears=(1, 1)),
-        frame(parts, legs=(0, 1), arms=(1, 0)),
-        frame(parts, legs=(0, 1), arms=(1, 0), mouth=True),
-        frame(parts, body_dy=1, ears=(1, 1)),
-    ]
+    # Eight steps (three seconds at 8fps), so the extras don't repeat every
+    # step: arms swing against the stepping leg and his ears lag behind as he
+    # drops onto a foot. Over the loop he glances left, then right, blinks, and
+    # only on the last step puffs once with his mouth open.
+    def stride(lead, **face):
+        legs, arms = ((1, 0), (0, 1)) if lead == 'l' else ((0, 1), (1, 0))
+        return [
+            frame(parts, legs=legs, arms=arms),
+            frame(parts, legs=legs, arms=arms, **face),
+            frame(parts, body_dy=1, ears=(1, 1), **face),
+        ]
+    walk = (
+        stride('l') + stride('r') +
+        stride('l', look=-1) + stride('r', look=-1) +
+        stride('l') + stride('r', look=1) +
+        stride('l', eyes='blink') + stride('r', mouth=True)
+    )
     # Four seconds at 4fps: a breath, a look left (that ear perks to listen),
     # a breath, a look right, a blink, then a big happy grin with both ears up.
     idle = [
@@ -202,10 +209,11 @@ def main():
     strip(walk).save(os.path.join(OUT, 'patchy-walk.png'))
     strip(idle).save(os.path.join(OUT, 'patchy-idle.png'))
     if '--preview' in sys.argv:
-        sheet = Image.new('RGBA', (S * len(idle), S * 2), (240, 236, 220, 255))
+        n = max(len(walk), len(idle))
+        sheet = Image.new('RGBA', (S * n, S * 2), (240, 236, 220, 255))
         sheet.alpha_composite(strip(walk), (0, 0))
         sheet.alpha_composite(strip(idle), (0, S))
-        sheet.resize((S * len(idle) * 6, S * 2 * 6), Image.NEAREST).save(os.path.join(HERE, 'patchy-preview.png'))
+        sheet.resize((S * n * 6, S * 2 * 6), Image.NEAREST).save(os.path.join(HERE, 'patchy-preview.png'))
 
 
 if __name__ == '__main__':
