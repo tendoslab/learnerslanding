@@ -11,14 +11,16 @@ faces the viewer. Parts are split by position:
   legs   left / right, everything from LEG_TOP down
   body   everything else (head, belly)
 
-  walk (48 frames): legs step in turn, arms swing against them, body bobs
+  walk (48 frames, two rows: walking left, walking right): he turns a
+                   little toward where he's going, legs step in turn, arms swing out against them, body bobs
                    and his ears lag as he lands; across the six-second loop
                    he glances left and right, blinks and puffs just once
   idle (32 frames): mostly breaths, with a glance left and right (ears
                     perking to listen), a blink and a big happy ^ ^ grin
                     spread across eight seconds
 
-Output goes to public/sprites/critters/patchy-{walk,idle}.png.
+Output goes to public/sprites/critters/patchy-{walk,idle}.png (two rows each;
+idle's rows are the same, facing you).
 
     python3 tools/make_patchy.py            # regenerate
     python3 tools/make_patchy.py --preview  # also write a big contact sheet
@@ -115,10 +117,43 @@ def face(body, look=0, eyes='open', mouth=False):
     return out
 
 
-def frame(parts, body_dy=0, legs=(0, 0), arms=(0, 0), ears=(0, 0), **look):
+# Turning: rows of his head and torso whose insides slide toward where he's walking.
+TURN_ROWS = list(range(7, 17)) + list(range(19, 26))
+
+
+def turn(body, d):
+    """Turn him a little to one side (-1 left, 1 right), like the animals do
+    when they walk: inside each row of his face and torso, between the outlines,
+    everything slides a pixel that way. The far cheek tucks under the outline
+    and a pixel more of his near side shows, so he reads as looking where he's
+    going without needing a whole new drawing."""
+    if not d:
+        return body
+    out = dict(body)
+    for y in TURN_ROWS:
+        xs = sorted(x for (x, yy) in body if yy == y)
+        if not xs:
+            continue
+        lo, hi = xs[0], xs[-1]
+        # Step past the outline runs at both ends.
+        while lo < hi and body.get((lo, y)) == OUTLINE:
+            lo += 1
+        while hi > lo and body.get((hi, y)) == OUTLINE:
+            hi -= 1
+        inside = [x for x in range(lo, hi + 1) if (x, y) in body]
+        for x in inside:
+            src = (x - d, y)
+            # The trailing edge keeps its own pixel (fur), the rest slide over.
+            if lo <= x - d <= hi and src in body:
+                out[(x, y)] = body[src]
+    return out
+
+
+def frame(parts, body_dy=0, legs=(0, 0), arms=(0, 0), ears=(0, 0), facing=0, **look):
     """legs are (left, right) flags that lift that foot a pixel; arms are
-    (left, right) flags that swing that arm down a pixel; ears are (left,
-    right) flags that perk that ear up a pixel. Anything else goes to face()."""
+    (left, right) flags that swing that arm out and up a pixel; ears are (left,
+    right) flags that perk that ear up a pixel; facing -1 / 1 turns him a
+    little left / right. Anything else goes to face()."""
     img = Image.new('RGBA', (S, S), CLEAR)
 
     def put(layer, dx, dy):
@@ -140,12 +175,14 @@ def frame(parts, body_dy=0, legs=(0, 0), arms=(0, 0), ears=(0, 0), **look):
         put(parts[ear], 0, body_dy)
         if perk:
             put(parts[ear], 0, body_dy - 1)
-    put(face(parts['body'], **look), 0, body_dy)
-    # An arm swinging down stretches the same way, so no gap opens under the shoulder band.
-    for arm, swing in (('arm_l', arms[0]), ('arm_r', arms[1])):
+    put(turn(face(parts['body'], **look), facing), 0, body_dy)
+    # A swinging arm flings out to his side and up, like the little animals'
+    # arms. It's stamped where it was too, so it stretches from the shoulder
+    # instead of coming loose.
+    for arm, swing, out in (('arm_l', arms[0], -1), ('arm_r', arms[1], 1)):
         put(parts[arm], 0, body_dy)
         if swing:
-            put(parts[arm], 0, body_dy + 1)
+            put(parts[arm], out, body_dy - 1)
     seal(img)
     return img
 
@@ -160,10 +197,12 @@ def seal(img):
                 img.putpixel((x, y), OUTLINE)
 
 
-def strip(frames):
-    sheet = Image.new('RGBA', (S * len(frames), S), CLEAR)
-    for i, f in enumerate(frames):
-        sheet.paste(f, (i * S, 0))
+def strip(*rows):
+    """One row of frames per direction, stacked."""
+    sheet = Image.new('RGBA', (S * len(rows[0]), S * len(rows)), CLEAR)
+    for r, frames in enumerate(rows):
+        for i, f in enumerate(frames):
+            sheet.paste(f, (i * S, r * S))
     return sheet
 
 
@@ -174,22 +213,25 @@ def main():
     # drops onto a foot. Most steps are plain, so the glances stay occasional:
     # over the loop he glances left, then right, blinks, and only on the last
     # step puffs once with his mouth open.
-    def stride(lead, **face):
-        legs, arms = ((1, 0), (0, 1)) if lead == 'l' else ((0, 1), (1, 0))
-        return [
-            frame(parts, legs=legs, arms=arms),
-            frame(parts, legs=legs, arms=arms, **face),
-            frame(parts, body_dy=1, ears=(1, 1), **face),
-        ]
-    plain = stride('l') + stride('r')
-    walk = (
-        plain + plain +
-        stride('l', look=-1) + stride('r', look=-1) +
-        plain + plain +
-        stride('l') + stride('r', look=1) +
-        plain +
-        stride('l', eyes='blink') + stride('r', mouth=True)
-    )
+    def walk_loop(facing):
+        def stride(lead, **face):
+            legs, arms = ((1, 0), (0, 1)) if lead == 'l' else ((0, 1), (1, 0))
+            return [
+                frame(parts, legs=legs, arms=arms, facing=facing),
+                frame(parts, legs=legs, arms=arms, facing=facing, **face),
+                frame(parts, body_dy=1, ears=(1, 1), facing=facing, **face),
+            ]
+        plain = stride('l') + stride('r')
+        return (
+            plain + plain +
+            stride('l', look=-1) + stride('r', look=-1) +
+            plain + plain +
+            stride('l') + stride('r', look=1) +
+            plain +
+            stride('l', eyes='blink') + stride('r', mouth=True)
+        )
+    # Row 0 walks left, row 1 walks right, each turned a little that way.
+    walk_l, walk_r = walk_loop(-1), walk_loop(1)
     # Eight seconds at 4fps, mostly quiet breathing: a look left (that ear
     # perks to listen), more breaths, a look right, a blink, then a big happy
     # grin with both ears up.
@@ -207,16 +249,18 @@ def main():
          frame(parts, eyes='happy', mouth=True, body_dy=1),
          frame(parts), frame(parts)]
     )
-    assert len(walk) == 48 and len(idle) == 32, (len(walk), len(idle))
+    assert len(walk_l) == 48 and len(idle) == 32, (len(walk_l), len(idle))
     os.makedirs(OUT, exist_ok=True)
-    strip(walk).save(os.path.join(OUT, 'patchy-walk.png'))
-    strip(idle).save(os.path.join(OUT, 'patchy-idle.png'))
+    strip(walk_l, walk_r).save(os.path.join(OUT, 'patchy-walk.png'))
+    # Standing still he faces you again, whichever way he was walking, so the
+    # idle sheet has the same front-facing row for both directions.
+    strip(idle, idle).save(os.path.join(OUT, 'patchy-idle.png'))
     if '--preview' in sys.argv:
-        n = max(len(walk), len(idle))
-        sheet = Image.new('RGBA', (S * n, S * 2), (240, 236, 220, 255))
-        sheet.alpha_composite(strip(walk), (0, 0))
-        sheet.alpha_composite(strip(idle), (0, S))
-        sheet.resize((S * n * 6, S * 2 * 6), Image.NEAREST).save(os.path.join(HERE, 'patchy-preview.png'))
+        n = max(len(walk_l), len(idle))
+        sheet = Image.new('RGBA', (S * n, S * 3), (240, 236, 220, 255))
+        sheet.alpha_composite(strip(walk_l, walk_r), (0, 0))
+        sheet.alpha_composite(strip(idle), (0, S * 2))
+        sheet.resize((S * n * 6, S * 3 * 6), Image.NEAREST).save(os.path.join(HERE, 'patchy-preview.png'))
 
 
 if __name__ == '__main__':
