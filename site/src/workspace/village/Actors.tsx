@@ -490,7 +490,7 @@ export default function Actors({ ref, actors, S, focusing, placed, interactive }
               shadow: wrap.querySelector('.ll-shadow') as HTMLSpanElement,
             });
           }}
-          className={`group absolute -translate-x-1/2 ${interactive ? 'pointer-events-auto cursor-pointer' : 'pointer-events-none'}`}
+          className={`ll-pop group absolute -translate-x-1/2 ${interactive ? 'pointer-events-auto cursor-pointer' : 'pointer-events-none'}`}
           style={firstIds.current!.has(a.id) ? undefined : { animation: 'pop-in .6s cubic-bezier(.2,.8,.2,1)' }}
           onPointerDown={
             interactive

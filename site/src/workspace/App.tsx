@@ -90,7 +90,9 @@ export default function App() {
   useEffect(() => {
     if (!lastEvent || Date.now() - lastEvent.id > 5000) return;
     const messages = {
-      focus: `Session complete! +${lastEvent.coins} coins. Time for a break.`,
+      focus: `Session complete! +${lastEvent.coins} coins.${
+        lastEvent.split ? ` Logged ${lastEvent.split.map((p) => `${p.minutes}m to ${p.title}`).join(', ')}.` : ''
+      } Time for a break.`,
       break: 'Break over. Ready for another round?',
       task: lastEvent.note ?? `Task done! +${lastEvent.coins} coins`,
     };
