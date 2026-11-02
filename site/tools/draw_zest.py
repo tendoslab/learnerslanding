@@ -6,13 +6,14 @@ Patchy.
 He's a lemon with a smug face (one brow cocked, heavy-lidded side-eye and a
 small smile) wearing a navy jersey with white shoulder panels and a
 white-and-red number 10, white knee-length football pants with a red side
-stripe, white socks and black cleats, a ball tucked in one hand.
+stripe, white socks and black cleats, the ball tucked between his arm and hip.
 
 This is the drawing only. Once it's settled, a make_zest.py can animate it
 the way make_patchy.py does (split into head / arms / legs and nudge them).
 
     python3 tools/draw_zest.py            # write tools/zest.png
     python3 tools/draw_zest.py --preview  # also write a big tools/zest-preview.png
+    python3 tools/draw_zest.py --holds    # also compare the ways of holding the ball
 """
 
 import os
@@ -64,6 +65,31 @@ BODY = [
     ".........OKKKKO..OKKKKO.........",  # 30
     ".........OOOOOO..OOOOOO.........",  # 31
 ]
+# Ways of holding the ball. Each replaces the left end of rows 17-24 (the
+# columns given) of BODY above, which is the 'hand' version.
+HOLDS = {
+    # Ball standing upright, squeezed between his arm and his hip.
+    'tuck': {
+        17: ".......OWWNNN",
+        18: "......OWWOONN",
+        19: ".....ONNOBBON",
+        20: "....OWWOBBWBO",
+        21: "...OYYYOBWWbO",
+        22: "...OYyyObBWbO",
+        23: "....OOO.ObbO",
+        24: ".........OO",
+    },
+    # Ball lying flat under his arm: the tip pokes out in front, the back end
+    # shows between his arm and his hip.
+    'under': {
+        19: ".......ONNNNN",
+        20: "..OOOOOOWWOOO",
+        21: ".OBBWBBOYYOBO",
+        22: "OBBWWWBOYYObO",
+        23: ".ObbbbbOYyObO",
+        24: "..OOOOOOOOOO",
+    },
+}
 KEY = {'.': CLEAR, 'O': OUTLINE, 'N': NAVY, 'M': NAVY_SHADE, 'W': WHITE, 'w': WHITE_SHADE,
        'R': RED, 'Y': PEEL, 'y': PEEL_SHADE, 'K': BOOT, 'B': BALL, 'b': BALL_SHADE}
 
@@ -125,10 +151,13 @@ def face(px):
     return px
 
 
-def draw():
+def draw(hold='hand'):
     img = Image.new('RGBA', (S, S), CLEAR)
     for r, row in enumerate(BODY):
         assert len(row) == S, (16 + r, len(row))
+        left = HOLDS.get(hold, {}).get(16 + r)
+        if left:
+            row = left + row[len(left):]
         for x, ch in enumerate(row):
             if ch != '.':
                 img.putpixel((x, 16 + r), KEY[ch])
@@ -137,15 +166,23 @@ def draw():
     return img
 
 
+# Which hold zest.png uses. Run with --holds to compare them all.
+HOLD = 'tuck'
+
+
 def main():
-    img = draw()
+    img = draw(HOLD)
     img.save(os.path.join(HERE, 'zest.png'))
+    if '--holds' in sys.argv:
+        names = ['hand', *HOLDS]
+        sheet = Image.new('RGBA', ((S + 4) * len(names), S + 4), (240, 236, 220, 255))
+        for i, name in enumerate(names):
+            sheet.alpha_composite(draw(name), (2 + (S + 4) * i, 2))
+        sheet.resize((sheet.width * 8, sheet.height * 8), Image.NEAREST).save(os.path.join(HERE, 'zest-holds.png'))
     if '--preview' in sys.argv:
         bg = Image.new('RGBA', (S + 4, S + 4), (240, 236, 220, 255))
         bg.alpha_composite(img, (2, 2))
-        bg.resize(((S + 4) * 12, (S + 4) * 12), Image.NEAREST).save(
-            sys.argv[sys.argv.index('--preview') + 1] if len(sys.argv) > sys.argv.index('--preview') + 1
-            else os.path.join(HERE, 'zest-preview.png'))
+        bg.resize(((S + 4) * 12, (S + 4) * 12), Image.NEAREST).save(os.path.join(HERE, 'zest-preview.png'))
 
 
 if __name__ == '__main__':
