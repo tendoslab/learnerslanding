@@ -11,7 +11,7 @@ faces the viewer. Parts are split by position:
   legs   left / right, everything from LEG_TOP down
   body   everything else (head, belly)
 
-  walk (48 frames): legs step in turn, arms swing against them, body bobs
+  walk (48 frames): legs step in turn, arms swing out against them, body bobs
                    and his ears lag as he lands; across the six-second loop
                    he glances left and right, blinks and puffs just once
   idle (32 frames): mostly breaths, with a glance left and right (ears
@@ -117,7 +117,7 @@ def face(body, look=0, eyes='open', mouth=False):
 
 def frame(parts, body_dy=0, legs=(0, 0), arms=(0, 0), ears=(0, 0), **look):
     """legs are (left, right) flags that lift that foot a pixel; arms are
-    (left, right) flags that swing that arm down a pixel; ears are (left,
+    (left, right) flags that swing that arm out and up a pixel; ears are (left,
     right) flags that perk that ear up a pixel. Anything else goes to face()."""
     img = Image.new('RGBA', (S, S), CLEAR)
 
@@ -141,11 +141,13 @@ def frame(parts, body_dy=0, legs=(0, 0), arms=(0, 0), ears=(0, 0), **look):
         if perk:
             put(parts[ear], 0, body_dy - 1)
     put(face(parts['body'], **look), 0, body_dy)
-    # An arm swinging down stretches the same way, so no gap opens under the shoulder band.
-    for arm, swing in (('arm_l', arms[0]), ('arm_r', arms[1])):
+    # A swinging arm flings out to his side and up, like the little animals'
+    # arms. It's stamped where it was too, so it stretches from the shoulder
+    # instead of coming loose.
+    for arm, swing, out in (('arm_l', arms[0], -1), ('arm_r', arms[1], 1)):
         put(parts[arm], 0, body_dy)
         if swing:
-            put(parts[arm], 0, body_dy + 1)
+            put(parts[arm], out, body_dy - 1)
     seal(img)
     return img
 
