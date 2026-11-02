@@ -10,11 +10,17 @@ He's put together from layers so each can move on its own:
   free arm  his other arm, which swings as he walks
   legs      left / right, below the hips
 
-  walk (48 frames, two rows: walking left, walking right): a confident jog.
-        The ball arm stays locked, the free arm swings against the stepping
-        leg, the body dips as a foot lands and the big lemon head lands a
-        frame later. Over the six-second loop he glances where he's going,
-        blinks once and hitches the ball up once.
+  walk (48 frames, two rows: walking left, walking right): a confident walk
+        in three-quarter view, like Twiggy and Orange: both eyes still show
+        but sit toward where he's going, the number slides forward and his
+        cleats point ahead. The legs hang from one spot under his shorts and
+        hit the classic keys each step: contact (feet wide, both down), low
+        (weight on, body lowest), passing (feet together, one lifted),
+        high (push off, body highest), reach. Six frames a step, legs
+        swapping each step, the free arm swinging against the far leg and
+        the ball arm locked.
+        Once a loop
+        he glances at you, hitches the ball up and blinks.
   idle (32 frames): mostly breaths, with his signature smug brow raise,
         a look left and right (reading the field), a blink, a stem wiggle and,
         once a loop, a little toss and catch of the ball with a big grin.
@@ -187,13 +193,9 @@ def frame(layers, body_dy=0, head_dy=0, legs=(0, 0), swing=0, facing=0, ball='tu
             if 0 <= x + dx < S and 0 <= y + dy < S:
                 img.putpixel((x + dx, y + dy), c)
 
+    # Legs: a lifted leg loses a pixel of shin.
     for leg, lift in ((leg_l, legs[0]), (leg_r, legs[1])):
-        put(leg, 0, 0)
-        if lift:
-            put({k: v for k, v in leg.items() if k[1] > LEG_TOP}, 0, -1)
-            bottom = max(y for _, y in leg)
-            for (x, y) in [k for k in leg if k[1] == bottom]:
-                img.putpixel((x, y), CLEAR)
+        put({(x, y - (1 if lift and y > LEG_TOP else 0)): c for (x, y), c in leg.items()}, 0, 0)
     t = turn(torso, facing)
     # Stamped where it was too, so dipping stretches the collar instead of
     # opening a gap under the head.
@@ -210,6 +212,182 @@ def frame(layers, body_dy=0, head_dy=0, legs=(0, 0), swing=0, facing=0, ball='tu
     return img
 
 
+# ---------------------------------------------------------------------------
+# Three-quarter view for the walk, facing right (the left row is a mirror),
+# turned like Twiggy and Orange: both eyes still show but slide toward the
+# front, the far eye a pixel narrower, his smile off-centre, the number on
+# his jersey slid two pixels forward and his cleats pointing where he goes.
+
+# Near eye (outline columns) and far eye, and where the pupils sit in each.
+Q_EYES = ((10, 15), (19, 23))
+Q_PUPILS = {'ahead': ((13, 14), (21, 22)), 'mid': ((12, 13), (20, 21))}
+# Legs from the shorts' hem down, drawn under the torso so a lifted leg
+# tucks up into the shorts. Cleats have a rounded heel and sole with the
+# toe out in front (right), so they read as shoes, not hooves.
+Q_LEG_NEAR = [
+    "ORWWO..",
+    "OwwwO..",
+    "OwwwO..",
+    ".OKKKO.",
+    "OKKKKKO",
+    ".OOOOO.",
+]
+Q_LEG_FAR = [
+    "OwwwO..",
+    "OwwwO..",
+    "OwwwO..",
+    ".OKKKO.",
+    "OKKKKKO",
+    ".OOOOO.",
+]
+Q_LEG_X = (13, 14)  # near, far: hung from the same spot, so every stride opens wide
+SHORTS_TOP = 23
+# One step, six frames, on the classic walk keys. Each entry: (body dy,
+# lead leg (forward, lift), trail leg (forward, lift)).
+#   contact  both feet down, the stride at its widest
+#   low      weight onto the front foot, body at its lowest, back heel peels
+#   passing  supporting leg under him, the other lifted and coming through
+#   high     pushing off, body at its highest, swing leg reaching forward
+#   reach    about to land
+# The next step swaps the legs, so a full stride is twelve frames and every
+# foot is always travelling.
+Q_STEP = [
+    (0, (4, 0), (-4, 0)),   # contact
+    (1, (3, 0), (-4, 1)),   # low
+    (1, (1, 0), (-2, 1)),
+    (0, (0, 0), (0, 1)),    # passing
+    (-1, (-1, 0), (2, 1)),  # high
+    (0, (-3, 0), (4, 1)),   # reach
+]
+
+def head_quarter(eyes='open', look='ahead', tip=0):
+    """The lemon turned three-quarters toward the right."""
+    px = z.lemon()
+    for k, c in list(px.items()):
+        if c == z.PORE and 9 <= k[0] <= 25 and 4 <= k[1] <= 13:
+            px[k] = z.PEEL
+    if tip:
+        px[(3, 7)] = z.TIP
+        px[(2, 7)] = px[(3, 6)] = O
+        px[(3, 9)] = O
+    # Cocked brow over the near eye, flat brow over the far one.
+    for k in ((10, 6), (11, 5), (12, 4), (13, 4), (14, 4), (15, 4)):
+        px[k] = O
+    for x in range(19, 24):
+        px[(x, 5)] = O
+    for n, (lo, hi) in enumerate(Q_EYES):
+        for x in range(lo + 1, hi):
+            px[(x, 7)] = px[(x, 10)] = O
+            px[(x, 8)] = z.PEEL_SHADE
+            px[(x, 9)] = z.PEEL_SHADE if eyes == 'closed' else z.EYE
+        px[(lo, 8)] = px[(lo, 9)] = px[(hi, 8)] = px[(hi, 9)] = O
+        if eyes == 'open':
+            for x in Q_PUPILS[look][n]:
+                px[(x, 9)] = O
+    # Blush and the smile, its front corner lifted.
+    px[(9, 11)] = px[(25, 10)] = z.BLUSH
+    for k in ((15, 12), (16, 13), (17, 13), (18, 13), (19, 13), (20, 12)):
+        px[k] = O
+    return px
+
+
+def quarter_layers():
+    torso, arm, _, _ = body_layers()
+    torso = turn(turn(torso, 1), 1)
+    # Close the gap between his legs at the shorts' hem: the legs hang below.
+    torso[(15, 25)] = torso[(16, 25)] = z.WHITE
+    # Round off the bottom corners of his shorts.
+    bottom = [x for (x, y) in torso if y == 25]
+    lo, hi = min(bottom), max(bottom)
+    del torso[(lo, 25)], torso[(hi, 25)]
+    torso[(lo + 1, 25)] = torso[(hi - 1, 25)] = O
+    return torso, arm
+
+
+def swing_leg(art, x0, fwd, top, bottom):
+    """A leg hung from the hip at column x0, from row top (under the shorts)
+    down to its sole on row bottom, swung fwd pixels at the foot. The sock
+    gets a row longer or shorter to fit (a stretch when he bounces up on a
+    planted foot, a tuck when it lifts) and leans a little further each row
+    down (the top itself a third as far as the foot), so the leg angles from
+    the hip like Twiggy's. The shoe stays level under it: slanting the shoe
+    too turns it into a hoof."""
+    pants, sock, shoe = art[0], art[1], art[3:]
+    rows = [pants] + [sock] * max(0, bottom - top + 1 - 1 - len(shoe))
+    last = len(rows)
+    out = {}
+    for r, row in enumerate(rows + shoe):
+        # The thigh swings a third as far as the foot.
+        lean = fwd / 3 + (fwd - fwd / 3) * min(r, last) / last
+        dx = int(lean + (0.5 if lean > 0 else -0.5))
+        for x, ch in enumerate(row):
+            if ch != '.':
+                out[(x0 + dx + x, top + r)] = z.KEY[ch]
+    return out
+
+
+def seal(img):
+    """Outline any colour left touching empty space, e.g. the bottom of his
+    shorts where the legs part, so gaps get an edge like the rest of him."""
+    px = img.load()
+    edge = []
+    for y in range(S):
+        for x in range(S):
+            c = px[x, y]
+            if c[3] and c != O:
+                for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                    if 0 <= nx < S and 0 <= ny < S and not px[nx, ny][3]:
+                        edge.append((nx, ny))
+    for k in edge:
+        px[k] = O
+
+
+# The number on his jersey: mirrored frames stamp it back the right way round.
+NUMBER_ROWS, NUMBER_COLS = range(18, 22), range(13, 22)
+
+
+def walk_frame(layers, i, ball='tuck', mirror=False, **face):
+    """Frame i of the stride cycle, facing right (mirror: facing left, with
+    the number still reading 10)."""
+    torso, arm = layers
+    img = Image.new('RGBA', (S, S), CLEAR)
+    dy, lead, trail = Q_STEP[i % 6]
+    near, far = (lead, trail) if i % 12 < 6 else (trail, lead)
+    # The free (far) arm swings against the far leg.
+    swing = max(-1, min(1, -far[0]))
+
+    def put(layer, dx, ddy):
+        for (x, y), c in layer.items():
+            if 0 <= x + dx < S and 0 <= y + ddy < S:
+                img.putpixel((x + dx, y + ddy), c)
+
+    # Legs hang from the shorts (which ride up with the body) down to the
+    # foot (which stays on the ground unless lifted).
+    for art, x0, (fwd, lift) in ((Q_LEG_FAR, Q_LEG_X[1], far), (Q_LEG_NEAR, Q_LEG_X[0], near)):
+        put(swing_leg(art, x0, fwd, LEG_TOP + dy, S - 1 - lift), 0, 0)
+    # When he bounces up, the shorts stretch a pixel rather than lifting off
+    # his legs, so they stay one solid piece.
+    put({k: c for k, c in torso.items() if k[1] >= SHORTS_TOP}, 0, 0)
+    put(torso, 0, dy)
+    put(arm, 0, dy)
+    if swing:
+        put(arm, swing, dy - (swing > 0))
+    if ball in ('tuck', 'hitch'):
+        put(grid(BALL_UP), TUCK_AT[0], TUCK_AT[1] + dy - (ball == 'hitch'))
+    put(head_quarter(**face), 0, dy)
+    seal(img)
+    if mirror:
+        img = img.transpose(Image.FLIP_LEFT_RIGHT)
+        glyph = [(x, y) for (x, y), c in torso.items()
+                 if c == z.WHITE and x in NUMBER_COLS and y in NUMBER_ROWS]
+        x0, x1 = min(x for x, _ in glyph), max(x for x, _ in glyph)
+        for x, y in glyph:
+            img.putpixel((S - 1 - x, y + dy), z.NAVY)
+        for x, y in glyph:
+            img.putpixel((S - 1 - x1 + (x - x0), y + dy), z.WHITE)
+    return img
+
+
 def strip(*rows):
     sheet = Image.new('RGBA', (S * len(rows[0]), S * len(rows)), CLEAR)
     for r, frames in enumerate(rows):
@@ -221,29 +399,18 @@ def strip(*rows):
 def main():
     L = body_layers()
 
-    # Sixteen strides (six seconds at 8fps). Each stride: foot up, foot up,
-    # land (body dips, head still up), and the head lands on the next frame.
-    def walk_loop(d):
-        look = 'left' if d < 0 else 'right'
-
-        def stride(lead, **extra):
-            legs = (1, 0) if lead == 'l' else (0, 1)
-            swing = lead == 'l'
-            return [
-                frame(L, legs=legs, swing=swing, facing=d, head_dy=1, **extra),
-                frame(L, legs=legs, swing=swing, facing=d, **extra),
-                frame(L, body_dy=1, facing=d, **extra),
-            ]
-        plain = stride('l') + stride('r')
-        return (
-            plain + plain +
-            stride('l', look=look) + stride('r', look=look) +
-            plain + plain +
-            stride('l', ball='hitch') + stride('r') +
-            plain +
-            stride('l', eyes='closed') + stride('r')
-        )
-    walk_l, walk_r = walk_loop(-1), walk_loop(1)
+    # The walk: four twelve-frame strides (six seconds at 8fps) in the
+    # three-quarter view. Once a loop he glances at you, blinks and hitches
+    # the ball up.
+    Q = quarter_layers()
+    extras = [{}] * 48
+    for i in range(18, 22):
+        extras[i] = {'look': 'mid'}
+    extras[33] = {'ball': 'hitch'}
+    extras[34] = {'ball': 'hitch'}
+    extras[42] = {'eyes': 'closed'}
+    walk_r = [walk_frame(Q, i, **extras[i]) for i in range(48)]
+    walk_l = [walk_frame(Q, i, mirror=True, **extras[i]) for i in range(48)]
 
     def breaths(n):
         return [f for _ in range(n) for f in (frame(L), frame(L, body_dy=1, head_dy=1), frame(L))]
