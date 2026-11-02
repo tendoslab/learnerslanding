@@ -60,9 +60,16 @@ const animal = (n: string): SpriteDef => ({
   box: [10, 7, 12, 17],
 });
 
+// Bump a critter's number whenever its sheets change shape (frame count or size).
+// Browsers cache the PNGs, and an old sheet sliced with the new frame count
+// gets stretched into half-frames, so the query forces a fresh download.
+const SHEET_VERSION: Record<string, number> = { patchy: 2 };
+const sheet = (n: string, kind: string) =>
+  withBase(`/sprites/critters/${n}-${kind}.png`) + (SHEET_VERSION[n] ? `?v=${SHEET_VERSION[n]}` : '');
+
 const critter = (n: string, walkFrames: number, idleFrames: number, size = 32, extra: Partial<SpriteDef> = {}): SpriteDef => ({
-  walk: { src: withBase(`/sprites/critters/${n}-walk.png`), frames: walkFrames, w: size, h: size, fps: 8 },
-  idle: { src: withBase(`/sprites/critters/${n}-idle.png`), frames: idleFrames, w: size, h: size, fps: 4 },
+  walk: { src: sheet(n, 'walk'), frames: walkFrames, w: size, h: size, fps: 8 },
+  idle: { src: sheet(n, 'idle'), frames: idleFrames, w: size, h: size, fps: 4 },
   facing: 'side',
   speed: 3,
   foot: 0,
