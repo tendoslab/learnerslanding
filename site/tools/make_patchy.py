@@ -11,11 +11,12 @@ faces the viewer. Parts are split by position:
   legs   left / right, everything from LEG_TOP down
   body   everything else (head, belly)
 
-  walk (24 frames): legs step in turn, arms swing against them, body bobs
-                   and his ears lag as he lands; across the loop he
-                   glances left and right, blinks and puffs just once
-  idle (16 frames): breaths, glances left and right (ears perking to
-                    listen), a blink and a big happy ^ ^ grin
+  walk (48 frames): legs step in turn, arms swing against them, body bobs
+                   and his ears lag as he lands; across the six-second loop
+                   he glances left and right, blinks and puffs just once
+  idle (32 frames): mostly breaths, with a glance left and right (ears
+                    perking to listen), a blink and a big happy ^ ^ grin
+                    spread across eight seconds
 
 Output goes to public/sprites/critters/patchy-{walk,idle}.png.
 
@@ -168,10 +169,11 @@ def strip(frames):
 
 def main():
     parts = split(load())
-    # Eight steps (three seconds at 8fps), so the extras don't repeat every
+    # Sixteen steps (six seconds at 8fps), so the extras don't repeat every
     # step: arms swing against the stepping leg and his ears lag behind as he
-    # drops onto a foot. Over the loop he glances left, then right, blinks, and
-    # only on the last step puffs once with his mouth open.
+    # drops onto a foot. Most steps are plain, so the glances stay occasional:
+    # over the loop he glances left, then right, blinks, and only on the last
+    # step puffs once with his mouth open.
     def stride(lead, **face):
         legs, arms = ((1, 0), (0, 1)) if lead == 'l' else ((0, 1), (1, 0))
         return [
@@ -179,32 +181,33 @@ def main():
             frame(parts, legs=legs, arms=arms, **face),
             frame(parts, body_dy=1, ears=(1, 1), **face),
         ]
+    plain = stride('l') + stride('r')
     walk = (
-        stride('l') + stride('r') +
+        plain + plain +
         stride('l', look=-1) + stride('r', look=-1) +
+        plain + plain +
         stride('l') + stride('r', look=1) +
+        plain +
         stride('l', eyes='blink') + stride('r', mouth=True)
     )
-    # Four seconds at 4fps: a breath, a look left (that ear perks to listen),
-    # a breath, a look right, a blink, then a big happy grin with both ears up.
-    idle = [
-        frame(parts),
-        frame(parts, body_dy=1),
-        frame(parts),
-        frame(parts, look=-1),
-        frame(parts, look=-1, ears=(1, 0)),
-        frame(parts, look=-1),
-        frame(parts),
-        frame(parts, body_dy=1),
-        frame(parts, look=1),
-        frame(parts, look=1, ears=(0, 1)),
-        frame(parts),
-        frame(parts, eyes='blink'),
-        frame(parts),
-        frame(parts, eyes='happy', mouth=True, ears=(1, 1)),
-        frame(parts, eyes='happy', mouth=True, body_dy=1),
-        frame(parts),
-    ]
+    # Eight seconds at 4fps, mostly quiet breathing: a look left (that ear
+    # perks to listen), more breaths, a look right, a blink, then a big happy
+    # grin with both ears up.
+    def breaths(n):
+        return [f for _ in range(n) for f in (frame(parts), frame(parts, body_dy=1), frame(parts))]
+    idle = (
+        breaths(2) +
+        [frame(parts, look=-1), frame(parts, look=-1, ears=(1, 0)), frame(parts, look=-1)] +
+        breaths(2) +
+        [frame(parts, look=1), frame(parts, look=1, ears=(0, 1))] +
+        breaths(1) + [frame(parts)] +
+        [frame(parts, eyes='blink')] +
+        breaths(2) +
+        [frame(parts, eyes='happy', mouth=True, ears=(1, 1)),
+         frame(parts, eyes='happy', mouth=True, body_dy=1),
+         frame(parts), frame(parts)]
+    )
+    assert len(walk) == 48 and len(idle) == 32, (len(walk), len(idle))
     os.makedirs(OUT, exist_ok=True)
     strip(walk).save(os.path.join(OUT, 'patchy-walk.png'))
     strip(idle).save(os.path.join(OUT, 'patchy-idle.png'))
