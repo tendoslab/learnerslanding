@@ -24,15 +24,15 @@ S = 32
 O = z.OUTLINE
 
 # Body below the head, rows 16-31, facing right, built in layers: torso
-# (jersey, pants, legs), then the ball, then his near arm wrapped over it.
+# (jersey in shade behind his arm, pants, legs), then the ball, then his near arm wrapped over it.
 # Same key as draw_zest.BODY.
 TORSO = [
     "..........OOOOOOOOOOOO..........",  # 16 collar
-    ".........ONNNNNNNNNNNNO.........",  # 17
-    ".........ONNNNNNNNNNNNO.........",  # 18
-    ".........ONNNNNNNNNNNNO.........",  # 19
-    ".........OMNNNNNNNNNNNO.........",  # 20
-    ".........OMNNNNNNNNNNNO.........",  # 21
+    ".........OMMMMMMMMMNNNO.........",  # 17
+    ".........OMMMMMMMMMNNNO.........",  # 18
+    ".........OMMMMMMMMMNNNO.........",  # 19
+    ".........OMMMMMMMMMNNNO.........",  # 20
+    ".........OMMMMMMMMMNNNO.........",  # 21
     ".........ORRRRRRRRRRRRO.........",  # 22 red hem
     ".........OOWWWWWWWWWWOO.........",  # 23 pants
     "..........ORRWWWWWWWwO..........",  # 24 red side stripe
@@ -44,25 +44,26 @@ TORSO = [
     "............OKKKOKKKKKO.........",  # 30
     "............OOOOOOOOOOO.........",  # 31
 ]
-# The ball cradled against his chest, tip forward.
+# The ball tucked against his chest, tip forward.
 BALL = ([
     "..OOOOO..",
     ".OBBBBBO.",
     "OBWWWWBBO",
     "ObbbbbbbO",
     ".OOOOOOO.",
-], (17, 18))
-# Near arm: white shoulder panel, navy sleeve down to the elbow, white cuff,
-# then the forearm under the ball and the hand cupping its tip.
+], (16, 18))
+# Near arm, drawn over the ball: white shoulder panel, then the sleeve slopes
+# down and forward (no hard elbow), white cuff, and the hand cups the ball's
+# underside toward the tip.
 ARM = ([
-    "OOOOO.........",
-    "OWWWO.........",
-    "OWWWO.........",
-    "ONNNO.........",
-    "ONNNO.........",
-    "ONNNOOOOOOOOO.",
-    "OWWWNNNNNOYYYO",
-    ".OOOOOOOOOOOO.",
+    "OOOOO........",
+    "OWWWO........",
+    "OWWWWO.......",
+    ".ONNNO.......",
+    "..ONNNO......",
+    "...ONNNO.....",
+    "....OWWWOYYYO",
+    ".....OOOOOOO.",
 ], (11, 16))
 
 
