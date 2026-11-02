@@ -96,6 +96,14 @@ export const RESIDENTS: Resident[] = [
     turnRows: { left: 0, right: 1 },
     facing: 'front', speed: 2, foot: 2, body: 16, box: [6, 3, 20, 27],
   }) },
+  // Also unlocked from the start for a preview; give him a real unlockAt once he's settled in.
+  { id: 'zest', name: 'Zest', species: 'Lemon', unlockAt: 0, sprite: critter('zest', 48, 32, 32, {
+    // Two rows like Patchy: turned a little left / right while walking; idle faces you.
+    walk: { src: sheet('zest', 'walk'), frames: 48, w: 32, h: 32, rows: 2, fps: 8 },
+    idle: { src: sheet('zest', 'idle'), frames: 32, w: 32, h: 32, rows: 2, fps: 4 },
+    turnRows: { left: 0, right: 1 },
+    facing: 'front', speed: 2.4, foot: 0, body: 16, box: [2, 1, 28, 31],
+  }) },
   { id: 'cat', name: 'Mochi', species: 'Cat', unlockAt: 25, sprite: animal('cat') },
   { id: 'bunny', name: 'Clover', species: 'Bunny', unlockAt: 75, sprite: animal('bunny') },
   { id: 'penguin', name: 'Pip', species: 'Penguin', unlockAt: 150, sprite: critter('penguin', 6, 5, 18, { scale: 1.1, speed: 1.8, body: 14, foot: 1, box: [1, 1, 16, 16] }) },
