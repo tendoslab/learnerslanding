@@ -28,6 +28,7 @@ npm run build      # production build into site/dist
 | Workspace app (timer, tasks, village…) | `src/workspace/` |
 | Pages (home, about, privacy…) | `src/pages/` |
 | Decoration pixel art (generator) | `tools/make_decor.py` → `public/sprites/decor/` |
+| Original residents' animations (generators) | `tools/make_bobby.py`, `make_psykoh.py`, `make_patchy.py` → `public/sprites/critters/` |
 | Character/animal sprites | `public/sprites/` (cropped from the packs in the repo root) |
 
 ### Add an article
@@ -98,7 +99,8 @@ mostly interactive tools without content, and they would distract people studyin
 
 Full credits are on the About page (`src/pages/about.astro`, `#credits`).
 
-- **Original:** Bobby and Psy-Koh (`tools/make_bobby.py`, `tools/make_psykoh.py`), all decorations
+- **Original:** Bobby, Psy-Koh and Patchy (`tools/make_bobby.py`, `tools/make_psykoh.py`,
+  `tools/make_patchy.py`), all decorations
   (`tools/make_decor.py`) and the village scenery.
 - [Sprite Pack 3](https://grafxkid.itch.io/sprite-pack-3) and [Sprite Pack 6](https://grafxkid.itch.io/sprite-pack-6)
   by GrafxKid (CC0): the other `public/sprites/critters/` residents.

@@ -11,8 +11,10 @@ faces the viewer. Parts are split by position:
   legs   left / right, everything from LEG_TOP down
   body   everything else (head, belly)
 
-  walk (6 frames): legs step in turn, arms swing against them, body bobs
-  idle (8 frames): a breath, each ear perking up in turn, a happy blink
+  walk (6 frames): legs step in turn, arms swing against them, body bobs,
+                  he puffs mid-stride and his ears lag as he lands
+  idle (16 frames): breaths, glances left and right (ears perking to
+                    listen), a blink and a big happy ^ ^ grin
 
 Output goes to public/sprites/critters/patchy-{walk,idle}.png.
 
@@ -33,6 +35,8 @@ OUTLINE = (27, 20, 30, 255)
 PATCH = (48, 42, 56, 255)
 # Closed-eye lid line: lighter than the patch so it shows.
 LID = (96, 88, 110, 255)
+# Happy ^ ^ eyes: lighter still, so the grin reads at a glance.
+HAPPY_LID = (176, 166, 190, 255)
 CLEAR = (0, 0, 0, 0)
 # Ears: rows down to EAR_BOTTOM, outside the head's top edge.
 EAR_BOTTOM = 6
@@ -44,8 +48,15 @@ ARM_LEFT, ARM_RIGHT = 10, 21
 # Legs: from this row down, split down the middle.
 LEG_TOP = 26
 MID = 16
-# Eyes: top-left of each 2x2 eye (inside its patch).
+# Eyes: top-left of each 2x2 eye (inside its patch). Each eye is a white
+# glint top-left, black pupil on the other diagonal and its colour bottom-right.
 EYES = [(11, 11), (19, 11)]
+GLINT = (255, 255, 255, 255)
+PUPIL = OUTLINE
+# Mouth: the two pixels between the corners under his nose, and the chin below.
+MOUTH = [(15, 16), (16, 16)]
+CHIN = [(15, 17), (16, 17)]
+TONGUE = (234, 122, 132, 255)
 
 
 def load():
@@ -69,21 +80,43 @@ def split(px):
     return parts
 
 
-def blink(body):
-    """Closed eyes: the eye fills with patch and a happy lid line curves under it."""
+def face(body, look=0, eyes='open', mouth=False):
+    """Redraw his face on the body layer.
+
+    look   -1 / 1 glances left / right: the pupil fills the side he looks to and
+           the glint and colour slide to the other, so the X sparkles and O ring
+           round the eyes stay put
+    eyes   'open', 'blink' (lid curving under, a soft blink) or 'happy'
+           (lid arching over, ^ ^)
+    mouth  open, a little pink tongue showing
+    """
     out = dict(body)
     for x, y in EYES:
-        for k in ((x, y), (x + 1, y), (x, y + 1), (x + 1, y + 1)):
-            out[k] = PATCH
-        for k in ((x, y + 1), (x + 1, y + 1), (x - 1, y), (x + 2, y)):
-            out[k] = LID
+        cells = ((x, y), (x + 1, y), (x, y + 1), (x + 1, y + 1))
+        if eyes != 'open':
+            for k in cells:
+                out[k] = PATCH
+            lids = ((x, y + 1), (x + 1, y + 1), (x - 1, y), (x + 2, y)) if eyes == 'blink' else \
+                   ((x, y), (x + 1, y), (x - 1, y + 1), (x + 2, y + 1))
+            for k in lids:
+                out[k] = LID if eyes == 'blink' else HAPPY_LID
+        elif look:
+            iris = body[(x + 1, y + 1)]
+            near, far = (x, x + 1) if look < 0 else (x + 1, x)
+            out[(near, y)] = out[(near, y + 1)] = PUPIL
+            out[(far, y)], out[(far, y + 1)] = GLINT, iris
+    if mouth:
+        for k in MOUTH:
+            out[k] = TONGUE
+        for k in CHIN:
+            out[k] = OUTLINE
     return out
 
 
-def frame(parts, body_dy=0, legs=(0, 0), arms=(0, 0), ears=(0, 0), closed=False):
+def frame(parts, body_dy=0, legs=(0, 0), arms=(0, 0), ears=(0, 0), **look):
     """legs are (left, right) flags that lift that foot a pixel; arms are
     (left, right) flags that swing that arm down a pixel; ears are (left,
-    right) flags that perk that ear up a pixel."""
+    right) flags that perk that ear up a pixel. Anything else goes to face()."""
     img = Image.new('RGBA', (S, S), CLEAR)
 
     def put(layer, dx, dy):
@@ -105,7 +138,7 @@ def frame(parts, body_dy=0, legs=(0, 0), arms=(0, 0), ears=(0, 0), closed=False)
         put(parts[ear], 0, body_dy)
         if perk:
             put(parts[ear], 0, body_dy - 1)
-    put(blink(parts['body']) if closed else parts['body'], 0, body_dy)
+    put(face(parts['body'], **look), 0, body_dy)
     # An arm swinging down stretches the same way, so no gap opens under the shoulder band.
     for arm, swing in (('arm_l', arms[0]), ('arm_r', arms[1])):
         put(parts[arm], 0, body_dy)
@@ -135,32 +168,44 @@ def strip(frames):
 def main():
     parts = split(load())
     # Step left, settle, step right, settle; arms swing against the stepping leg.
+    # He puffs mid-stride, and as he drops onto a foot his ears lag behind,
+    # staying up while his head comes down.
     walk = [
         frame(parts, legs=(1, 0), arms=(0, 1)),
-        frame(parts, legs=(1, 0), arms=(0, 1)),
-        frame(parts, body_dy=1),
+        frame(parts, legs=(1, 0), arms=(0, 1), mouth=True),
+        frame(parts, body_dy=1, ears=(1, 1)),
         frame(parts, legs=(0, 1), arms=(1, 0)),
-        frame(parts, legs=(0, 1), arms=(1, 0)),
-        frame(parts, body_dy=1),
+        frame(parts, legs=(0, 1), arms=(1, 0), mouth=True),
+        frame(parts, body_dy=1, ears=(1, 1)),
     ]
+    # Four seconds at 4fps: a breath, a look left (that ear perks to listen),
+    # a breath, a look right, a blink, then a big happy grin with both ears up.
     idle = [
         frame(parts),
         frame(parts, body_dy=1),
         frame(parts),
-        frame(parts, ears=(1, 0)),
+        frame(parts, look=-1),
+        frame(parts, look=-1, ears=(1, 0)),
+        frame(parts, look=-1),
         frame(parts),
-        frame(parts, ears=(0, 1)),
-        frame(parts, closed=True),
+        frame(parts, body_dy=1),
+        frame(parts, look=1),
+        frame(parts, look=1, ears=(0, 1)),
+        frame(parts),
+        frame(parts, eyes='blink'),
+        frame(parts),
+        frame(parts, eyes='happy', mouth=True, ears=(1, 1)),
+        frame(parts, eyes='happy', mouth=True, body_dy=1),
         frame(parts),
     ]
     os.makedirs(OUT, exist_ok=True)
     strip(walk).save(os.path.join(OUT, 'patchy-walk.png'))
     strip(idle).save(os.path.join(OUT, 'patchy-idle.png'))
     if '--preview' in sys.argv:
-        sheet = Image.new('RGBA', (S * 8, S * 2), (240, 236, 220, 255))
+        sheet = Image.new('RGBA', (S * len(idle), S * 2), (240, 236, 220, 255))
         sheet.alpha_composite(strip(walk), (0, 0))
         sheet.alpha_composite(strip(idle), (0, S))
-        sheet.resize((S * 8 * 6, S * 2 * 6), Image.NEAREST).save(os.path.join(HERE, 'patchy-preview.png'))
+        sheet.resize((S * len(idle) * 6, S * 2 * 6), Image.NEAREST).save(os.path.join(HERE, 'patchy-preview.png'))
 
 
 if __name__ == '__main__':
