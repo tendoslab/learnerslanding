@@ -60,10 +60,10 @@ const animal = (n: string): SpriteDef => ({
   box: [10, 7, 12, 17],
 });
 
-// Bump a critter's number whenever its sheets change shape (frame count or size).
+// Bump a critter's number whenever its sheets change (frame count, size or the drawing).
 // Browsers cache the PNGs, and an old sheet sliced with the new frame count
 // gets stretched into half-frames, so the query forces a fresh download.
-const SHEET_VERSION: Record<string, number> = { patchy: 6, zest: 2 };
+const SHEET_VERSION: Record<string, number> = { patchy: 6, zest: 3 };
 const sheet = (n: string, kind: string) =>
   withBase(`/sprites/critters/${n}-${kind}.png`) + (SHEET_VERSION[n] ? `?v=${SHEET_VERSION[n]}` : '');
 
