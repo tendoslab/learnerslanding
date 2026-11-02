@@ -11,6 +11,8 @@ export interface SheetAnim {
   h: number;
   /** Row offset inside the sheet (source pixels). */
   y?: number;
+  /** Rows stacked in the sheet image (default 1). */
+  rows?: number;
   fps?: number;
 }
 
@@ -19,6 +21,11 @@ export interface SpriteDef {
   idle: SheetAnim;
   /** 'side' sprites face right and get mirrored; 'front' sprites face the viewer. */
   facing: 'side' | 'front';
+  /**
+   * Sheets drawn in several directions: which row (0-based) to use when facing
+   * left / right. The art isn't mirrored, so lighting and details stay put.
+   */
+  turnRows?: { left: number; right: number };
   /** Display multiplier on top of the scene's pixel scale. */
   scale?: number;
   /** Walking speed in % of scene width per second. */
@@ -42,9 +49,11 @@ export interface Resident {
 }
 
 const animal = (n: string): SpriteDef => ({
-  walk: { src: withBase(`/sprites/animals/${n}-walk.png`), frames: 4, w: 32, h: 32, fps: 6 },
-  idle: { src: withBase(`/sprites/animals/${n}-idle.png`), frames: 2, w: 32, h: 32, fps: 2 },
+  // Rows: facing left, facing right, facing the viewer.
+  walk: { src: withBase(`/sprites/animals/${n}-walk.png`), frames: 4, w: 32, h: 32, rows: 3, fps: 6 },
+  idle: { src: withBase(`/sprites/animals/${n}-idle.png`), frames: 2, w: 32, h: 32, rows: 3, fps: 2 },
   facing: 'front',
+  turnRows: { left: 0, right: 1 },
   speed: 2.2,
   foot: 8,
   body: 13,
