@@ -73,6 +73,8 @@ export interface CompletionEvent {
   scenery: Landscape[];
   /** Why a completed task paid nothing (shown instead of the coin message). */
   note?: string;
+  /** How a focus session's minutes were shared out, when it covered more than one task. */
+  split?: { title: string; minutes: number }[];
 }
 
 interface TimerState {
@@ -84,6 +86,10 @@ interface TimerState {
   remaining: number;
   /** Focus sessions finished in the current long-break cycle. */
   cycle: number;
+  /** Focus ms spent on each task so far this session, keyed by task id ('' = no task picked). */
+  split?: Record<string, number>;
+  /** Epoch ms the current stretch of running focus time started. */
+  splitFrom?: number | null;
 }
 
 export interface WorkspaceState {
@@ -209,6 +215,33 @@ const initialData = () => ({
   lastEvent: null as CompletionEvent | null,
 });
 
+/**
+ * Credits the running focus time since `splitFrom` to the task that was active
+ * during it, so switching tasks mid-session shares the minutes out fairly.
+ */
+const flushSplit = (timer: TimerState, activeTaskId: string | null, now = Date.now()): TimerState => {
+  if (timer.mode !== 'focus' || !timer.running || !timer.splitFrom) return timer;
+  const until = Math.min(now, timer.endsAt ?? now);
+  const key = activeTaskId ?? '';
+  const split = { ...(timer.split ?? {}) };
+  split[key] = (split[key] ?? 0) + Math.max(0, until - timer.splitFrom);
+  return { ...timer, split, splitFrom: until };
+};
+
+/** Shares `minutes` out by time spent (largest remainder, so the parts add up to the whole). */
+const shareMinutes = (split: Record<string, number>, minutes: number) => {
+  const entries = Object.entries(split).filter(([, ms]) => ms > 0);
+  const total = entries.reduce((n, [, ms]) => n + ms, 0);
+  if (!total) return {} as Record<string, number>;
+  const parts = entries.map(([id, ms]) => {
+    const exact = (minutes * ms) / total;
+    return { id, whole: Math.floor(exact), rest: exact - Math.floor(exact) };
+  });
+  let left = minutes - parts.reduce((n, p) => n + p.whole, 0);
+  [...parts].sort((a, b) => b.rest - a.rest).forEach((p) => left-- > 0 && p.whole++);
+  return Object.fromEntries(parts.map((p) => [p.id, p.whole]));
+};
+
 const mapTask = (tasks: Task[], id: string, fn: (t: Task) => Task) => tasks.map((t) => (t.id === id ? fn(t) : t));
 
 export const useWorkspace = create<WorkspaceState>()(
@@ -217,14 +250,23 @@ export const useWorkspace = create<WorkspaceState>()(
       ...initialData(),
 
       start: () =>
-        set(({ timer }) => (timer.running ? {} : { timer: { ...timer, running: true, endsAt: Date.now() + timer.remaining } })),
-      pause: () => set(({ timer }) => ({ timer: { ...timer, running: false, endsAt: null, remaining: remainingMs(timer) } })),
+        set(({ timer }) => {
+          if (timer.running) return {};
+          const now = Date.now();
+          return { timer: { ...timer, running: true, endsAt: now + timer.remaining, splitFrom: now } };
+        }),
+      pause: () =>
+        set(({ timer, activeTaskId }) => ({
+          timer: { ...flushSplit(timer, activeTaskId), running: false, endsAt: null, remaining: remainingMs(timer), splitFrom: null },
+        })),
       reset: () =>
         set(({ timer, settings }) => ({
-          timer: { ...timer, running: false, endsAt: null, remaining: minutesFor(settings, timer.mode) * 60_000 },
+          timer: { ...timer, running: false, endsAt: null, remaining: minutesFor(settings, timer.mode) * 60_000, split: {}, splitFrom: null },
         })),
       setMode: (mode) =>
-        set(({ timer, settings }) => ({ timer: { ...timer, mode, running: false, endsAt: null, remaining: minutesFor(settings, mode) * 60_000 } })),
+        set(({ timer, settings }) => ({
+          timer: { ...timer, mode, running: false, endsAt: null, remaining: minutesFor(settings, mode) * 60_000, split: {}, splitFrom: null },
+        })),
       skip: () => {
         const { timer, settings } = get();
         // Skipping never pays out; it just moves to the next step of the cycle.
@@ -254,6 +296,7 @@ export const useWorkspace = create<WorkspaceState>()(
         let scenery: Landscape[] = [];
         let next: Mode = 'focus';
         let cycle = timer.cycle;
+        let split: CompletionEvent['split'];
 
         if (timer.mode === 'focus') {
           const minutes = settings.focus;
@@ -263,12 +306,18 @@ export const useWorkspace = create<WorkspaceState>()(
           unlocked = residentsInOrder(s.residentOrder).filter((r) => r.unlockAt > before && r.unlockAt <= after);
           scenery = LANDSCAPES.filter((l) => l.unlockAt > before && l.unlockAt <= after);
           const day = todayKey();
+          // Share the minutes between every task worked on this session, by time spent.
+          const spent = flushSplit(timer, s.activeTaskId, timer.endsAt).split ?? {};
+          const shares = Object.keys(spent).length ? shareMinutes(spent, minutes) : s.activeTaskId ? { [s.activeTaskId]: minutes } : {};
+          const tasks = s.tasks.map((t) => (shares[t.id] ? { ...t, focusMinutes: t.focusMinutes + shares[t.id] } : t));
+          const credited = s.tasks.filter((t) => shares[t.id]).map((t) => ({ title: t.title, minutes: shares[t.id] }));
+          if (credited.length > 1) split = credited;
           Object.assign(patch, {
             coins: s.coins + coins,
             totalFocusMinutes: after,
             sessionsCompleted: s.sessionsCompleted + 1,
             history: { ...s.history, [day]: (s.history[day] ?? 0) + minutes },
-            tasks: s.activeTaskId ? mapTask(s.tasks, s.activeTaskId, (t) => ({ ...t, focusMinutes: t.focusMinutes + minutes })) : s.tasks,
+            tasks,
           });
           cycle += 1;
           next = cycle % settings.longEvery === 0 ? 'long' : 'short';
@@ -281,8 +330,10 @@ export const useWorkspace = create<WorkspaceState>()(
           running: settings.autoStart,
           endsAt: settings.autoStart ? Date.now() + remaining : null,
           remaining,
+          split: {},
+          splitFrom: settings.autoStart ? Date.now() : null,
         };
-        patch.lastEvent = { id: Date.now(), kind: timer.mode === 'focus' ? 'focus' : 'break', coins, unlocked, scenery };
+        patch.lastEvent = { id: Date.now(), kind: timer.mode === 'focus' ? 'focus' : 'break', coins, unlocked, scenery, split };
         set(patch);
       },
 
@@ -316,13 +367,20 @@ export const useWorkspace = create<WorkspaceState>()(
             tasksCompleted: s.tasksCompleted + (pay ? 1 : 0),
             taskPayouts: pay ? { day, count: paidToday + 1 } : s.taskPayouts,
             activeTaskId: completing && s.activeTaskId === id ? null : s.activeTaskId,
+            timer: completing && s.activeTaskId === id ? flushSplit(s.timer, id) : s.timer,
             lastEvent: due ? { id: now, kind: 'task', coins: pay ? TASK_REWARD : 0, unlocked: [], scenery: [], note } : s.lastEvent,
           };
         }),
-      deleteTask: (id) => set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id), activeTaskId: s.activeTaskId === id ? null : s.activeTaskId })),
+      deleteTask: (id) =>
+        set((s) => ({
+          tasks: s.tasks.filter((t) => t.id !== id),
+          activeTaskId: s.activeTaskId === id ? null : s.activeTaskId,
+          timer: s.activeTaskId === id ? flushSplit(s.timer, id) : s.timer,
+        })),
       renameTask: (id, title) => title.trim() && set((s) => ({ tasks: mapTask(s.tasks, id, (t) => ({ ...t, title: title.trim() })) })),
       setPriority: (id, priority) => set((s) => ({ tasks: mapTask(s.tasks, id, (t) => ({ ...t, priority })) })),
-      setActiveTask: (activeTaskId) => set({ activeTaskId }),
+      setActiveTask: (activeTaskId) =>
+        set((s) => (activeTaskId === s.activeTaskId ? {} : { activeTaskId, timer: flushSplit(s.timer, s.activeTaskId) })),
       addSubtask: (taskId, title) =>
         title.trim() &&
         set((s) => ({
