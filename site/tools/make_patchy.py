@@ -1,8 +1,9 @@
 """Animate Patchy the panda from his single 32x32 drawing (tools/patchy.png).
 
-Patchy is a panda whose fur is printed all over with noughts and crosses,
-cyan X's and coral O's, darker where they cross his black fur. The print is
-part of the drawing, so it moves with each part. He faces the viewer. Parts are split by position:
+Patchy is a panda whose fur is scattered with noughts and crosses, cyan X's
+and coral O's, darker where they cross his black fur. They're part of the
+drawing, so they move with each part. He faces the viewer. Parts are split
+by position:
 
   ears   the two round ears at the top corners
   arms   left / right, from below the shoulder band down to the paws
