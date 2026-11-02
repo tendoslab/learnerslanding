@@ -80,6 +80,8 @@ export const RESIDENTS: Resident[] = [
     idle: { src: withBase('/sprites/critters/psykoh-idle.png'), frames: 8, w: 40, h: 32, fps: 4 },
     speed: 1.8, body: 20, box: [0, 0, 39, 32],
   }) },
+  // Also unlocked from the start for a preview; give him a real unlockAt once he's settled in.
+  { id: 'patchy', name: 'Patchy', species: 'Panda', unlockAt: 0, sprite: critter('patchy', 6, 8, 32, { facing: 'front', speed: 2, foot: 2, body: 16, box: [6, 3, 20, 27] }) },
   { id: 'cat', name: 'Mochi', species: 'Cat', unlockAt: 25, sprite: animal('cat') },
   { id: 'bunny', name: 'Clover', species: 'Bunny', unlockAt: 75, sprite: animal('bunny') },
   { id: 'penguin', name: 'Pip', species: 'Penguin', unlockAt: 150, sprite: critter('penguin', 6, 5, 18, { scale: 1.1, speed: 1.8, body: 14, foot: 1, box: [1, 1, 16, 16] }) },
