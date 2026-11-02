@@ -13,10 +13,11 @@ He's put together from layers so each can move on its own:
   walk (48 frames, two rows: walking left, walking right): a confident walk
         in three-quarter view, like Twiggy and Orange: both eyes still show
         but sit toward where he's going, the number slides forward and his
-        cleats point ahead. Each foot lands reaching forward, slides back
-        under him, pushes off and swings through (six frames a stride), the
-        body and head dip together as a foot takes his weight, the free arm
-        swings against the far leg and the ball arm stays locked. Once a loop
+        cleats point ahead. Stepped like Twiggy: six frames a step (feet
+        together, a little bounce with both feet tucked, touch down, feet
+        apart, the stride opening wide, landing), legs taking turns to lead,
+        body and head moving together, the free arm swinging against the
+        far leg and the ball arm locked. Once a loop
         he glances at you, hitches the ball up and blinks.
   idle (32 frames): mostly breaths, with his signature smug brow raise,
         a look left and right (reading the field), a blink, a stem wiggle and,
@@ -237,17 +238,21 @@ Q_LEG_FAR = [
     "OOOOOOO",
 ]
 Q_LEG_X = (11, 16)  # near, far, standing
-# One stride cycle, six frames (three per step): each leg's (forward
-# offset, lift). A foot lands reaching forward, slides back under him as he
-# rolls over it, pushes off, swings through the passing position and reaches
-# forward again, so a foot is always travelling. The far leg runs three
-# frames behind the near one.
-Q_LEG_CYCLE = [(2, 0), (1, 0), (0, 0), (-1, 1), (0, 2), (1, 1)]
-# Body (and head, together) dips a pixel as each foot takes his weight.
-Q_BOB = [1, 0, 0, 1, 0, 0]
-# The free (far) arm swings against the far leg.
-Q_SWING = [1, 1, 0, -1, -1, 0]
-
+# One step, six frames, timed like Twiggy's: low with the feet together
+# (passing), a little bounce up with both feet tucked, the lead foot
+# touches down, low again with the feet a little apart, up as the stride
+# opens wide, and the lead foot lands with the back foot still lifted.
+# Each entry: (body dy, lead leg (forward, lift), trail leg (forward, lift),
+# free arm swing). The next step swaps which leg leads, so a full stride is
+# twelve frames.
+Q_STEP = [
+    (0, (0, 0), (0, 0), 0),
+    (-1, (0, 1), (0, 1), 0),
+    (-1, (1, 0), (-1, 1), 1),
+    (0, (1, 0), (-1, 0), 1),
+    (-1, (2, 1), (-2, 1), 1),
+    (-1, (2, 0), (-2, 1), 1),
+]
 
 def head_quarter(eyes='open', look='ahead', tip=0):
     """The lemon turned three-quarters toward the right."""
@@ -297,19 +302,27 @@ def walk_frame(layers, i, ball='tuck', mirror=False, **face):
     the number still reading 10)."""
     torso, arm = layers
     img = Image.new('RGBA', (S, S), CLEAR)
-    dy = Q_BOB[i % 6]
+    dy, lead, trail, swing = Q_STEP[i % 6]
+    # The near leg leads the first step of each stride, the far leg the next;
+    # the free (far) arm swings against the far leg.
+    near_leads = i % 12 < 6
+    near, far = (lead, trail) if near_leads else (trail, lead)
+    swing = swing if near_leads else -swing
 
     def put(layer, dx, ddy):
         for (x, y), c in layer.items():
             if 0 <= x + dx < S and 0 <= y + ddy < S:
                 img.putpixel((x + dx, y + ddy), c)
 
-    near, far = Q_LEG_CYCLE[i % 6], Q_LEG_CYCLE[(i + 3) % 6]
+    # Legs hang from the shorts (which ride up with the body) down to the
+    # foot (which stays on the ground unless lifted), stretching a pixel when
+    # he bounces up with a foot planted.
     for art, x0, (fwd, lift) in ((Q_LEG_FAR, Q_LEG_X[1], far), (Q_LEG_NEAR, Q_LEG_X[0], near)):
-        put(grid(art, top=LEG_TOP, left=x0 + fwd), 0, -lift)
-    put(torso, 0, 0)
+        leg = grid(art, top=LEG_TOP, left=x0 + fwd)
+        put(leg, 0, dy)
+        put(leg, 0, -lift)
     put(torso, 0, dy)
-    put(arm, Q_SWING[i % 6], dy - (Q_SWING[i % 6] > 0))
+    put(arm, swing, dy - (swing > 0))
     if ball in ('tuck', 'hitch'):
         put(grid(BALL_UP), TUCK_AT[0], TUCK_AT[1] + dy - (ball == 'hitch'))
     put(head_quarter(**face), 0, dy)
@@ -336,7 +349,7 @@ def strip(*rows):
 def main():
     L = body_layers()
 
-    # The walk: eight stride cycles (six seconds at 8fps) in the
+    # The walk: four twelve-frame strides (six seconds at 8fps) in the
     # three-quarter view. Once a loop he glances at you, blinks and hitches
     # the ball up.
     Q = quarter_layers()
